@@ -24,6 +24,7 @@ function App() {
   const [filterLocation, setFilterLocation] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
   const [offerCounts, setOfferCounts] = useState({})
+  const [page, setPage] = useState('home')
 
   const categories = ['All', 'Electronics', 'Sport & Outdoors', 'Vehicles', 'Furniture', 'Clothing', 'Tools', 'Music', 'Other']
   const locations = ['All', 'Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga', 'Dunedin', 'Other']
@@ -77,6 +78,7 @@ function App() {
 
   async function handleLogout() {
     await supabase.auth.signOut()
+    setPage('home')
   }
 
   async function postWant() {
@@ -98,6 +100,7 @@ function App() {
   async function deleteWant(wantId) {
     await supabase.from('wants').delete().eq('id', wantId)
     setWants(wants.filter(w => w.id !== wantId))
+    if (selectedWant?.id === wantId) setSelectedWant(null)
   }
 
   async function submitOffer() {
@@ -120,6 +123,7 @@ function App() {
     setSelectedWant(want)
     setOffers([])
     fetchOffers(want.id)
+    setPage('want')
   }
 
   const filteredWants = wants.filter(w => {
@@ -128,16 +132,28 @@ function App() {
     return locMatch && catMatch
   })
 
-  if (selectedWant) {
+  const myWants = wants.filter(w => w.user_id === user?.id)
+
+  const Header = () => (
+    <div style={{ background: '#fff', borderBottom: '1px solid #eee', padding: '0 20px', position: 'sticky', top: 0, zIndex: 10 }}>
+      <div style={{ maxWidth: '680px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span onClick={() => { setPage('home'); setSelectedWant(null) }} style={{ fontSize: '20px', fontWeight: '700', cursor: 'pointer' }}>WantIt</span>
+        {user ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button onClick={() => setPage('mylistings')} style={{ fontSize: '13px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #ddd', background: page === 'mylistings' ? '#111' : 'transparent', color: page === 'mylistings' ? '#fff' : '#111', cursor: 'pointer' }}>My listings</button>
+            <button onClick={handleLogout} style={{ fontSize: '13px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #ddd', background: 'transparent', cursor: 'pointer' }}>Log out</button>
+          </div>
+        ) : (
+          <span style={{ fontSize: '13px', color: '#888' }}>NZ reverse marketplace</span>
+        )}
+      </div>
+    </div>
+  )
+
+  if (page === 'want' && selectedWant) {
     return (
       <div style={{ minHeight: '100vh', background: '#f9f9f7', fontFamily: 'sans-serif' }}>
-        <div style={{ background: '#fff', borderBottom: '1px solid #eee', padding: '0 20px' }}>
-          <div style={{ maxWidth: '680px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '20px', fontWeight: '700' }}>WantIt</span>
-            <button onClick={() => setSelectedWant(null)} style={{ fontSize: '13px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #ddd', background: 'transparent', cursor: 'pointer' }}>Back to listings</button>
-          </div>
-        </div>
-
+        <Header />
         <div style={{ maxWidth: '680px', margin: '0 auto', padding: '32px 20px' }}>
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
@@ -151,7 +167,7 @@ function App() {
               {selectedWant.category && <span>Category: {selectedWant.category}</span>}
             </div>
             {user && user.id === selectedWant.user_id && (
-              <button onClick={() => { deleteWant(selectedWant.id); setSelectedWant(null) }} style={{ marginTop: '16px', fontSize: '13px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #fca5a5', color: '#dc2626', background: '#fef2f2', cursor: 'pointer' }}>
+              <button onClick={() => { deleteWant(selectedWant.id); setPage('home') }} style={{ marginTop: '16px', fontSize: '13px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #fca5a5', color: '#dc2626', background: '#fef2f2', cursor: 'pointer' }}>
                 Delete this listing
               </button>
             )}
@@ -189,25 +205,56 @@ function App() {
     )
   }
 
-  return (
-    <div style={{ minHeight: '100vh', background: '#f9f9f7', fontFamily: 'sans-serif' }}>
-      <div style={{ background: '#fff', borderBottom: '1px solid #eee', padding: '0 20px' }}>
-        <div style={{ maxWidth: '680px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '20px', fontWeight: '700' }}>WantIt</span>
-          {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '13px', color: '#888' }}>{user.email}</span>
-              <button onClick={handleLogout} style={{ fontSize: '13px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #ddd', background: 'transparent', cursor: 'pointer' }}>Log out</button>
+  if (page === 'mylistings') {
+    return (
+      <div style={{ minHeight: '100vh', background: '#f9f9f7', fontFamily: 'sans-serif' }}>
+        <Header />
+        <div style={{ maxWidth: '680px', margin: '0 auto', padding: '32px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>My listings</h2>
+            <span style={{ fontSize: '13px', color: '#888' }}>{myWants.length} listing{myWants.length !== 1 ? 's' : ''}</span>
+          </div>
+
+          {myWants.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '60px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #eee' }}>
+              <p style={{ fontSize: '15px', margin: '0 0 8px', color: '#555' }}>No listings yet</p>
+              <p style={{ fontSize: '13px', margin: '0 0 20px', color: '#999' }}>Post your first want from the home page</p>
+              <button onClick={() => setPage('home')} style={{ background: '#111', color: '#fff', padding: '10px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '14px' }}>Go to home</button>
             </div>
-          ) : (
-            <span style={{ fontSize: '13px', color: '#888' }}>NZ reverse marketplace</span>
           )}
+
+          {myWants.map(want => (
+            <div key={want.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: '14px', padding: '18px 20px', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '600', flex: 1, paddingRight: '12px' }}>{want.title}</h3>
+                <span style={{ background: offerCounts[want.id] ? '#f0fdf4' : '#f5f5f5', color: offerCounts[want.id] ? '#16a34a' : '#888', fontSize: '11px', padding: '3px 10px', borderRadius: '20px', fontWeight: '600' }}>
+                  {offerCounts[want.id] ? `${offerCounts[want.id]} offer${offerCounts[want.id] !== 1 ? 's' : ''}` : 'No offers'}
+                </span>
+              </div>
+              {want.description && <p style={{ margin: '0 0 10px', fontSize: '13px', color: '#555' }}>{want.description}</p>}
+              <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#888', marginBottom: '12px' }}>
+                {want.budget && <span>Budget: {want.budget}</span>}
+                {want.location && <span>{want.location}</span>}
+                {want.category && <span>{want.category}</span>}
+                <span style={{ marginLeft: 'auto' }}>{new Date(want.created_at).toLocaleDateString('en-NZ')}</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={() => openWant(want)} style={{ fontSize: '13px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #ddd', background: 'transparent', cursor: 'pointer' }}>View offers →</button>
+                <button onClick={() => deleteWant(want.id)} style={{ fontSize: '13px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #fca5a5', color: '#dc2626', background: '#fef2f2', cursor: 'pointer' }}>Delete</button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
+    )
+  }
 
+  return (
+    <div style={{ minHeight: '100vh', background: '#f9f9f7', fontFamily: 'sans-serif' }}>
+      <Header />
       <div style={{ maxWidth: '680px', margin: '0 auto', padding: '32px 20px' }}>
         {!user ? (
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '16px', padding: '32px', marginBottom: '32px', maxWidth: '400px', margin: '0 auto' }}>
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '16px', padding: '32px', maxWidth: '400px', margin: '0 auto' }}>
             <h2 style={{ fontSize: '18px', fontWeight: '700', margin: '0 0 6px' }}>{authMode === 'login' ? 'Welcome back' : 'Create account'}</h2>
             <p style={{ fontSize: '13px', color: '#888', margin: '0 0 24px' }}>{authMode === 'login' ? 'Log in to post and manage your wants' : 'Sign up to start posting wants'}</p>
             <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} type="email" style={{ width: '100%', padding: '11px 14px', marginBottom: '10px', borderRadius: '10px', border: '1px solid #e5e5e5', boxSizing: 'border-box', fontSize: '14px' }} />
