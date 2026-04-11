@@ -4,8 +4,8 @@ import { supabase } from './supabase'
 const btn = { fontSize: '13px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #ccc', background: '#f5f5f5', color: '#111', cursor: 'pointer' }
 const btnDark = { fontSize: '13px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #111', background: '#111', color: '#fff', cursor: 'pointer' }
 const btnRed = { fontSize: '13px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #fca5a5', color: '#dc2626', background: '#fef2f2', cursor: 'pointer' }
-const input = { width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1px solid #e5e5e5', boxSizing: 'border-box', fontSize: '14px', color: '#111', background: '#fff' }
-const select = { padding: '11px 14px', borderRadius: '10px', border: '1px solid #e5e5e5', boxSizing: 'border-box', fontSize: '14px', color: '#111', background: '#fff' }
+const inp = { width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1px solid #e5e5e5', boxSizing: 'border-box', fontSize: '14px', color: '#111', background: '#fff' }
+const sel = { padding: '11px 14px', borderRadius: '10px', border: '1px solid #e5e5e5', boxSizing: 'border-box', fontSize: '14px', color: '#111', background: '#fff' }
 
 function App() {
   const [wants, setWants] = useState([])
@@ -32,6 +32,7 @@ function App() {
   const [offerCounts, setOfferCounts] = useState({})
   const [page, setPage] = useState('home')
   const [search, setSearch] = useState('')
+  const [seenOffers, setSeenOffers] = useState(() => JSON.parse(localStorage.getItem('seenOffers') || '{}'))
 
   const categories = ['All', 'Electronics', 'Sport & Outdoors', 'Vehicles', 'Furniture', 'Clothing', 'Tools', 'Music', 'Other']
   const locations = ['All', 'Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga', 'Dunedin', 'Other']
@@ -84,7 +85,7 @@ function App() {
   async function postWant() {
     if (!title || !user) return
     setPosting(true)
-    const { data } = await supabase.from('wants').insert([{ title, description, budget, location, category, user_id: user.id }]).select()
+    const { data } = await supabase.from('wants').insert([{ title, description, budget, location, category, user_id: user.id, user_email: user.email }]).select()
     if (data) { setWants([data[0], ...wants]); setOfferCounts({ ...offerCounts, [data[0].id]: 0 }) }
     setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory('')
     setPosting(false)
@@ -106,14 +107,23 @@ function App() {
     if (!offerMessage || !user) return
     setSubmittingOffer(true)
     await supabase.from('offers').insert([{ want_id: selectedWant.id, seller_email: user.email, price: offerPrice, message: offerMessage }])
-    setOfferPrice(''); setOfferMessage('')
+    setOfferPrice('')
+    setOfferMessage('')
     fetchOffers(selectedWant.id)
     setOfferCounts({ ...offerCounts, [selectedWant.id]: (offerCounts[selectedWant.id] || 0) + 1 })
     setSubmittingOffer(false)
   }
 
   function openWant(want) {
-    setSelectedWant(want); setOffers([]); fetchOffers(want.id); setPage('want')
+    setSelectedWant(want)
+    setOffers([])
+    fetchOffers(want.id)
+    setPage('want')
+    if (want.user_id === user?.id) {
+      const updated = { ...seenOffers, [want.id]: offerCounts[want.id] || 0 }
+      setSeenOffers(updated)
+      localStorage.setItem('seenOffers', JSON.stringify(updated))
+    }
   }
 
   const filteredWants = wants.filter(w => {
@@ -124,6 +134,11 @@ function App() {
   })
 
   const myWants = wants.filter(w => w.user_id === user?.id)
+  const myNewOffers = myWants.reduce((sum, w) => {
+    const current = offerCounts[w.id] || 0
+    const seen = seenOffers[w.id] || 0
+    return sum + Math.max(0, current - seen)
+  }, 0)
 
   const Header = () => (
     <div style={{ background: '#fff', borderBottom: '1px solid #eee', padding: '0 20px', position: 'sticky', top: 0, zIndex: 10 }}>
@@ -131,7 +146,12 @@ function App() {
         <span onClick={() => { setPage('home'); setSelectedWant(null) }} style={{ fontSize: '20px', fontWeight: '700', cursor: 'pointer', color: '#111' }}>WantIt</span>
         {user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button onClick={() => setPage('mylistings')} style={{ ...btn, ...(page === 'mylistings' ? { background: '#111', color: '#fff', borderColor: '#111' } : {}) }}>My listings</button>
+            <button onClick={() => setPage('mylistings')} style={{ ...btn, ...(page === 'mylistings' ? { background: '#111', color: '#fff', borderColor: '#111' } : {}), position: 'relative' }}>
+              My listings
+              {myNewOffers > 0 && (
+                <span style={{ position: 'absolute', top: '-6px', right: '-6px', background: '#dc2626', color: '#fff', fontSize: '10px', fontWeight: '700', width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{myNewOffers}</span>
+              )}
+            </button>
             <button onClick={handleLogout} style={btn}>Log out</button>
           </div>
         ) : (
@@ -172,8 +192,8 @@ function App() {
           {user && selectedWant.status !== 'filled' ? (
             <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
               <h3 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 16px', color: '#111' }}>Submit an offer</h3>
-              <input placeholder="Your price e.g. $250" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} style={{ ...input, marginBottom: '10px' }} />
-              <textarea placeholder="Describe what you have — condition, photos available, how to arrange pickup..." value={offerMessage} onChange={e => setOfferMessage(e.target.value)} rows={3} style={{ ...input, marginBottom: '16px', resize: 'vertical' }} />
+              <input placeholder="Your price e.g. $250" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} style={{ ...inp, marginBottom: '10px' }} />
+              <textarea placeholder="Describe what you have — condition, photos available, how to arrange pickup..." value={offerMessage} onChange={e => setOfferMessage(e.target.value)} rows={3} style={{ ...inp, marginBottom: '16px', resize: 'vertical' }} />
               <button onClick={submitOffer} disabled={!offerMessage || submittingOffer} style={{ ...btnDark, opacity: !offerMessage || submittingOffer ? 0.5 : 1 }}>
                 {submittingOffer ? 'Submitting...' : 'Submit offer'}
               </button>
@@ -256,8 +276,8 @@ function App() {
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '16px', padding: '32px', maxWidth: '400px', margin: '0 auto' }}>
             <h2 style={{ fontSize: '18px', fontWeight: '700', margin: '0 0 6px', color: '#111' }}>{authMode === 'login' ? 'Welcome back' : 'Create account'}</h2>
             <p style={{ fontSize: '13px', color: '#888', margin: '0 0 24px' }}>{authMode === 'login' ? 'Log in to post and manage your wants' : 'Sign up to start posting wants'}</p>
-            <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} type="email" style={{ ...input, marginBottom: '10px' }} />
-            <input placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} type="password" style={{ ...input, marginBottom: '16px' }} />
+            <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} type="email" style={{ ...inp, marginBottom: '10px' }} />
+            <input placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} type="password" style={{ ...inp, marginBottom: '16px' }} />
             {authError && <p style={{ fontSize: '13px', color: authError.includes('Check') ? '#16a34a' : '#dc2626', margin: '0 0 12px' }}>{authError}</p>}
             <button onClick={handleAuth} disabled={authLoading} style={{ ...btnDark, width: '100%', padding: '11px', marginBottom: '16px', fontSize: '14px' }}>
               {authLoading ? 'Please wait...' : authMode === 'login' ? 'Log in' : 'Sign up'}
@@ -272,16 +292,16 @@ function App() {
         ) : (
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '16px', padding: '24px', marginBottom: '32px' }}>
             <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 16px', color: '#111' }}>Post what you want</h2>
-            <input placeholder="What are you looking for? e.g. Road bike under $300" value={title} onChange={e => setTitle(e.target.value)} style={{ ...input, marginBottom: '10px' }} />
-            <input placeholder="More details (optional)" value={description} onChange={e => setDescription(e.target.value)} style={{ ...input, marginBottom: '10px' }} />
+            <input placeholder="What are you looking for? e.g. Road bike under $300" value={title} onChange={e => setTitle(e.target.value)} style={{ ...inp, marginBottom: '10px' }} />
+            <input placeholder="More details (optional)" value={description} onChange={e => setDescription(e.target.value)} style={{ ...inp, marginBottom: '10px' }} />
             <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-              <input placeholder="Max budget e.g. $300" value={budget} onChange={e => setBudget(e.target.value)} style={{ ...input, flex: 1 }} />
-              <select value={location} onChange={e => setLocation(e.target.value)} style={{ ...select, flex: 1 }}>
+              <input placeholder="Max budget e.g. $300" value={budget} onChange={e => setBudget(e.target.value)} style={{ ...inp, flex: 1 }} />
+              <select value={location} onChange={e => setLocation(e.target.value)} style={{ ...sel, flex: 1 }}>
                 <option value="">Location</option>
                 {locations.filter(l => l !== 'All').map(l => <option key={l}>{l}</option>)}
               </select>
             </div>
-            <select value={category} onChange={e => setCategory(e.target.value)} style={{ ...select, width: '100%', marginBottom: '16px' }}>
+            <select value={category} onChange={e => setCategory(e.target.value)} style={{ ...sel, width: '100%', marginBottom: '16px' }}>
               <option value="">Category (optional)</option>
               {categories.filter(c => c !== 'All').map(c => <option key={c}>{c}</option>)}
             </select>
@@ -291,14 +311,14 @@ function App() {
           </div>
         )}
 
-        <input placeholder="Search wants..." value={search} onChange={e => setSearch(e.target.value)} style={{ ...input, marginBottom: '12px' }} />
+        <input placeholder="Search wants..." value={search} onChange={e => setSearch(e.target.value)} style={{ ...inp, marginBottom: '12px' }} />
 
         <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
-          <select value={filterLocation} onChange={e => setFilterLocation(e.target.value)} style={{ ...select, flex: 1 }}>
+          <select value={filterLocation} onChange={e => setFilterLocation(e.target.value)} style={{ ...sel, flex: 1 }}>
             <option value="">All locations</option>
             {locations.map(l => <option key={l}>{l}</option>)}
           </select>
-          <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} style={{ ...select, flex: 1 }}>
+          <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} style={{ ...sel, flex: 1 }}>
             <option value="">All categories</option>
             {categories.map(c => <option key={c}>{c}</option>)}
           </select>
