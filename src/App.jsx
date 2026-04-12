@@ -143,7 +143,7 @@ function App() {
   const Header = () => (
     <div style={{ background: '#fff', borderBottom: '1px solid #eee', padding: '0 20px', position: 'sticky', top: 0, zIndex: 10 }}>
       <div style={{ maxWidth: '680px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span onClick={() => { setPage('home'); setSelectedWant(null) }} style={{ fontSize: '20px', fontWeight: '700', cursor: 'pointer', color: '#111' }}>Offr</span>
+        <span onClick={() => { setPage('home'); setSelectedWant(null) }} style={{ fontSize: '20px', fontWeight: '700', cursor: 'pointer', color: '#111', letterSpacing: '-0.5px' }}>Offr</span>
         {user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button onClick={() => setPage('mylistings')} style={{ ...btn, ...(page === 'mylistings' ? { background: '#111', color: '#fff', borderColor: '#111' } : {}), position: 'relative' }}>
@@ -200,11 +200,11 @@ function App() {
             </div>
           ) : !user ? (
             <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '16px', marginBottom: '24px', fontSize: '14px', color: '#92400e' }}>
-              Log in to submit an offer on this want
+              Log in to submit an offer on this listing
             </div>
           ) : selectedWant.status === 'filled' ? (
             <div style={{ background: '#f0f0f0', borderRadius: '12px', padding: '16px', marginBottom: '24px', fontSize: '14px', color: '#888' }}>
-              This want has been filled — no longer accepting offers
+              This listing has been filled — no longer accepting offers
             </div>
           ) : null}
 
@@ -237,7 +237,7 @@ function App() {
           {myWants.length === 0 && (
             <div style={{ textAlign: 'center', padding: '60px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #eee' }}>
               <p style={{ fontSize: '15px', margin: '0 0 8px', color: '#555' }}>No listings yet</p>
-              <p style={{ fontSize: '13px', margin: '0 0 20px', color: '#999' }}>Post your first want from the home page</p>
+              <p style={{ fontSize: '13px', margin: '0 0 20px', color: '#999' }}>Post your first listing from the home page</p>
               <button onClick={() => setPage('home')} style={btnDark}>Go to home</button>
             </div>
           )}
@@ -275,7 +275,7 @@ function App() {
         {!user ? (
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '16px', padding: '32px', maxWidth: '400px', margin: '0 auto' }}>
             <h2 style={{ fontSize: '18px', fontWeight: '700', margin: '0 0 6px', color: '#111' }}>{authMode === 'login' ? 'Welcome back' : 'Create account'}</h2>
-            <p style={{ fontSize: '13px', color: '#888', margin: '0 0 24px' }}>{authMode === 'login' ? 'Log in to post and manage your wants' : 'Sign up to start posting wants'}</p>
+            <p style={{ fontSize: '13px', color: '#888', margin: '0 0 24px' }}>{authMode === 'login' ? 'Log in to post and manage your listings' : 'Sign up to start posting'}</p>
             <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} type="email" style={{ ...inp, marginBottom: '10px' }} />
             <input placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} type="password" style={{ ...inp, marginBottom: '16px' }} />
             {authError && <p style={{ fontSize: '13px', color: authError.includes('Check') ? '#16a34a' : '#dc2626', margin: '0 0 12px' }}>{authError}</p>}
@@ -306,12 +306,12 @@ function App() {
               {categories.filter(c => c !== 'All').map(c => <option key={c}>{c}</option>)}
             </select>
             <button onClick={postWant} disabled={!title || posting} style={{ ...btnDark, opacity: !title || posting ? 0.5 : 1 }}>
-              {posting ? 'Posting...' : 'Post want'}
+              {posting ? 'Posting...' : 'Post it'}
             </button>
           </div>
         )}
 
-        <input placeholder="Search wants..." value={search} onChange={e => setSearch(e.target.value)} style={{ ...inp, marginBottom: '12px' }} />
+        <input placeholder="Search listings..." value={search} onChange={e => setSearch(e.target.value)} style={{ ...inp, marginBottom: '12px' }} />
 
         <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
           <select value={filterLocation} onChange={e => setFilterLocation(e.target.value)} style={{ ...sel, flex: 1 }}>
@@ -325,14 +325,14 @@ function App() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: '600', margin: 0, color: '#111' }}>Recent wants</h2>
+          <h2 style={{ fontSize: '15px', fontWeight: '600', margin: 0, color: '#111' }}>Recent listings</h2>
           {filteredWants.length > 0 && <span style={{ fontSize: '13px', color: '#888' }}>{filteredWants.length} listing{filteredWants.length !== 1 ? 's' : ''}</span>}
         </div>
 
         {loading && <p style={{ color: '#999', fontSize: '14px', textAlign: 'center', padding: '40px 0' }}>Loading...</p>}
         {!loading && filteredWants.length === 0 && (
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <p style={{ fontSize: '15px', margin: '0 0 4px', color: '#555' }}>No wants found</p>
+            <p style={{ fontSize: '15px', margin: '0 0 4px', color: '#555' }}>No listings found</p>
             <p style={{ fontSize: '13px', margin: 0, color: '#999' }}>Try changing your search or filters</p>
           </div>
         )}
