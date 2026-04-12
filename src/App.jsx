@@ -143,7 +143,7 @@ function App() {
   const Header = () => (
     <div style={{ background: '#fff', borderBottom: '1px solid #eee', padding: '0 20px', position: 'sticky', top: 0, zIndex: 10 }}>
       <div style={{ maxWidth: '680px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span onClick={() => { setPage('home'); setSelectedWant(null) }} style={{ fontSize: '20px', fontWeight: '700', cursor: 'pointer', color: '#111' }}>WantIt</span>
+        <span onClick={() => { setPage('home'); setSelectedWant(null) }} style={{ fontSize: '20px', fontWeight: '700', cursor: 'pointer', color: '#111' }}>Offr</span>
         {user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button onClick={() => setPage('mylistings')} style={{ ...btn, ...(page === 'mylistings' ? { background: '#111', color: '#fff', borderColor: '#111' } : {}), position: 'relative' }}>
@@ -155,7 +155,7 @@ function App() {
             <button onClick={handleLogout} style={btn}>Log out</button>
           </div>
         ) : (
-          <span style={{ fontSize: '13px', color: '#888' }}>NZ reverse marketplace</span>
+          <span style={{ fontSize: '13px', color: '#888' }}>See it. Got it. Offr it.</span>
         )}
       </div>
     </div>
@@ -291,8 +291,8 @@ function App() {
           </div>
         ) : (
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '16px', padding: '24px', marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 16px', color: '#111' }}>Post what you want</h2>
-            <input placeholder="What are you looking for? e.g. Road bike under $300" value={title} onChange={e => setTitle(e.target.value)} style={{ ...inp, marginBottom: '10px' }} />
+            <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 16px', color: '#111' }}>Post what you're after</h2>
+            <input placeholder="What are you after? e.g. Road bike under $300" value={title} onChange={e => setTitle(e.target.value)} style={{ ...inp, marginBottom: '10px' }} />
             <input placeholder="More details (optional)" value={description} onChange={e => setDescription(e.target.value)} style={{ ...inp, marginBottom: '10px' }} />
             <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
               <input placeholder="Max budget e.g. $300" value={budget} onChange={e => setBudget(e.target.value)} style={{ ...inp, flex: 1 }} />
