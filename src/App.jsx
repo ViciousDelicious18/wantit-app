@@ -1,11 +1,116 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
 
-const inp = { width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1px solid #e5e5e5', boxSizing: 'border-box', fontSize: '14px', color: '#111', background: '#fff' }
-const sel = { padding: '11px 14px', borderRadius: '10px', border: '1px solid #e5e5e5', boxSizing: 'border-box', fontSize: '14px', color: '#111', background: '#fff' }
-const btn = { fontSize: '13px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #ccc', background: '#f5f5f5', color: '#111', cursor: 'pointer' }
-const btnDark = { fontSize: '13px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #111', background: '#111', color: '#fff', cursor: 'pointer' }
-const btnRed = { fontSize: '13px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #fca5a5', color: '#dc2626', background: '#fef2f2', cursor: 'pointer' }
+const theme = {
+  bg: '#FAFAF8',
+  white: '#FFFFFF',
+  ink: '#111110',
+  inkLight: '#6B6B68',
+  inkFaint: '#A8A8A4',
+  border: '#E8E8E4',
+  borderHover: '#C8C8C4',
+  green: '#16A34A',
+  greenBg: '#F0FDF4',
+  greenBorder: '#BBF7D0',
+  red: '#DC2626',
+  redBg: '#FEF2F2',
+  redBorder: '#FECACA',
+  amber: '#D97706',
+  amberBg: '#FFFBEB',
+  amberBorder: '#FDE68A',
+}
+
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+  body { background: ${theme.bg}; font-family: 'DM Sans', sans-serif; color: ${theme.ink}; }
+
+  ::placeholder { color: ${theme.inkFaint}; }
+
+  input, textarea, select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1.5px solid ${theme.border};
+    background: ${theme.white};
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: ${theme.ink};
+    outline: none;
+    transition: border-color 0.15s ease;
+    appearance: none;
+  }
+  input:focus, textarea:focus, select:focus { border-color: ${theme.ink}; }
+
+  button { font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s ease; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 9px 16px; border-radius: 10px; font-size: 13px; font-weight: 500;
+    border: 1.5px solid ${theme.border}; background: ${theme.white}; color: ${theme.ink};
+  }
+  .btn:hover { border-color: ${theme.borderHover}; background: ${theme.bg}; }
+
+  .btn-dark {
+    background: ${theme.ink}; color: ${theme.white}; border: 1.5px solid ${theme.ink};
+  }
+  .btn-dark:hover { background: #2a2a28; border-color: #2a2a28; }
+
+  .btn-green {
+    background: ${theme.greenBg}; color: ${theme.green}; border: 1.5px solid ${theme.greenBorder};
+  }
+  .btn-green:hover { background: #dcfce7; }
+
+  .btn-red {
+    background: ${theme.redBg}; color: ${theme.red}; border: 1.5px solid ${theme.redBorder};
+  }
+  .btn-red:hover { background: #fee2e2; }
+
+  .card {
+    background: ${theme.white};
+    border: 1.5px solid ${theme.border};
+    border-radius: 16px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .card-hover:hover {
+    border-color: ${theme.borderHover};
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    cursor: pointer;
+  }
+
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
+  }
+  .badge-want { background: ${theme.greenBg}; color: ${theme.green}; }
+  .badge-filled { background: #F5F5F3; color: ${theme.inkFaint}; }
+
+  .tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; color: ${theme.inkLight};
+  }
+
+  .divider { height: 1px; background: ${theme.border}; }
+
+  .nav-btn {
+    flex: 1; padding: 10px 0; background: none; border: none;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  .nav-label { font-size: 10px; font-weight: 500; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.3s ease forwards; }
+
+  .stagger-1 { animation-delay: 0.05s; opacity: 0; }
+  .stagger-2 { animation-delay: 0.1s; opacity: 0; }
+  .stagger-3 { animation-delay: 0.15s; opacity: 0; }
+`
 
 function App() {
   const [wants, setWants] = useState([])
@@ -141,17 +246,36 @@ function App() {
     return sum + Math.max(0, current - seen)
   }, 0)
 
+  const pageStyle = {
+    minHeight: '100vh',
+    background: theme.bg,
+    fontFamily: "'DM Sans', sans-serif",
+    paddingBottom: user ? '72px' : '0',
+  }
+
+  const inner = { maxWidth: '640px', margin: '0 auto', padding: '20px 16px' }
+
   const Header = () => (
-    <div style={{ background: '#fff', borderBottom: '1px solid #eee', padding: '0 16px', position: 'sticky', top: 0, zIndex: 10 }}>
-      <div style={{ maxWidth: '680px', margin: '0 auto', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span onClick={() => { setPage('home'); setSelectedWant(null) }} style={{ fontSize: '22px', fontWeight: '800', cursor: 'pointer', color: '#111', letterSpacing: '-1px' }}>Offr</span>
-        {!user && <span style={{ fontSize: '13px', color: '#888' }}>See it. Got it. Offr it.</span>}
-        {user && page === 'want' && (
-          <button onClick={() => setPage('home')} style={{ ...btn, fontSize: '13px' }}>← Back</button>
-        )}
-        {user && page !== 'want' && (
-          <button onClick={handleLogout} style={{ ...btn, fontSize: '12px' }}>Log out</button>
-        )}
+    <div style={{ background: 'rgba(250,250,248,0.85)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${theme.border}`, padding: '0 16px', position: 'sticky', top: 0, zIndex: 10 }}>
+      <div style={{ maxWidth: '640px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span
+          onClick={() => { setPage('home'); setSelectedWant(null) }}
+          style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', cursor: 'pointer', color: theme.ink, letterSpacing: '-0.5px', fontStyle: 'italic' }}
+        >
+          Offr
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {!user && <span style={{ fontSize: '13px', color: theme.inkFaint, letterSpacing: '0.01em' }}>See it. Want it. Offr it.</span>}
+          {user && page === 'want' && (
+            <button className="btn" onClick={() => setPage('home')} style={{ gap: '6px' }}>
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+              Back
+            </button>
+          )}
+          {user && page !== 'want' && (
+            <button className="btn" onClick={handleLogout} style={{ fontSize: '12px' }}>Log out</button>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -159,86 +283,139 @@ function App() {
   const BottomNav = () => {
     if (!user) return null
     return (
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#fff', borderTop: '1px solid #eee', display: 'flex', zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <button onClick={() => { setPage('home'); setSelectedWant(null) }} style={{ flex: 1, padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-          <svg width="22" height="22" fill="none" stroke={page === 'home' || page === 'want' ? '#111' : '#aaa'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          <span style={{ fontSize: '10px', color: page === 'home' || page === 'want' ? '#111' : '#aaa', fontWeight: page === 'home' || page === 'want' ? '600' : '400' }}>Home</span>
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(250,250,248,0.92)', backdropFilter: 'blur(16px)', borderTop: `1px solid ${theme.border}`, display: 'flex', zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <button className="nav-btn" onClick={() => { setPage('home'); setSelectedWant(null) }}>
+          <svg width="20" height="20" fill="none" stroke={page === 'home' || page === 'want' ? theme.ink : theme.inkFaint} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span className="nav-label" style={{ color: page === 'home' || page === 'want' ? theme.ink : theme.inkFaint }}>Browse</span>
         </button>
-        <button onClick={() => setPage('post')} style={{ flex: 1, padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-          <div style={{ width: '36px', height: '36px', background: '#111', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '-18px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+        <button className="nav-btn" onClick={() => setPage('post')} style={{ position: 'relative' }}>
+          <div style={{ width: '40px', height: '40px', background: theme.ink, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '-20px', boxShadow: '0 4px 16px rgba(0,0,0,0.25)' }}>
             <svg width="18" height="18" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
-          <span style={{ fontSize: '10px', color: page === 'post' ? '#111' : '#aaa', fontWeight: page === 'post' ? '600' : '400' }}>Post</span>
+          <span className="nav-label" style={{ color: page === 'post' ? theme.ink : theme.inkFaint }}>Post</span>
         </button>
-        <button onClick={() => setPage('mylistings')} style={{ flex: 1, padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', position: 'relative' }}>
-          <svg width="22" height="22" fill="none" stroke={page === 'mylistings' ? '#111' : '#aaa'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          {myNewOffers > 0 && <span style={{ position: 'absolute', top: '8px', right: 'calc(50% - 18px)', background: '#dc2626', color: '#fff', fontSize: '9px', fontWeight: '700', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{myNewOffers}</span>}
-          <span style={{ fontSize: '10px', color: page === 'mylistings' ? '#111' : '#aaa', fontWeight: page === 'mylistings' ? '600' : '400' }}>Mine</span>
+        <button className="nav-btn" onClick={() => setPage('mylistings')} style={{ position: 'relative' }}>
+          <svg width="20" height="20" fill="none" stroke={page === 'mylistings' ? theme.ink : theme.inkFaint} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          {myNewOffers > 0 && (
+            <span style={{ position: 'absolute', top: '8px', right: 'calc(50% - 20px)', background: theme.red, color: '#fff', fontSize: '9px', fontWeight: '700', minWidth: '16px', height: '16px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{myNewOffers}</span>
+          )}
+          <span className="nav-label" style={{ color: page === 'mylistings' ? theme.ink : theme.inkFaint }}>Mine</span>
         </button>
       </div>
     )
   }
 
-  const pageStyle = { minHeight: '100vh', background: '#f9f9f7', fontFamily: 'sans-serif', paddingBottom: user ? '70px' : '0' }
-  const inner = { maxWidth: '680px', margin: '0 auto', padding: '16px' }
+  const WantCard = ({ want, index = 0 }) => (
+    <div
+      className={`card card-hover fade-up stagger-${Math.min(index + 1, 3)}`}
+      onClick={() => openWant(want)}
+      style={{ padding: '18px 20px', marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1 }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+        <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.ink, flex: 1, paddingRight: '14px', lineHeight: '1.4' }}>{want.title}</h3>
+        <span className={`badge ${want.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>
+          {want.status === 'filled' ? 'Filled' : 'Want'}
+        </span>
+      </div>
+      {want.description && (
+        <p style={{ fontSize: '13px', color: theme.inkLight, lineHeight: '1.55', marginBottom: '12px' }}>{want.description}</p>
+      )}
+      <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '14px' }}>
+        {want.budget && <span className="tag">💰 {want.budget}</span>}
+        {want.location && <span className="tag">📍 {want.location}</span>}
+        {want.category && <span className="tag">{want.category}</span>}
+      </div>
+      <div className="divider" style={{ marginBottom: '12px' }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '12px', color: offerCounts[want.id] ? theme.green : theme.inkFaint, fontWeight: offerCounts[want.id] ? '600' : '400' }}>
+          {offerCounts[want.id] ? `${offerCounts[want.id]} offer${offerCounts[want.id] !== 1 ? 's' : ''}` : 'No offers yet'}
+        </span>
+        <span style={{ fontSize: '12px', color: theme.inkFaint }}>{new Date(want.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
+      </div>
+    </div>
+  )
 
+  // WANT DETAIL PAGE
   if (page === 'want' && selectedWant) {
     return (
       <div style={pageStyle}>
+        <style>{styles}</style>
         <Header />
         <div style={inner}>
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-              <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#111', flex: 1, paddingRight: '12px' }}>{selectedWant.title}</h2>
-              <span style={{ background: selectedWant.status === 'filled' ? '#f0f0f0' : '#f0fdf4', color: selectedWant.status === 'filled' ? '#888' : '#16a34a', fontSize: '11px', padding: '3px 10px', borderRadius: '20px', fontWeight: '600', flexShrink: 0 }}>
-                {selectedWant.status === 'filled' ? 'FILLED' : 'WANT'}
+          <div className="card fade-up" style={{ padding: '24px', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: '700', color: theme.ink, flex: 1, paddingRight: '14px', lineHeight: '1.3', fontFamily: "'DM Serif Display', serif" }}>{selectedWant.title}</h2>
+              <span className={`badge ${selectedWant.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>
+                {selectedWant.status === 'filled' ? 'Filled' : 'Want'}
               </span>
             </div>
-            {selectedWant.description && <p style={{ margin: '0 0 12px', fontSize: '14px', color: '#555', lineHeight: '1.6' }}>{selectedWant.description}</p>}
-            <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: '#888', flexWrap: 'wrap' }}>
-              {selectedWant.budget && <span>💰 {selectedWant.budget}</span>}
-              {selectedWant.location && <span>📍 {selectedWant.location}</span>}
-              {selectedWant.category && <span>🏷 {selectedWant.category}</span>}
+            {selectedWant.description && (
+              <p style={{ fontSize: '14px', color: theme.inkLight, lineHeight: '1.65', marginBottom: '16px' }}>{selectedWant.description}</p>
+            )}
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: user && user.id === selectedWant.user_id ? '20px' : '0' }}>
+              {selectedWant.budget && <span className="tag" style={{ fontSize: '13px' }}>💰 {selectedWant.budget}</span>}
+              {selectedWant.location && <span className="tag" style={{ fontSize: '13px' }}>📍 {selectedWant.location}</span>}
+              {selectedWant.category && <span className="tag" style={{ fontSize: '13px' }}>🏷 {selectedWant.category}</span>}
             </div>
             {user && user.id === selectedWant.user_id && (
-              <div style={{ display: 'flex', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
-                {selectedWant.status !== 'filled' && (
-                  <button onClick={() => markFilled(selectedWant.id)} style={{ ...btn, borderColor: '#16a34a', color: '#16a34a', background: '#f0fdf4' }}>Mark as filled</button>
-                )}
-                <button onClick={() => { deleteWant(selectedWant.id); setPage('home') }} style={btnRed}>Delete</button>
-              </div>
+              <>
+                <div className="divider" style={{ margin: '20px 0 16px' }} />
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {selectedWant.status !== 'filled' && (
+                    <button className="btn btn-green" onClick={() => markFilled(selectedWant.id)}>
+                      ✓ Mark as filled
+                    </button>
+                  )}
+                  <button className="btn btn-red" onClick={() => { deleteWant(selectedWant.id); setPage('home') }}>Delete</button>
+                </div>
+              </>
             )}
           </div>
 
           {user && selectedWant.status !== 'filled' ? (
-            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 14px', color: '#111' }}>Submit an offer</h3>
-              <input placeholder="Your price e.g. $250" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} style={{ ...inp, marginBottom: '10px' }} />
-              <textarea placeholder="Describe what you have — condition, how to arrange pickup..." value={offerMessage} onChange={e => setOfferMessage(e.target.value)} rows={3} style={{ ...inp, marginBottom: '14px', resize: 'vertical' }} />
-              <button onClick={submitOffer} disabled={!offerMessage || submittingOffer} style={{ ...btnDark, width: '100%', padding: '12px', fontSize: '14px', opacity: !offerMessage || submittingOffer ? 0.5 : 1 }}>
-                {submittingOffer ? 'Submitting...' : 'Submit offer'}
+            <div className="card fade-up" style={{ padding: '24px', marginBottom: '14px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', color: theme.ink }}>Make an offer</h3>
+              <input placeholder="Your price — e.g. $250" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} style={{ marginBottom: '10px' }} />
+              <textarea placeholder="Describe what you have — condition, photos, pickup..." value={offerMessage} onChange={e => setOfferMessage(e.target.value)} rows={3} style={{ marginBottom: '14px', resize: 'vertical' }} />
+              <button
+                className="btn btn-dark"
+                onClick={submitOffer}
+                disabled={!offerMessage || submittingOffer}
+                style={{ width: '100%', padding: '13px', fontSize: '14px', opacity: !offerMessage || submittingOffer ? 0.45 : 1 }}
+              >
+                {submittingOffer ? 'Submitting…' : 'Submit offer'}
               </button>
             </div>
           ) : !user ? (
-            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '16px', marginBottom: '16px', fontSize: '14px', color: '#92400e' }}>
-              Log in to submit an offer
+            <div style={{ background: theme.amberBg, border: `1.5px solid ${theme.amberBorder}`, borderRadius: '12px', padding: '16px', marginBottom: '14px', fontSize: '13px', color: theme.amber }}>
+              Log in to submit an offer on this listing.
             </div>
           ) : selectedWant.status === 'filled' ? (
-            <div style={{ background: '#f5f5f5', borderRadius: '12px', padding: '16px', marginBottom: '16px', fontSize: '14px', color: '#888' }}>
+            <div style={{ background: '#F5F5F3', borderRadius: '12px', padding: '16px', marginBottom: '14px', fontSize: '13px', color: theme.inkFaint, textAlign: 'center' }}>
               This listing has been filled
             </div>
           ) : null}
 
-          <h3 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 12px', color: '#111' }}>Offers {offers.length > 0 && `(${offers.length})`}</h3>
-          {offers.length === 0 && <p style={{ fontSize: '14px', color: '#999', textAlign: 'center', padding: '24px 0' }}>No offers yet — be the first!</p>}
-          {offers.map(offer => (
-            <div key={offer.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: '14px', padding: '16px', marginBottom: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                <span style={{ fontSize: '13px', fontWeight: '600', color: '#555' }}>{offer.seller_email}</span>
-                {offer.price && <span style={{ fontSize: '15px', fontWeight: '700', color: '#111' }}>{offer.price}</span>}
+          <div style={{ marginBottom: '12px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: theme.ink }}>
+              Offers{offers.length > 0 ? ` (${offers.length})` : ''}
+            </span>
+          </div>
+
+          {offers.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: theme.inkFaint, fontSize: '13px' }}>
+              No offers yet
+            </div>
+          )}
+
+          {offers.map((offer, i) => (
+            <div key={offer.id} className={`card fade-up stagger-${Math.min(i + 1, 3)}`} style={{ padding: '16px 20px', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', color: theme.inkLight, fontWeight: '500' }}>{offer.seller_email}</span>
+                {offer.price && <span style={{ fontSize: '16px', fontWeight: '700', color: theme.ink }}>{offer.price}</span>}
               </div>
-              <p style={{ margin: 0, fontSize: '14px', color: '#333', lineHeight: '1.5' }}>{offer.message}</p>
-              <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#aaa' }}>{new Date(offer.created_at).toLocaleDateString('en-NZ')}</p>
+              <p style={{ fontSize: '13px', color: theme.inkLight, lineHeight: '1.55', marginBottom: '10px' }}>{offer.message}</p>
+              <span style={{ fontSize: '11px', color: theme.inkFaint }}>{new Date(offer.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
             </div>
           ))}
         </div>
@@ -247,33 +424,46 @@ function App() {
     )
   }
 
+  // POST PAGE
   if (page === 'post') {
     return (
       <div style={pageStyle}>
+        <style>{styles}</style>
         <Header />
         <div style={inner}>
           {!user ? (
-            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '16px', padding: '24px' }}>
-              <p style={{ fontSize: '15px', color: '#555', textAlign: 'center', margin: '0 0 16px' }}>Log in to post a listing</p>
-              <button onClick={() => setPage('login')} style={{ ...btnDark, width: '100%', padding: '12px', fontSize: '14px' }}>Log in</button>
+            <div className="card fade-up" style={{ padding: '32px', textAlign: 'center' }}>
+              <p style={{ fontSize: '15px', color: theme.inkLight, marginBottom: '20px' }}>Log in to post a listing</p>
+              <button className="btn btn-dark" onClick={() => setPage('login')} style={{ padding: '12px 28px', fontSize: '14px' }}>Log in</button>
             </div>
           ) : (
-            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '16px', padding: '20px' }}>
-              <h2 style={{ fontSize: '17px', fontWeight: '700', margin: '0 0 16px', color: '#111' }}>Post what you're after</h2>
-              <input placeholder="What are you after? e.g. Road bike under $300" value={title} onChange={e => setTitle(e.target.value)} style={{ ...inp, marginBottom: '10px' }} />
-              <input placeholder="More details (optional)" value={description} onChange={e => setDescription(e.target.value)} style={{ ...inp, marginBottom: '10px' }} />
-              <input placeholder="Max budget e.g. $300" value={budget} onChange={e => setBudget(e.target.value)} style={{ ...inp, marginBottom: '10px' }} />
-              <select value={location} onChange={e => setLocation(e.target.value)} style={{ ...sel, width: '100%', marginBottom: '10px' }}>
-                <option value="">Location</option>
-                {locations.filter(l => l !== 'All').map(l => <option key={l}>{l}</option>)}
-              </select>
-              <select value={category} onChange={e => setCategory(e.target.value)} style={{ ...sel, width: '100%', marginBottom: '16px' }}>
-                <option value="">Category (optional)</option>
-                {categories.filter(c => c !== 'All').map(c => <option key={c}>{c}</option>)}
-              </select>
-              <button onClick={postWant} disabled={!title || posting} style={{ ...btnDark, width: '100%', padding: '13px', fontSize: '15px', opacity: !title || posting ? 0.5 : 1 }}>
-                {posting ? 'Posting...' : 'Post it'}
-              </button>
+            <div className="card fade-up" style={{ padding: '28px' }}>
+              <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', marginBottom: '6px', color: theme.ink }}>What are you after?</h2>
+              <p style={{ fontSize: '13px', color: theme.inkFaint, marginBottom: '24px' }}>Post your listing and let sellers come to you.</p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <input placeholder="Title — e.g. Road bike under $300" value={title} onChange={e => setTitle(e.target.value)} />
+                <textarea placeholder="More details (optional)" value={description} onChange={e => setDescription(e.target.value)} rows={3} style={{ resize: 'vertical' }} />
+                <input placeholder="Max budget — e.g. $300" value={budget} onChange={e => setBudget(e.target.value)} />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <select value={location} onChange={e => setLocation(e.target.value)} style={{ flex: 1 }}>
+                    <option value="">Location</option>
+                    {locations.filter(l => l !== 'All').map(l => <option key={l}>{l}</option>)}
+                  </select>
+                  <select value={category} onChange={e => setCategory(e.target.value)} style={{ flex: 1 }}>
+                    <option value="">Category</option>
+                    {categories.filter(c => c !== 'All').map(c => <option key={c}>{c}</option>)}
+                  </select>
+                </div>
+                <button
+                  className="btn btn-dark"
+                  onClick={postWant}
+                  disabled={!title || posting}
+                  style={{ padding: '14px', fontSize: '15px', marginTop: '6px', opacity: !title || posting ? 0.45 : 1 }}
+                >
+                  {posting ? 'Posting…' : 'Post listing'}
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -282,41 +472,49 @@ function App() {
     )
   }
 
+  // MY LISTINGS PAGE
   if (page === 'mylistings') {
     return (
       <div style={pageStyle}>
+        <style>{styles}</style>
         <Header />
         <div style={inner}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '700', margin: 0, color: '#111' }}>My listings</h2>
-            <span style={{ fontSize: '13px', color: '#888' }}>{myWants.length} listing{myWants.length !== 1 ? 's' : ''}</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '20px' }} className="fade-up">
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', color: theme.ink, fontStyle: 'italic' }}>My listings</h2>
+            <span style={{ fontSize: '12px', color: theme.inkFaint }}>{myWants.length} listing{myWants.length !== 1 ? 's' : ''}</span>
           </div>
+
           {myWants.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '60px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #eee' }}>
-              <p style={{ fontSize: '15px', margin: '0 0 6px', color: '#555' }}>No listings yet</p>
-              <p style={{ fontSize: '13px', margin: '0 0 20px', color: '#999' }}>Tap + to post your first listing</p>
-              <button onClick={() => setPage('post')} style={{ ...btnDark, padding: '10px 24px' }}>Post something</button>
+            <div className="card fade-up" style={{ padding: '48px 24px', textAlign: 'center' }}>
+              <p style={{ fontSize: '15px', color: theme.inkLight, marginBottom: '6px' }}>No listings yet</p>
+              <p style={{ fontSize: '13px', color: theme.inkFaint, marginBottom: '24px' }}>Tap + to post your first listing</p>
+              <button className="btn btn-dark" onClick={() => setPage('post')} style={{ padding: '10px 24px' }}>Post something</button>
             </div>
           )}
-          {myWants.map(want => (
-            <div key={want.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: '14px', padding: '16px', marginBottom: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '600', flex: 1, paddingRight: '12px', color: '#111' }}>{want.title}</h3>
-                <span style={{ background: want.status === 'filled' ? '#f0f0f0' : offerCounts[want.id] ? '#f0fdf4' : '#f5f5f5', color: want.status === 'filled' ? '#888' : offerCounts[want.id] ? '#16a34a' : '#888', fontSize: '11px', padding: '3px 10px', borderRadius: '20px', fontWeight: '600', flexShrink: 0 }}>
+
+          {myWants.map((want, i) => (
+            <div key={want.id} className={`card fade-up stagger-${Math.min(i + 1, 3)}`} style={{ padding: '18px 20px', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: '600', flex: 1, paddingRight: '14px', color: theme.ink, lineHeight: '1.4' }}>{want.title}</h3>
+                <span style={{
+                  background: want.status === 'filled' ? '#F5F5F3' : offerCounts[want.id] ? theme.greenBg : '#F5F5F3',
+                  color: want.status === 'filled' ? theme.inkFaint : offerCounts[want.id] ? theme.green : theme.inkFaint,
+                  fontSize: '11px', padding: '3px 10px', borderRadius: '20px', fontWeight: '600', flexShrink: 0
+                }}>
                   {want.status === 'filled' ? 'Filled' : offerCounts[want.id] ? `${offerCounts[want.id]} offer${offerCounts[want.id] !== 1 ? 's' : ''}` : 'No offers'}
                 </span>
               </div>
-              {want.description && <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#555' }}>{want.description}</p>}
-              <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#888', marginBottom: '12px', flexWrap: 'wrap' }}>
-                {want.budget && <span>💰 {want.budget}</span>}
-                {want.location && <span>📍 {want.location}</span>}
-                {want.category && <span>{want.category}</span>}
-                <span style={{ marginLeft: 'auto' }}>{new Date(want.created_at).toLocaleDateString('en-NZ')}</span>
+              {want.description && <p style={{ fontSize: '13px', color: theme.inkLight, marginBottom: '10px', lineHeight: '1.5' }}>{want.description}</p>}
+              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                {want.budget && <span className="tag">💰 {want.budget}</span>}
+                {want.location && <span className="tag">📍 {want.location}</span>}
+                {want.category && <span className="tag">{want.category}</span>}
               </div>
+              <div className="divider" style={{ marginBottom: '14px' }} />
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <button onClick={() => openWant(want)} style={btn}>View offers →</button>
-                {want.status !== 'filled' && <button onClick={() => markFilled(want.id)} style={{ ...btn, borderColor: '#16a34a', color: '#16a34a', background: '#f0fdf4' }}>Mark filled</button>}
-                <button onClick={() => deleteWant(want.id)} style={btnRed}>Delete</button>
+                <button className="btn" onClick={() => openWant(want)} style={{ fontSize: '12px' }}>View offers →</button>
+                {want.status !== 'filled' && <button className="btn btn-green" onClick={() => markFilled(want.id)} style={{ fontSize: '12px' }}>✓ Mark filled</button>}
+                <button className="btn btn-red" onClick={() => deleteWant(want.id)} style={{ fontSize: '12px' }}>Delete</button>
               </div>
             </div>
           ))}
@@ -326,117 +524,96 @@ function App() {
     )
   }
 
+  // AUTH / HOME (logged out)
   if (!user && (page === 'login' || page === 'home')) {
     return (
       <div style={pageStyle}>
+        <style>{styles}</style>
         <Header />
         <div style={inner}>
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '16px', padding: '28px', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '700', margin: '0 0 6px', color: '#111' }}>{authMode === 'login' ? 'Welcome back' : 'Join Offr'}</h2>
-            <p style={{ fontSize: '13px', color: '#888', margin: '0 0 20px' }}>{authMode === 'login' ? 'Log in to post and manage your listings' : 'Sign up free — post what you want, get offers'}</p>
-            <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} type="email" style={{ ...inp, marginBottom: '10px' }} />
-            <input placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} type="password" style={{ ...inp, marginBottom: '16px' }} />
-            {authError && <p style={{ fontSize: '13px', color: authError.includes('Check') ? '#16a34a' : '#dc2626', margin: '0 0 12px' }}>{authError}</p>}
-            <button onClick={handleAuth} disabled={authLoading} style={{ ...btnDark, width: '100%', padding: '13px', marginBottom: '14px', fontSize: '15px' }}>
-              {authLoading ? 'Please wait...' : authMode === 'login' ? 'Log in' : 'Sign up free'}
+          <div className="card fade-up" style={{ padding: '32px', marginBottom: '24px' }}>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', marginBottom: '6px', color: theme.ink, fontStyle: 'italic' }}>
+              {authMode === 'login' ? 'Welcome back' : 'Join Offr'}
+            </h2>
+            <p style={{ fontSize: '13px', color: theme.inkFaint, marginBottom: '24px' }}>
+              {authMode === 'login' ? 'Log in to post and manage your listings' : 'Post what you want, let sellers come to you'}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+              <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} type="email" />
+              <input placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} type="password" />
+            </div>
+            {authError && (
+              <p style={{ fontSize: '13px', color: authError.includes('Check') ? theme.green : theme.red, marginBottom: '14px', fontWeight: '500' }}>{authError}</p>
+            )}
+            <button className="btn btn-dark" onClick={handleAuth} disabled={authLoading} style={{ width: '100%', padding: '14px', fontSize: '14px', marginBottom: '16px' }}>
+              {authLoading ? 'Please wait…' : authMode === 'login' ? 'Log in' : 'Create account'}
             </button>
-            <p style={{ fontSize: '13px', color: '#888', margin: 0, textAlign: 'center' }}>
+            <p style={{ fontSize: '13px', color: theme.inkFaint, textAlign: 'center' }}>
               {authMode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-              <span onClick={() => { setAuthMode(authMode === 'login' ? 'signup' : 'login'); setAuthError('') }} style={{ color: '#111', fontWeight: '600', cursor: 'pointer' }}>
+              <span
+                onClick={() => { setAuthMode(authMode === 'login' ? 'signup' : 'login'); setAuthError('') }}
+                style={{ color: theme.ink, fontWeight: '600', cursor: 'pointer' }}
+              >
                 {authMode === 'login' ? 'Sign up free' : 'Log in'}
               </span>
             </p>
           </div>
 
-          <input placeholder="Search listings..." value={search} onChange={e => setSearch(e.target.value)} style={{ ...inp, marginBottom: '10px' }} />
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
-            <select value={filterLocation} onChange={e => setFilterLocation(e.target.value)} style={{ ...sel, flex: 1 }}>
-              <option value="">All locations</option>
-              {locations.map(l => <option key={l}>{l}</option>)}
-            </select>
-            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} style={{ ...sel, flex: 1 }}>
-              <option value="">All categories</option>
-              {categories.map(c => <option key={c}>{c}</option>)}
-            </select>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <h2 style={{ fontSize: '15px', fontWeight: '600', margin: 0, color: '#111' }}>Recent listings</h2>
-            {filteredWants.length > 0 && <span style={{ fontSize: '13px', color: '#888' }}>{filteredWants.length} listing{filteredWants.length !== 1 ? 's' : ''}</span>}
-          </div>
-          {loading && <p style={{ color: '#999', fontSize: '14px', textAlign: 'center', padding: '32px 0' }}>Loading...</p>}
-          {!loading && filteredWants.length === 0 && <p style={{ color: '#999', fontSize: '14px', textAlign: 'center', padding: '32px 0' }}>No listings found</p>}
-          {filteredWants.map(want => (
-            <div key={want.id} onClick={() => openWant(want)} style={{ background: '#fff', border: '1px solid #eee', borderRadius: '14px', padding: '16px', marginBottom: '10px', cursor: 'pointer', opacity: want.status === 'filled' ? 0.6 : 1 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '600', flex: 1, paddingRight: '12px', color: '#111', textAlign: 'left' }}>{want.title}</h3>
-                <span style={{ background: want.status === 'filled' ? '#f0f0f0' : '#f0fdf4', color: want.status === 'filled' ? '#888' : '#16a34a', fontSize: '11px', padding: '3px 10px', borderRadius: '20px', fontWeight: '600', flexShrink: 0 }}>
-                  {want.status === 'filled' ? 'FILLED' : 'WANT'}
-                </span>
-              </div>
-              {want.description && <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#555', textAlign: 'left' }}>{want.description}</p>}
-              <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#888', flexWrap: 'wrap' }}>
-                {want.budget && <span>💰 {want.budget}</span>}
-                {want.location && <span>📍 {want.location}</span>}
-                {want.category && <span>{want.category}</span>}
-                <span style={{ marginLeft: 'auto' }}>{new Date(want.created_at).toLocaleDateString('en-NZ')}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
-                <span style={{ fontSize: '12px', color: offerCounts[want.id] ? '#111' : '#999', fontWeight: offerCounts[want.id] ? '600' : '400' }}>
-                  {offerCounts[want.id] ? `${offerCounts[want.id]} offer${offerCounts[want.id] !== 1 ? 's' : ''}` : 'No offers yet'}
-                </span>
-                <span style={{ fontSize: '12px', color: '#111', fontWeight: '500' }}>View →</span>
-              </div>
+          <div style={{ marginBottom: '20px' }} className="fade-up stagger-1">
+            <input placeholder="Search listings…" value={search} onChange={e => setSearch(e.target.value)} style={{ marginBottom: '10px' }} />
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <select value={filterLocation} onChange={e => setFilterLocation(e.target.value)} style={{ flex: 1 }}>
+                <option value="">All locations</option>
+                {locations.map(l => <option key={l}>{l}</option>)}
+              </select>
+              <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} style={{ flex: 1 }}>
+                <option value="">All categories</option>
+                {categories.map(c => <option key={c}>{c}</option>)}
+              </select>
             </div>
-          ))}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }} className="fade-up stagger-2">
+            <span style={{ fontSize: '13px', fontWeight: '600', color: theme.ink }}>Recent listings</span>
+            {filteredWants.length > 0 && <span style={{ fontSize: '12px', color: theme.inkFaint }}>{filteredWants.length} listing{filteredWants.length !== 1 ? 's' : ''}</span>}
+          </div>
+
+          {loading && <p style={{ color: theme.inkFaint, fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>Loading…</p>}
+          {!loading && filteredWants.length === 0 && <p style={{ color: theme.inkFaint, fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No listings found</p>}
+          {filteredWants.map((want, i) => <WantCard key={want.id} want={want} index={i} />)}
         </div>
       </div>
     )
   }
 
+  // HOME (logged in)
   return (
     <div style={pageStyle}>
+      <style>{styles}</style>
       <Header />
       <div style={inner}>
-        <input placeholder="Search listings..." value={search} onChange={e => setSearch(e.target.value)} style={{ ...inp, marginBottom: '10px' }} />
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
-          <select value={filterLocation} onChange={e => setFilterLocation(e.target.value)} style={{ ...sel, flex: 1 }}>
-            <option value="">All locations</option>
-            {locations.map(l => <option key={l}>{l}</option>)}
-          </select>
-          <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} style={{ ...sel, flex: 1 }}>
-            <option value="">All categories</option>
-            {categories.map(c => <option key={c}>{c}</option>)}
-          </select>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: '600', margin: 0, color: '#111' }}>Recent listings</h2>
-          {filteredWants.length > 0 && <span style={{ fontSize: '13px', color: '#888' }}>{filteredWants.length} listing{filteredWants.length !== 1 ? 's' : ''}</span>}
-        </div>
-        {loading && <p style={{ color: '#999', fontSize: '14px', textAlign: 'center', padding: '32px 0' }}>Loading...</p>}
-        {!loading && filteredWants.length === 0 && <p style={{ color: '#999', fontSize: '14px', textAlign: 'center', padding: '32px 0' }}>No listings found</p>}
-        {filteredWants.map(want => (
-          <div key={want.id} onClick={() => openWant(want)} style={{ background: '#fff', border: '1px solid #eee', borderRadius: '14px', padding: '16px', marginBottom: '10px', cursor: 'pointer', opacity: want.status === 'filled' ? 0.6 : 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '600', flex: 1, paddingRight: '12px', color: '#111', textAlign: 'left' }}>{want.title}</h3>
-              <span style={{ background: want.status === 'filled' ? '#f0f0f0' : '#f0fdf4', color: want.status === 'filled' ? '#888' : '#16a34a', fontSize: '11px', padding: '3px 10px', borderRadius: '20px', fontWeight: '600', flexShrink: 0 }}>
-                {want.status === 'filled' ? 'FILLED' : 'WANT'}
-              </span>
-            </div>
-            {want.description && <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#555', textAlign: 'left' }}>{want.description}</p>}
-            <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#888', flexWrap: 'wrap' }}>
-              {want.budget && <span>💰 {want.budget}</span>}
-              {want.location && <span>📍 {want.location}</span>}
-              {want.category && <span>{want.category}</span>}
-              <span style={{ marginLeft: 'auto' }}>{new Date(want.created_at).toLocaleDateString('en-NZ')}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
-              <span style={{ fontSize: '12px', color: offerCounts[want.id] ? '#111' : '#999', fontWeight: offerCounts[want.id] ? '600' : '400' }}>
-                {offerCounts[want.id] ? `${offerCounts[want.id]} offer${offerCounts[want.id] !== 1 ? 's' : ''}` : 'No offers yet'}
-              </span>
-              <span style={{ fontSize: '12px', color: '#111', fontWeight: '500' }}>View →</span>
-            </div>
+        <div style={{ marginBottom: '20px' }} className="fade-up">
+          <input placeholder="Search listings…" value={search} onChange={e => setSearch(e.target.value)} style={{ marginBottom: '10px' }} />
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <select value={filterLocation} onChange={e => setFilterLocation(e.target.value)} style={{ flex: 1 }}>
+              <option value="">All locations</option>
+              {locations.map(l => <option key={l}>{l}</option>)}
+            </select>
+            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} style={{ flex: 1 }}>
+              <option value="">All categories</option>
+              {categories.map(c => <option key={c}>{c}</option>)}
+            </select>
           </div>
-        ))}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }} className="fade-up stagger-1">
+          <span style={{ fontSize: '13px', fontWeight: '600', color: theme.ink }}>Recent listings</span>
+          {filteredWants.length > 0 && <span style={{ fontSize: '12px', color: theme.inkFaint }}>{filteredWants.length} listing{filteredWants.length !== 1 ? 's' : ''}</span>}
+        </div>
+
+        {loading && <p style={{ color: theme.inkFaint, fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>Loading…</p>}
+        {!loading && filteredWants.length === 0 && <p style={{ color: theme.inkFaint, fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No listings found</p>}
+        {filteredWants.map((want, i) => <WantCard key={want.id} want={want} index={i} />)}
       </div>
       <BottomNav />
     </div>
