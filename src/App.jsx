@@ -1,99 +1,82 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
 
-const theme = {
-  bg: '#FAFAF8',
-  white: '#FFFFFF',
-  ink: '#111110',
-  inkLight: '#6B6B68',
-  inkFaint: '#A8A8A4',
-  border: '#E8E8E4',
-  borderHover: '#C8C8C4',
-  green: '#16A34A',
-  greenBg: '#F0FDF4',
-  greenBorder: '#BBF7D0',
-  red: '#DC2626',
-  redBg: '#FEF2F2',
-  redBorder: '#FECACA',
-  amber: '#D97706',
-  amberBg: '#FFFBEB',
-  amberBorder: '#FDE68A',
-}
-
 const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap');
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
 
-  body { background: ${theme.bg}; font-family: 'DM Sans', sans-serif; color: ${theme.ink}; }
+  body { background: #E8EFF5; font-family: 'DM Sans', sans-serif; color: #0F2030; }
 
-  ::placeholder { color: ${theme.inkFaint}; }
+  ::placeholder { color: #8FA5B8; }
 
   input, textarea, select {
     width: 100%;
     padding: 12px 14px;
     border-radius: 10px;
-    border: 1.5px solid ${theme.border};
-    background: ${theme.white};
+    border: 1.5px solid #C8DCE8;
+    background: #FFFFFF;
     font-family: 'DM Sans', sans-serif;
     font-size: 14px;
-    color: ${theme.ink};
+    color: #0F2030;
     outline: none;
     transition: border-color 0.15s ease;
     appearance: none;
   }
-  input:focus, textarea:focus, select:focus { border-color: ${theme.ink}; }
+  input:focus, textarea:focus, select:focus { border-color: #0E7FA8; }
 
   button { font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s ease; }
 
   .btn {
-    display: inline-flex; align-items: center; justify-content: center;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     padding: 9px 16px; border-radius: 10px; font-size: 13px; font-weight: 500;
-    border: 1.5px solid ${theme.border}; background: ${theme.white}; color: ${theme.ink};
+    border: 1.5px solid #C8DCE8; background: #FFFFFF; color: #0F2030;
   }
-  .btn:hover { border-color: ${theme.borderHover}; background: ${theme.bg}; }
+  .btn:hover { border-color: #0E7FA8; background: #EBF6FB; color: #0E7FA8; }
 
-  .btn-dark {
-    background: ${theme.ink}; color: ${theme.white}; border: 1.5px solid ${theme.ink};
+  .btn-primary {
+    background: #0E7FA8; color: #FFFFFF; border: 1.5px solid #0E7FA8;
   }
-  .btn-dark:hover { background: #2a2a28; border-color: #2a2a28; }
+  .btn-primary:hover { background: #0A6588; border-color: #0A6588; }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
   .btn-green {
-    background: ${theme.greenBg}; color: ${theme.green}; border: 1.5px solid ${theme.greenBorder};
+    background: #EDFAF4; color: #0E9A6E; border: 1.5px solid #A7EDD4;
   }
-  .btn-green:hover { background: #dcfce7; }
+  .btn-green:hover { background: #d4f5e8; }
 
   .btn-red {
-    background: ${theme.redBg}; color: ${theme.red}; border: 1.5px solid ${theme.redBorder};
+    background: #FEF2F2; color: #DC2626; border: 1.5px solid #FECACA;
   }
   .btn-red:hover { background: #fee2e2; }
 
   .card {
-    background: ${theme.white};
-    border: 1.5px solid ${theme.border};
+    background: #FFFFFF;
+    border: 1.5px solid #D6E4EF;
     border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(14, 127, 168, 0.07);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
   .card-hover:hover {
-    border-color: ${theme.borderHover};
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    border-color: #7EC8E0;
+    box-shadow: 0 6px 24px rgba(14, 127, 168, 0.13);
     cursor: pointer;
   }
 
   .badge {
-    display: inline-flex; align-items: center;
+    display: inline-flex; align-items: center; flex-shrink: 0;
     padding: 3px 10px; border-radius: 20px;
     font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
   }
-  .badge-want { background: ${theme.greenBg}; color: ${theme.green}; }
-  .badge-filled { background: #F5F5F3; color: ${theme.inkFaint}; }
+  .badge-want { background: #EBF6FB; color: #0E7FA8; }
+  .badge-filled { background: #EDF2F7; color: #8FA5B8; }
 
   .tag {
     display: inline-flex; align-items: center; gap: 4px;
-    font-size: 12px; color: ${theme.inkLight};
+    font-size: 12px; color: #4A6278;
   }
 
-  .divider { height: 1px; background: ${theme.border}; }
+  .divider { height: 1px; background: #E4EFF7; }
 
   .nav-btn {
     flex: 1; padding: 10px 0; background: none; border: none;
@@ -106,7 +89,6 @@ const styles = `
     to { opacity: 1; transform: translateY(0); }
   }
   .fade-up { animation: fadeUp 0.3s ease forwards; }
-
   .stagger-1 { animation-delay: 0.05s; opacity: 0; }
   .stagger-2 { animation-delay: 0.1s; opacity: 0; }
   .stagger-3 { animation-delay: 0.15s; opacity: 0; }
@@ -169,8 +151,7 @@ function App() {
   }
 
   async function handleAuth() {
-    setAuthLoading(true)
-    setAuthError('')
+    setAuthLoading(true); setAuthError('')
     if (authMode === 'login') {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setAuthError(error.message)
@@ -182,10 +163,7 @@ function App() {
     setAuthLoading(false)
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    setPage('home')
-  }
+  async function handleLogout() { await supabase.auth.signOut(); setPage('home') }
 
   async function postWant() {
     if (!title || !user) return
@@ -193,8 +171,7 @@ function App() {
     const { data } = await supabase.from('wants').insert([{ title, description, budget, location, category, user_id: user.id, user_email: user.email }]).select()
     if (data) { setWants([data[0], ...wants]); setOfferCounts({ ...offerCounts, [data[0].id]: 0 }) }
     setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory('')
-    setPosting(false)
-    setPage('home')
+    setPosting(false); setPage('home')
   }
 
   async function deleteWant(wantId) {
@@ -213,22 +190,17 @@ function App() {
     if (!offerMessage || !user) return
     setSubmittingOffer(true)
     await supabase.from('offers').insert([{ want_id: selectedWant.id, seller_email: user.email, price: offerPrice, message: offerMessage }])
-    setOfferPrice('')
-    setOfferMessage('')
+    setOfferPrice(''); setOfferMessage('')
     fetchOffers(selectedWant.id)
     setOfferCounts({ ...offerCounts, [selectedWant.id]: (offerCounts[selectedWant.id] || 0) + 1 })
     setSubmittingOffer(false)
   }
 
   function openWant(want) {
-    setSelectedWant(want)
-    setOffers([])
-    fetchOffers(want.id)
-    setPage('want')
+    setSelectedWant(want); setOffers([]); fetchOffers(want.id); setPage('want')
     if (want.user_id === user?.id) {
       const updated = { ...seenOffers, [want.id]: offerCounts[want.id] || 0 }
-      setSeenOffers(updated)
-      localStorage.setItem('seenOffers', JSON.stringify(updated))
+      setSeenOffers(updated); localStorage.setItem('seenOffers', JSON.stringify(updated))
     }
   }
 
@@ -246,28 +218,19 @@ function App() {
     return sum + Math.max(0, current - seen)
   }, 0)
 
-  const pageStyle = {
-    minHeight: '100vh',
-    background: theme.bg,
-    fontFamily: "'DM Sans', sans-serif",
-    paddingBottom: user ? '72px' : '0',
-  }
-
+  const pageStyle = { minHeight: '100vh', background: '#E8EFF5', fontFamily: "'DM Sans', sans-serif", paddingBottom: user ? '72px' : '0' }
   const inner = { maxWidth: '640px', margin: '0 auto', padding: '20px 16px' }
 
   const Header = () => (
-    <div style={{ background: 'rgba(250,250,248,0.85)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${theme.border}`, padding: '0 16px', position: 'sticky', top: 0, zIndex: 10 }}>
+    <div style={{ background: 'rgba(255,255,255,0.88)', backdropFilter: 'blur(14px)', borderBottom: '1px solid #D6E4EF', padding: '0 16px', position: 'sticky', top: 0, zIndex: 10 }}>
       <div style={{ maxWidth: '640px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span
-          onClick={() => { setPage('home'); setSelectedWant(null) }}
-          style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', cursor: 'pointer', color: theme.ink, letterSpacing: '-0.5px', fontStyle: 'italic' }}
-        >
+        <span onClick={() => { setPage('home'); setSelectedWant(null) }} style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', cursor: 'pointer', color: '#0E7FA8', letterSpacing: '-0.5px', fontStyle: 'italic' }}>
           Offr
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {!user && <span style={{ fontSize: '13px', color: theme.inkFaint, letterSpacing: '0.01em' }}>See it. Want it. Offr it.</span>}
+          {!user && <span style={{ fontSize: '13px', color: '#8FA5B8' }}>See it. Want it. Offr it.</span>}
           {user && page === 'want' && (
-            <button className="btn" onClick={() => setPage('home')} style={{ gap: '6px' }}>
+            <button className="btn" onClick={() => setPage('home')}>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
               Back
             </button>
@@ -283,43 +246,37 @@ function App() {
   const BottomNav = () => {
     if (!user) return null
     return (
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(250,250,248,0.92)', backdropFilter: 'blur(16px)', borderTop: `1px solid ${theme.border}`, display: 'flex', zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)', borderTop: '1px solid #D6E4EF', display: 'flex', zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <button className="nav-btn" onClick={() => { setPage('home'); setSelectedWant(null) }}>
-          <svg width="20" height="20" fill="none" stroke={page === 'home' || page === 'want' ? theme.ink : theme.inkFaint} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          <span className="nav-label" style={{ color: page === 'home' || page === 'want' ? theme.ink : theme.inkFaint }}>Browse</span>
+          <svg width="20" height="20" fill="none" stroke={page === 'home' || page === 'want' ? '#0E7FA8' : '#8FA5B8'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span className="nav-label" style={{ color: page === 'home' || page === 'want' ? '#0E7FA8' : '#8FA5B8' }}>Browse</span>
         </button>
-        <button className="nav-btn" onClick={() => setPage('post')} style={{ position: 'relative' }}>
-          <div style={{ width: '40px', height: '40px', background: theme.ink, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '-20px', boxShadow: '0 4px 16px rgba(0,0,0,0.25)' }}>
+        <button className="nav-btn" onClick={() => setPage('post')}>
+          <div style={{ width: '40px', height: '40px', background: '#0E7FA8', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '-20px', boxShadow: '0 4px 16px rgba(14,127,168,0.35)' }}>
             <svg width="18" height="18" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
-          <span className="nav-label" style={{ color: page === 'post' ? theme.ink : theme.inkFaint }}>Post</span>
+          <span className="nav-label" style={{ color: page === 'post' ? '#0E7FA8' : '#8FA5B8' }}>Post</span>
         </button>
         <button className="nav-btn" onClick={() => setPage('mylistings')} style={{ position: 'relative' }}>
-          <svg width="20" height="20" fill="none" stroke={page === 'mylistings' ? theme.ink : theme.inkFaint} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <svg width="20" height="20" fill="none" stroke={page === 'mylistings' ? '#0E7FA8' : '#8FA5B8'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           {myNewOffers > 0 && (
-            <span style={{ position: 'absolute', top: '8px', right: 'calc(50% - 20px)', background: theme.red, color: '#fff', fontSize: '9px', fontWeight: '700', minWidth: '16px', height: '16px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{myNewOffers}</span>
+            <span style={{ position: 'absolute', top: '8px', right: 'calc(50% - 20px)', background: '#DC2626', color: '#fff', fontSize: '9px', fontWeight: '700', minWidth: '16px', height: '16px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{myNewOffers}</span>
           )}
-          <span className="nav-label" style={{ color: page === 'mylistings' ? theme.ink : theme.inkFaint }}>Mine</span>
+          <span className="nav-label" style={{ color: page === 'mylistings' ? '#0E7FA8' : '#8FA5B8' }}>Mine</span>
         </button>
       </div>
     )
   }
 
   const WantCard = ({ want, index = 0 }) => (
-    <div
-      className={`card card-hover fade-up stagger-${Math.min(index + 1, 3)}`}
-      onClick={() => openWant(want)}
-      style={{ padding: '18px 20px', marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1 }}
-    >
+    <div className={`card card-hover fade-up stagger-${Math.min(index + 1, 3)}`} onClick={() => openWant(want)} style={{ padding: '18px 20px', marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-        <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.ink, flex: 1, paddingRight: '14px', lineHeight: '1.4' }}>{want.title}</h3>
+        <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#0F2030', flex: 1, paddingRight: '14px', lineHeight: '1.4', textAlign: 'left' }}>{want.title}</h3>
         <span className={`badge ${want.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>
           {want.status === 'filled' ? 'Filled' : 'Want'}
         </span>
       </div>
-      {want.description && (
-        <p style={{ fontSize: '13px', color: theme.inkLight, lineHeight: '1.55', marginBottom: '12px' }}>{want.description}</p>
-      )}
+      {want.description && <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.55', marginBottom: '12px', textAlign: 'left' }}>{want.description}</p>}
       <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '14px' }}>
         {want.budget && <span className="tag">💰 {want.budget}</span>}
         {want.location && <span className="tag">📍 {want.location}</span>}
@@ -327,11 +284,34 @@ function App() {
       </div>
       <div className="divider" style={{ marginBottom: '12px' }} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '12px', color: offerCounts[want.id] ? theme.green : theme.inkFaint, fontWeight: offerCounts[want.id] ? '600' : '400' }}>
+        <span style={{ fontSize: '12px', color: offerCounts[want.id] ? '#0E9A6E' : '#8FA5B8', fontWeight: offerCounts[want.id] ? '600' : '400' }}>
           {offerCounts[want.id] ? `${offerCounts[want.id]} offer${offerCounts[want.id] !== 1 ? 's' : ''}` : 'No offers yet'}
         </span>
-        <span style={{ fontSize: '12px', color: theme.inkFaint }}>{new Date(want.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
+        <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{new Date(want.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
       </div>
+    </div>
+  )
+
+  const SearchFilters = () => (
+    <div style={{ marginBottom: '20px' }} className="fade-up">
+      <input placeholder="Search listings…" value={search} onChange={e => setSearch(e.target.value)} style={{ marginBottom: '10px' }} />
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <select value={filterLocation} onChange={e => setFilterLocation(e.target.value)} style={{ flex: 1 }}>
+          <option value="">All locations</option>
+          {locations.map(l => <option key={l}>{l}</option>)}
+        </select>
+        <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} style={{ flex: 1 }}>
+          <option value="">All categories</option>
+          {categories.map(c => <option key={c}>{c}</option>)}
+        </select>
+      </div>
+    </div>
+  )
+
+  const ListingsHeader = () => (
+    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }} className="fade-up stagger-1">
+      <span style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>Recent listings</span>
+      {filteredWants.length > 0 && <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{filteredWants.length} listing{filteredWants.length !== 1 ? 's' : ''}</span>}
     </div>
   )
 
@@ -344,15 +324,13 @@ function App() {
         <div style={inner}>
           <div className="card fade-up" style={{ padding: '24px', marginBottom: '14px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: '700', color: theme.ink, flex: 1, paddingRight: '14px', lineHeight: '1.3', fontFamily: "'DM Serif Display', serif" }}>{selectedWant.title}</h2>
+              <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#0F2030', flex: 1, paddingRight: '14px', lineHeight: '1.3', fontFamily: "'DM Serif Display', serif", textAlign: 'left' }}>{selectedWant.title}</h2>
               <span className={`badge ${selectedWant.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>
                 {selectedWant.status === 'filled' ? 'Filled' : 'Want'}
               </span>
             </div>
-            {selectedWant.description && (
-              <p style={{ fontSize: '14px', color: theme.inkLight, lineHeight: '1.65', marginBottom: '16px' }}>{selectedWant.description}</p>
-            )}
-            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: user && user.id === selectedWant.user_id ? '20px' : '0' }}>
+            {selectedWant.description && <p style={{ fontSize: '14px', color: '#4A6278', lineHeight: '1.65', marginBottom: '16px' }}>{selectedWant.description}</p>}
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
               {selectedWant.budget && <span className="tag" style={{ fontSize: '13px' }}>💰 {selectedWant.budget}</span>}
               {selectedWant.location && <span className="tag" style={{ fontSize: '13px' }}>📍 {selectedWant.location}</span>}
               {selectedWant.category && <span className="tag" style={{ fontSize: '13px' }}>🏷 {selectedWant.category}</span>}
@@ -362,9 +340,7 @@ function App() {
                 <div className="divider" style={{ margin: '20px 0 16px' }} />
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {selectedWant.status !== 'filled' && (
-                    <button className="btn btn-green" onClick={() => markFilled(selectedWant.id)}>
-                      ✓ Mark as filled
-                    </button>
+                    <button className="btn btn-green" onClick={() => markFilled(selectedWant.id)}>✓ Mark as filled</button>
                   )}
                   <button className="btn btn-red" onClick={() => { deleteWant(selectedWant.id); setPage('home') }}>Delete</button>
                 </div>
@@ -374,48 +350,41 @@ function App() {
 
           {user && selectedWant.status !== 'filled' ? (
             <div className="card fade-up" style={{ padding: '24px', marginBottom: '14px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', color: theme.ink }}>Make an offer</h3>
+              <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', color: '#0F2030' }}>Make an offer</h3>
               <input placeholder="Your price — e.g. $250" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} style={{ marginBottom: '10px' }} />
-              <textarea placeholder="Describe what you have — condition, photos, pickup..." value={offerMessage} onChange={e => setOfferMessage(e.target.value)} rows={3} style={{ marginBottom: '14px', resize: 'vertical' }} />
-              <button
-                className="btn btn-dark"
-                onClick={submitOffer}
-                disabled={!offerMessage || submittingOffer}
-                style={{ width: '100%', padding: '13px', fontSize: '14px', opacity: !offerMessage || submittingOffer ? 0.45 : 1 }}
-              >
+              <textarea placeholder="Describe what you have — condition, photos, pickup…" value={offerMessage} onChange={e => setOfferMessage(e.target.value)} rows={3} style={{ marginBottom: '14px', resize: 'vertical' }} />
+              <button className="btn btn-primary" onClick={submitOffer} disabled={!offerMessage || submittingOffer} style={{ width: '100%', padding: '13px', fontSize: '14px' }}>
                 {submittingOffer ? 'Submitting…' : 'Submit offer'}
               </button>
             </div>
           ) : !user ? (
-            <div style={{ background: theme.amberBg, border: `1.5px solid ${theme.amberBorder}`, borderRadius: '12px', padding: '16px', marginBottom: '14px', fontSize: '13px', color: theme.amber }}>
+            <div style={{ background: '#FFFBEB', border: '1.5px solid #FDE68A', borderRadius: '12px', padding: '16px', marginBottom: '14px', fontSize: '13px', color: '#B45309' }}>
               Log in to submit an offer on this listing.
             </div>
           ) : selectedWant.status === 'filled' ? (
-            <div style={{ background: '#F5F5F3', borderRadius: '12px', padding: '16px', marginBottom: '14px', fontSize: '13px', color: theme.inkFaint, textAlign: 'center' }}>
+            <div style={{ background: '#EDF2F7', borderRadius: '12px', padding: '16px', marginBottom: '14px', fontSize: '13px', color: '#8FA5B8', textAlign: 'center' }}>
               This listing has been filled
             </div>
           ) : null}
 
           <div style={{ marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '600', color: theme.ink }}>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>
               Offers{offers.length > 0 ? ` (${offers.length})` : ''}
             </span>
           </div>
 
           {offers.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px 20px', color: theme.inkFaint, fontSize: '13px' }}>
-              No offers yet
-            </div>
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#8FA5B8', fontSize: '13px' }}>No offers yet</div>
           )}
 
           {offers.map((offer, i) => (
             <div key={offer.id} className={`card fade-up stagger-${Math.min(i + 1, 3)}`} style={{ padding: '16px 20px', marginBottom: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '12px', color: theme.inkLight, fontWeight: '500' }}>{offer.seller_email}</span>
-                {offer.price && <span style={{ fontSize: '16px', fontWeight: '700', color: theme.ink }}>{offer.price}</span>}
+                <span style={{ fontSize: '12px', color: '#4A6278', fontWeight: '500' }}>{offer.seller_email}</span>
+                {offer.price && <span style={{ fontSize: '16px', fontWeight: '700', color: '#0E7FA8' }}>{offer.price}</span>}
               </div>
-              <p style={{ fontSize: '13px', color: theme.inkLight, lineHeight: '1.55', marginBottom: '10px' }}>{offer.message}</p>
-              <span style={{ fontSize: '11px', color: theme.inkFaint }}>{new Date(offer.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+              <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.55', marginBottom: '10px' }}>{offer.message}</p>
+              <span style={{ fontSize: '11px', color: '#8FA5B8' }}>{new Date(offer.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
             </div>
           ))}
         </div>
@@ -433,14 +402,13 @@ function App() {
         <div style={inner}>
           {!user ? (
             <div className="card fade-up" style={{ padding: '32px', textAlign: 'center' }}>
-              <p style={{ fontSize: '15px', color: theme.inkLight, marginBottom: '20px' }}>Log in to post a listing</p>
-              <button className="btn btn-dark" onClick={() => setPage('login')} style={{ padding: '12px 28px', fontSize: '14px' }}>Log in</button>
+              <p style={{ fontSize: '15px', color: '#4A6278', marginBottom: '20px' }}>Log in to post a listing</p>
+              <button className="btn btn-primary" onClick={() => setPage('login')} style={{ padding: '12px 28px', fontSize: '14px' }}>Log in</button>
             </div>
           ) : (
             <div className="card fade-up" style={{ padding: '28px' }}>
-              <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', marginBottom: '6px', color: theme.ink }}>What are you after?</h2>
-              <p style={{ fontSize: '13px', color: theme.inkFaint, marginBottom: '24px' }}>Post your listing and let sellers come to you.</p>
-
+              <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', marginBottom: '6px', color: '#0F2030', fontStyle: 'italic' }}>What are you after?</h2>
+              <p style={{ fontSize: '13px', color: '#8FA5B8', marginBottom: '24px' }}>Post your listing and let sellers come to you.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <input placeholder="Title — e.g. Road bike under $300" value={title} onChange={e => setTitle(e.target.value)} />
                 <textarea placeholder="More details (optional)" value={description} onChange={e => setDescription(e.target.value)} rows={3} style={{ resize: 'vertical' }} />
@@ -455,12 +423,7 @@ function App() {
                     {categories.filter(c => c !== 'All').map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
-                <button
-                  className="btn btn-dark"
-                  onClick={postWant}
-                  disabled={!title || posting}
-                  style={{ padding: '14px', fontSize: '15px', marginTop: '6px', opacity: !title || posting ? 0.45 : 1 }}
-                >
+                <button className="btn btn-primary" onClick={postWant} disabled={!title || posting} style={{ padding: '14px', fontSize: '15px', marginTop: '6px' }}>
                   {posting ? 'Posting…' : 'Post listing'}
                 </button>
               </div>
@@ -480,31 +443,29 @@ function App() {
         <Header />
         <div style={inner}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '20px' }} className="fade-up">
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', color: theme.ink, fontStyle: 'italic' }}>My listings</h2>
-            <span style={{ fontSize: '12px', color: theme.inkFaint }}>{myWants.length} listing{myWants.length !== 1 ? 's' : ''}</span>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', color: '#0F2030', fontStyle: 'italic' }}>My listings</h2>
+            <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{myWants.length} listing{myWants.length !== 1 ? 's' : ''}</span>
           </div>
-
           {myWants.length === 0 && (
             <div className="card fade-up" style={{ padding: '48px 24px', textAlign: 'center' }}>
-              <p style={{ fontSize: '15px', color: theme.inkLight, marginBottom: '6px' }}>No listings yet</p>
-              <p style={{ fontSize: '13px', color: theme.inkFaint, marginBottom: '24px' }}>Tap + to post your first listing</p>
-              <button className="btn btn-dark" onClick={() => setPage('post')} style={{ padding: '10px 24px' }}>Post something</button>
+              <p style={{ fontSize: '15px', color: '#4A6278', marginBottom: '6px' }}>No listings yet</p>
+              <p style={{ fontSize: '13px', color: '#8FA5B8', marginBottom: '24px' }}>Tap + to post your first listing</p>
+              <button className="btn btn-primary" onClick={() => setPage('post')} style={{ padding: '10px 24px' }}>Post something</button>
             </div>
           )}
-
           {myWants.map((want, i) => (
             <div key={want.id} className={`card fade-up stagger-${Math.min(i + 1, 3)}`} style={{ padding: '18px 20px', marginBottom: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: '600', flex: 1, paddingRight: '14px', color: theme.ink, lineHeight: '1.4' }}>{want.title}</h3>
+                <h3 style={{ fontSize: '15px', fontWeight: '600', flex: 1, paddingRight: '14px', color: '#0F2030', lineHeight: '1.4', textAlign: 'left' }}>{want.title}</h3>
                 <span style={{
-                  background: want.status === 'filled' ? '#F5F5F3' : offerCounts[want.id] ? theme.greenBg : '#F5F5F3',
-                  color: want.status === 'filled' ? theme.inkFaint : offerCounts[want.id] ? theme.green : theme.inkFaint,
+                  background: want.status === 'filled' ? '#EDF2F7' : offerCounts[want.id] ? '#EDFAF4' : '#EDF2F7',
+                  color: want.status === 'filled' ? '#8FA5B8' : offerCounts[want.id] ? '#0E9A6E' : '#8FA5B8',
                   fontSize: '11px', padding: '3px 10px', borderRadius: '20px', fontWeight: '600', flexShrink: 0
                 }}>
                   {want.status === 'filled' ? 'Filled' : offerCounts[want.id] ? `${offerCounts[want.id]} offer${offerCounts[want.id] !== 1 ? 's' : ''}` : 'No offers'}
                 </span>
               </div>
-              {want.description && <p style={{ fontSize: '13px', color: theme.inkLight, marginBottom: '10px', lineHeight: '1.5' }}>{want.description}</p>}
+              {want.description && <p style={{ fontSize: '13px', color: '#4A6278', marginBottom: '10px', lineHeight: '1.5' }}>{want.description}</p>}
               <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '14px' }}>
                 {want.budget && <span className="tag">💰 {want.budget}</span>}
                 {want.location && <span className="tag">📍 {want.location}</span>}
@@ -532,54 +493,31 @@ function App() {
         <Header />
         <div style={inner}>
           <div className="card fade-up" style={{ padding: '32px', marginBottom: '24px' }}>
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', marginBottom: '6px', color: theme.ink, fontStyle: 'italic' }}>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', marginBottom: '6px', color: '#0F2030', fontStyle: 'italic' }}>
               {authMode === 'login' ? 'Welcome back' : 'Join Offr'}
             </h2>
-            <p style={{ fontSize: '13px', color: theme.inkFaint, marginBottom: '24px' }}>
+            <p style={{ fontSize: '13px', color: '#8FA5B8', marginBottom: '24px' }}>
               {authMode === 'login' ? 'Log in to post and manage your listings' : 'Post what you want, let sellers come to you'}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
               <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} type="email" />
               <input placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} type="password" />
             </div>
-            {authError && (
-              <p style={{ fontSize: '13px', color: authError.includes('Check') ? theme.green : theme.red, marginBottom: '14px', fontWeight: '500' }}>{authError}</p>
-            )}
-            <button className="btn btn-dark" onClick={handleAuth} disabled={authLoading} style={{ width: '100%', padding: '14px', fontSize: '14px', marginBottom: '16px' }}>
+            {authError && <p style={{ fontSize: '13px', color: authError.includes('Check') ? '#0E9A6E' : '#DC2626', marginBottom: '14px', fontWeight: '500' }}>{authError}</p>}
+            <button className="btn btn-primary" onClick={handleAuth} disabled={authLoading} style={{ width: '100%', padding: '14px', fontSize: '14px', marginBottom: '16px' }}>
               {authLoading ? 'Please wait…' : authMode === 'login' ? 'Log in' : 'Create account'}
             </button>
-            <p style={{ fontSize: '13px', color: theme.inkFaint, textAlign: 'center' }}>
+            <p style={{ fontSize: '13px', color: '#8FA5B8', textAlign: 'center' }}>
               {authMode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-              <span
-                onClick={() => { setAuthMode(authMode === 'login' ? 'signup' : 'login'); setAuthError('') }}
-                style={{ color: theme.ink, fontWeight: '600', cursor: 'pointer' }}
-              >
+              <span onClick={() => { setAuthMode(authMode === 'login' ? 'signup' : 'login'); setAuthError('') }} style={{ color: '#0E7FA8', fontWeight: '600', cursor: 'pointer' }}>
                 {authMode === 'login' ? 'Sign up free' : 'Log in'}
               </span>
             </p>
           </div>
-
-          <div style={{ marginBottom: '20px' }} className="fade-up stagger-1">
-            <input placeholder="Search listings…" value={search} onChange={e => setSearch(e.target.value)} style={{ marginBottom: '10px' }} />
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <select value={filterLocation} onChange={e => setFilterLocation(e.target.value)} style={{ flex: 1 }}>
-                <option value="">All locations</option>
-                {locations.map(l => <option key={l}>{l}</option>)}
-              </select>
-              <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} style={{ flex: 1 }}>
-                <option value="">All categories</option>
-                {categories.map(c => <option key={c}>{c}</option>)}
-              </select>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }} className="fade-up stagger-2">
-            <span style={{ fontSize: '13px', fontWeight: '600', color: theme.ink }}>Recent listings</span>
-            {filteredWants.length > 0 && <span style={{ fontSize: '12px', color: theme.inkFaint }}>{filteredWants.length} listing{filteredWants.length !== 1 ? 's' : ''}</span>}
-          </div>
-
-          {loading && <p style={{ color: theme.inkFaint, fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>Loading…</p>}
-          {!loading && filteredWants.length === 0 && <p style={{ color: theme.inkFaint, fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No listings found</p>}
+          <SearchFilters />
+          <ListingsHeader />
+          {loading && <p style={{ color: '#8FA5B8', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>Loading…</p>}
+          {!loading && filteredWants.length === 0 && <p style={{ color: '#8FA5B8', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No listings found</p>}
           {filteredWants.map((want, i) => <WantCard key={want.id} want={want} index={i} />)}
         </div>
       </div>
@@ -592,27 +530,10 @@ function App() {
       <style>{styles}</style>
       <Header />
       <div style={inner}>
-        <div style={{ marginBottom: '20px' }} className="fade-up">
-          <input placeholder="Search listings…" value={search} onChange={e => setSearch(e.target.value)} style={{ marginBottom: '10px' }} />
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <select value={filterLocation} onChange={e => setFilterLocation(e.target.value)} style={{ flex: 1 }}>
-              <option value="">All locations</option>
-              {locations.map(l => <option key={l}>{l}</option>)}
-            </select>
-            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} style={{ flex: 1 }}>
-              <option value="">All categories</option>
-              {categories.map(c => <option key={c}>{c}</option>)}
-            </select>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }} className="fade-up stagger-1">
-          <span style={{ fontSize: '13px', fontWeight: '600', color: theme.ink }}>Recent listings</span>
-          {filteredWants.length > 0 && <span style={{ fontSize: '12px', color: theme.inkFaint }}>{filteredWants.length} listing{filteredWants.length !== 1 ? 's' : ''}</span>}
-        </div>
-
-        {loading && <p style={{ color: theme.inkFaint, fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>Loading…</p>}
-        {!loading && filteredWants.length === 0 && <p style={{ color: theme.inkFaint, fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No listings found</p>}
+        <SearchFilters />
+        <ListingsHeader />
+        {loading && <p style={{ color: '#8FA5B8', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>Loading…</p>}
+        {!loading && filteredWants.length === 0 && <p style={{ color: '#8FA5B8', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No listings found</p>}
         {filteredWants.map((want, i) => <WantCard key={want.id} want={want} index={i} />)}
       </div>
       <BottomNav />
