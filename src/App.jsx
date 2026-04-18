@@ -209,19 +209,6 @@ function App() {
     setImagePreviews(newPreviews)
   }
 
-  async function uploadImages(wantId) {
-    const urls = []
-    for (const file of images) {
-      const ext = file.name.split('.').pop()
-      const path = `${wantId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const { error } = await supabase.storage.from('listing-images').upload(path, file)
-      if (!error) {
-        const { data } = supabase.storage.from('listing-images').getPublicUrl(path)
-        urls.push(data.publicUrl)
-      }
-    }
-    return urls
-  }
 
   async function handleAuth() {
     setAuthLoading(true); setAuthError('')
@@ -241,15 +228,23 @@ function App() {
   async function postWant() {
     if (!title || !user) return
     setPosting(true)
-    const { data } = await supabase.from('wants').insert([{ title, description, budget, location, category, user_id: user.id, user_email: user.email, images: [] }]).select()
-    if (data && data[0]) {
-      let imageUrls = []
-      if (images.length > 0) {
-        setUploadingImages(true)
-        imageUrls = await uploadImages(data[0].id)
-        await supabase.from('wants').update({ images: imageUrls }).eq('id', data[0].id)
-        setUploadingImages(false)
+    let imageUrls = []
+    if (images.length > 0) {
+      setUploadingImages(true)
+      const tempId = crypto.randomUUID()
+      for (const file of images) {
+        const ext = file.name.split('.').pop()
+        const path = tempId + '/' + Date.now() + '-' + Math.random().toString(36).slice(2) + '.' + ext
+        const { error } = await supabase.storage.from('listing-images').upload(path, file)
+        if (!error) {
+          const { data: urlData } = supabase.storage.from('listing-images').getPublicUrl(path)
+          imageUrls.push(urlData.publicUrl)
+        }
       }
+      setUploadingImages(false)
+    }
+    const { data } = await supabase.from('wants').insert([{ title, description, budget, location, category, user_id: user.id, user_email: user.email, images: imageUrls }]).select()
+    if (data && data[0]) {
       setWants([{ ...data[0], images: imageUrls }, ...wants])
       setOfferCounts({ ...offerCounts, [data[0].id]: 0 })
     }
