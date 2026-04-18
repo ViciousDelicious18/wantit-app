@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from './supabase'
 
 const styles = `
@@ -84,6 +84,47 @@ const styles = `
   }
   .nav-label { font-size: 10px; font-weight: 500; }
 
+  .img-upload-area {
+    border: 2px dashed #C8DCE8;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: #F5F9FC;
+  }
+  .img-upload-area:hover { border-color: #0E7FA8; background: #EBF6FB; }
+
+  .img-thumb {
+    width: 80px; height: 80px; object-fit: cover;
+    border-radius: 10px; border: 1.5px solid #D6E4EF;
+  }
+
+  .img-gallery {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;
+  }
+
+  .img-gallery-full {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .img-gallery-full img {
+    width: 100%; aspect-ratio: 1; object-fit: cover;
+    border-radius: 12px; border: 1.5px solid #D6E4EF;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .img-gallery-full img:hover { transform: scale(1.02); }
+
+  .img-lightbox {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; cursor: pointer;
+  }
+  .img-lightbox img { max-width: 92vw; max-height: 88vh; border-radius: 12px; }
+
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
@@ -101,6 +142,9 @@ function App() {
   const [budget, setBudget] = useState('')
   const [location, setLocation] = useState('')
   const [category, setCategory] = useState('')
+  const [images, setImages] = useState([]) // local File objects
+  const [imagePreviews, setImagePreviews] = useState([]) // local preview URLs
+  const [uploadingImages, setUploadingImages] = useState(false)
   const [loading, setLoading] = useState(true)
   const [posting, setPosting] = useState(false)
   const [user, setUser] = useState(null)
@@ -120,6 +164,8 @@ function App() {
   const [page, setPage] = useState('home')
   const [search, setSearch] = useState('')
   const [seenOffers, setSeenOffers] = useState(() => JSON.parse(localStorage.getItem('seenOffers') || '{}'))
+  const [lightboxImg, setLightboxImg] = useState(null)
+  const fileInputRef = useRef()
 
   const categories = ['All', 'Electronics', 'Sport & Outdoors', 'Vehicles', 'Furniture', 'Clothing', 'Tools', 'Music', 'Other']
   const locations = ['All', 'Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga', 'Dunedin', 'Other']
@@ -150,6 +196,33 @@ function App() {
     if (data) setOffers(data)
   }
 
+  function handleImageSelect(e) {
+    const files = Array.from(e.target.files).slice(0, 4)
+    setImages(files)
+    setImagePreviews(files.map(f => URL.createObjectURL(f)))
+  }
+
+  function removeImage(index) {
+    const newImages = images.filter((_, i) => i !== index)
+    const newPreviews = imagePreviews.filter((_, i) => i !== index)
+    setImages(newImages)
+    setImagePreviews(newPreviews)
+  }
+
+  async function uploadImages(wantId) {
+    const urls = []
+    for (const file of images) {
+      const ext = file.name.split('.').pop()
+      const path = `${wantId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error } = await supabase.storage.from('listing-images').upload(path, file)
+      if (!error) {
+        const { data } = supabase.storage.from('listing-images').getPublicUrl(path)
+        urls.push(data.publicUrl)
+      }
+    }
+    return urls
+  }
+
   async function handleAuth() {
     setAuthLoading(true); setAuthError('')
     if (authMode === 'login') {
@@ -168,9 +241,20 @@ function App() {
   async function postWant() {
     if (!title || !user) return
     setPosting(true)
-    const { data } = await supabase.from('wants').insert([{ title, description, budget, location, category, user_id: user.id, user_email: user.email }]).select()
-    if (data) { setWants([data[0], ...wants]); setOfferCounts({ ...offerCounts, [data[0].id]: 0 }) }
+    const { data } = await supabase.from('wants').insert([{ title, description, budget, location, category, user_id: user.id, user_email: user.email, images: [] }]).select()
+    if (data && data[0]) {
+      let imageUrls = []
+      if (images.length > 0) {
+        setUploadingImages(true)
+        imageUrls = await uploadImages(data[0].id)
+        await supabase.from('wants').update({ images: imageUrls }).eq('id', data[0].id)
+        setUploadingImages(false)
+      }
+      setWants([{ ...data[0], images: imageUrls }, ...wants])
+      setOfferCounts({ ...offerCounts, [data[0].id]: 0 })
+    }
     setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory('')
+    setImages([]); setImagePreviews([])
     setPosting(false); setPage('home')
   }
 
@@ -224,9 +308,7 @@ function App() {
   const Header = () => (
     <div style={{ background: 'rgba(255,255,255,0.88)', backdropFilter: 'blur(14px)', borderBottom: '1px solid #D6E4EF', padding: '0 16px', position: 'sticky', top: 0, zIndex: 10 }}>
       <div style={{ maxWidth: '640px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span onClick={() => { setPage('home'); setSelectedWant(null) }} style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', cursor: 'pointer', color: '#0E7FA8', letterSpacing: '-0.5px', fontStyle: 'italic' }}>
-          Offr
-        </span>
+        <span onClick={() => { setPage('home'); setSelectedWant(null) }} style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', cursor: 'pointer', color: '#0E7FA8', letterSpacing: '-0.5px', fontStyle: 'italic' }}>Offr</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {!user && <span style={{ fontSize: '13px', color: '#8FA5B8' }}>See it. Want it. Offr it.</span>}
           {user && page === 'want' && (
@@ -235,9 +317,7 @@ function App() {
               Back
             </button>
           )}
-          {user && page !== 'want' && (
-            <button className="btn" onClick={handleLogout} style={{ fontSize: '12px' }}>Log out</button>
-          )}
+          {user && page !== 'want' && <button className="btn" onClick={handleLogout} style={{ fontSize: '12px' }}>Log out</button>}
         </div>
       </div>
     </div>
@@ -259,36 +339,84 @@ function App() {
         </button>
         <button className="nav-btn" onClick={() => setPage('mylistings')} style={{ position: 'relative' }}>
           <svg width="20" height="20" fill="none" stroke={page === 'mylistings' ? '#0E7FA8' : '#8FA5B8'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          {myNewOffers > 0 && (
-            <span style={{ position: 'absolute', top: '8px', right: 'calc(50% - 20px)', background: '#DC2626', color: '#fff', fontSize: '9px', fontWeight: '700', minWidth: '16px', height: '16px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{myNewOffers}</span>
-          )}
+          {myNewOffers > 0 && <span style={{ position: 'absolute', top: '8px', right: 'calc(50% - 20px)', background: '#DC2626', color: '#fff', fontSize: '9px', fontWeight: '700', minWidth: '16px', height: '16px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{myNewOffers}</span>}
           <span className="nav-label" style={{ color: page === 'mylistings' ? '#0E7FA8' : '#8FA5B8' }}>Mine</span>
         </button>
       </div>
     )
   }
 
-  const WantCard = ({ want, index = 0 }) => (
-    <div className={`card card-hover fade-up stagger-${Math.min(index + 1, 3)}`} onClick={() => openWant(want)} style={{ padding: '18px 20px', marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-        <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#0F2030', flex: 1, paddingRight: '14px', lineHeight: '1.4', textAlign: 'left' }}>{want.title}</h3>
-        <span className={`badge ${want.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>
-          {want.status === 'filled' ? 'Filled' : 'Want'}
-        </span>
+  const WantCard = ({ want, index = 0 }) => {
+    const hasImages = want.images && want.images.length > 0
+    return (
+      <div className={`card card-hover fade-up stagger-${Math.min(index + 1, 3)}`} onClick={() => openWant(want)} style={{ marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden' }}>
+        {hasImages && (
+          <div style={{ display: 'flex', gap: '2px', height: '160px', overflow: 'hidden', borderRadius: '14px 14px 0 0' }}>
+            <img src={want.images[0]} alt="" style={{ flex: 1, objectFit: 'cover', minWidth: 0 }} />
+            {want.images[1] && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: want.images.length > 2 ? 1 : 0.6 }}>
+                <img src={want.images[1]} alt="" style={{ flex: 1, objectFit: 'cover', width: '100%' }} />
+                {want.images[2] && (
+                  <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+                    <img src={want.images[2]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {want.images.length > 3 && (
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '14px', fontWeight: '700' }}>+{want.images.length - 3}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        <div style={{ padding: '16px 18px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#0F2030', flex: 1, paddingRight: '14px', lineHeight: '1.4', textAlign: 'left' }}>{want.title}</h3>
+            <span className={`badge ${want.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>{want.status === 'filled' ? 'Filled' : 'Want'}</span>
+          </div>
+          {want.description && <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.55', marginBottom: '12px', textAlign: 'left' }}>{want.description}</p>}
+          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '14px' }}>
+            {want.budget && <span className="tag">💰 {want.budget}</span>}
+            {want.location && <span className="tag">📍 {want.location}</span>}
+            {want.category && <span className="tag">{want.category}</span>}
+          </div>
+          <div className="divider" style={{ marginBottom: '12px' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '12px', color: offerCounts[want.id] ? '#0E9A6E' : '#8FA5B8', fontWeight: offerCounts[want.id] ? '600' : '400' }}>
+              {offerCounts[want.id] ? `${offerCounts[want.id]} offer${offerCounts[want.id] !== 1 ? 's' : ''}` : 'No offers yet'}
+            </span>
+            <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{new Date(want.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
+          </div>
+        </div>
       </div>
-      {want.description && <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.55', marginBottom: '12px', textAlign: 'left' }}>{want.description}</p>}
-      <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '14px' }}>
-        {want.budget && <span className="tag">💰 {want.budget}</span>}
-        {want.location && <span className="tag">📍 {want.location}</span>}
-        {want.category && <span className="tag">{want.category}</span>}
-      </div>
-      <div className="divider" style={{ marginBottom: '12px' }} />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '12px', color: offerCounts[want.id] ? '#0E9A6E' : '#8FA5B8', fontWeight: offerCounts[want.id] ? '600' : '400' }}>
-          {offerCounts[want.id] ? `${offerCounts[want.id]} offer${offerCounts[want.id] !== 1 ? 's' : ''}` : 'No offers yet'}
-        </span>
-        <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{new Date(want.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
-      </div>
+    )
+  }
+
+  const ImageUploader = () => (
+    <div>
+      <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleImageSelect} />
+      {imagePreviews.length === 0 ? (
+        <div className="img-upload-area" onClick={() => fileInputRef.current.click()}>
+          <svg width="28" height="28" fill="none" stroke="#8FA5B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px' }}><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <p style={{ fontSize: '13px', color: '#8FA5B8', margin: 0 }}>Add photos <span style={{ color: '#0E7FA8', fontWeight: '600' }}>Browse</span></p>
+          <p style={{ fontSize: '11px', color: '#B0C4D4', marginTop: '4px' }}>Up to 4 images</p>
+        </div>
+      ) : (
+        <div>
+          <div className="img-gallery">
+            {imagePreviews.map((src, i) => (
+              <div key={i} style={{ position: 'relative' }}>
+                <img src={src} className="img-thumb" alt="" />
+                <button onClick={() => removeImage(i)} style={{ position: 'absolute', top: '-6px', right: '-6px', width: '20px', height: '20px', borderRadius: '50%', background: '#DC2626', border: 'none', color: '#fff', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>×</button>
+              </div>
+            ))}
+            {imagePreviews.length < 4 && (
+              <div onClick={() => fileInputRef.current.click()} style={{ width: '80px', height: '80px', border: '2px dashed #C8DCE8', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#F5F9FC' }}>
+                <span style={{ fontSize: '22px', color: '#8FA5B8' }}>+</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 
@@ -315,37 +443,54 @@ function App() {
     </div>
   )
 
+  // LIGHTBOX
+  const Lightbox = () => {
+    if (!lightboxImg) return null
+    return (
+      <div className="img-lightbox" onClick={() => setLightboxImg(null)}>
+        <img src={lightboxImg} alt="" />
+      </div>
+    )
+  }
+
   // WANT DETAIL PAGE
   if (page === 'want' && selectedWant) {
+    const hasImages = selectedWant.images && selectedWant.images.length > 0
     return (
       <div style={pageStyle}>
         <style>{styles}</style>
         <Header />
+        <Lightbox />
         <div style={inner}>
-          <div className="card fade-up" style={{ padding: '24px', marginBottom: '14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#0F2030', flex: 1, paddingRight: '14px', lineHeight: '1.3', fontFamily: "'DM Serif Display', serif", textAlign: 'left' }}>{selectedWant.title}</h2>
-              <span className={`badge ${selectedWant.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>
-                {selectedWant.status === 'filled' ? 'Filled' : 'Want'}
-              </span>
-            </div>
-            {selectedWant.description && <p style={{ fontSize: '14px', color: '#4A6278', lineHeight: '1.65', marginBottom: '16px' }}>{selectedWant.description}</p>}
-            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-              {selectedWant.budget && <span className="tag" style={{ fontSize: '13px' }}>💰 {selectedWant.budget}</span>}
-              {selectedWant.location && <span className="tag" style={{ fontSize: '13px' }}>📍 {selectedWant.location}</span>}
-              {selectedWant.category && <span className="tag" style={{ fontSize: '13px' }}>🏷 {selectedWant.category}</span>}
-            </div>
-            {user && user.id === selectedWant.user_id && (
-              <>
-                <div className="divider" style={{ margin: '20px 0 16px' }} />
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  {selectedWant.status !== 'filled' && (
-                    <button className="btn btn-green" onClick={() => markFilled(selectedWant.id)}>✓ Mark as filled</button>
-                  )}
-                  <button className="btn btn-red" onClick={() => { deleteWant(selectedWant.id); setPage('home') }}>Delete</button>
-                </div>
-              </>
+          <div className="card fade-up" style={{ marginBottom: '14px', overflow: 'hidden' }}>
+            {hasImages && (
+              <div className="img-gallery-full" style={{ padding: '16px 16px 0' }}>
+                {selectedWant.images.map((url, i) => (
+                  <img key={i} src={url} alt="" onClick={() => setLightboxImg(url)} />
+                ))}
+              </div>
             )}
+            <div style={{ padding: '20px 24px 24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#0F2030', flex: 1, paddingRight: '14px', lineHeight: '1.3', fontFamily: "'DM Serif Display', serif", textAlign: 'left' }}>{selectedWant.title}</h2>
+                <span className={`badge ${selectedWant.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>{selectedWant.status === 'filled' ? 'Filled' : 'Want'}</span>
+              </div>
+              {selectedWant.description && <p style={{ fontSize: '14px', color: '#4A6278', lineHeight: '1.65', marginBottom: '16px' }}>{selectedWant.description}</p>}
+              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                {selectedWant.budget && <span className="tag" style={{ fontSize: '13px' }}>💰 {selectedWant.budget}</span>}
+                {selectedWant.location && <span className="tag" style={{ fontSize: '13px' }}>📍 {selectedWant.location}</span>}
+                {selectedWant.category && <span className="tag" style={{ fontSize: '13px' }}>🏷 {selectedWant.category}</span>}
+              </div>
+              {user && user.id === selectedWant.user_id && (
+                <>
+                  <div className="divider" style={{ margin: '20px 0 16px' }} />
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {selectedWant.status !== 'filled' && <button className="btn btn-green" onClick={() => markFilled(selectedWant.id)}>✓ Mark as filled</button>}
+                    <button className="btn btn-red" onClick={() => { deleteWant(selectedWant.id); setPage('home') }}>Delete</button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           {user && selectedWant.status !== 'filled' ? (
@@ -362,21 +507,13 @@ function App() {
               Log in to submit an offer on this listing.
             </div>
           ) : selectedWant.status === 'filled' ? (
-            <div style={{ background: '#EDF2F7', borderRadius: '12px', padding: '16px', marginBottom: '14px', fontSize: '13px', color: '#8FA5B8', textAlign: 'center' }}>
-              This listing has been filled
-            </div>
+            <div style={{ background: '#EDF2F7', borderRadius: '12px', padding: '16px', marginBottom: '14px', fontSize: '13px', color: '#8FA5B8', textAlign: 'center' }}>This listing has been filled</div>
           ) : null}
 
           <div style={{ marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>
-              Offers{offers.length > 0 ? ` (${offers.length})` : ''}
-            </span>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>Offers{offers.length > 0 ? ` (${offers.length})` : ''}</span>
           </div>
-
-          {offers.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#8FA5B8', fontSize: '13px' }}>No offers yet</div>
-          )}
-
+          {offers.length === 0 && <div style={{ textAlign: 'center', padding: '40px 20px', color: '#8FA5B8', fontSize: '13px' }}>No offers yet</div>}
           {offers.map((offer, i) => (
             <div key={offer.id} className={`card fade-up stagger-${Math.min(i + 1, 3)}`} style={{ padding: '16px 20px', marginBottom: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -423,8 +560,9 @@ function App() {
                     {categories.filter(c => c !== 'All').map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
+                <ImageUploader />
                 <button className="btn btn-primary" onClick={postWant} disabled={!title || posting} style={{ padding: '14px', fontSize: '15px', marginTop: '6px' }}>
-                  {posting ? 'Posting…' : 'Post listing'}
+                  {uploadingImages ? 'Uploading images…' : posting ? 'Posting…' : 'Post listing'}
                 </button>
               </div>
             </div>
@@ -457,11 +595,7 @@ function App() {
             <div key={want.id} className={`card fade-up stagger-${Math.min(i + 1, 3)}`} style={{ padding: '18px 20px', marginBottom: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: '600', flex: 1, paddingRight: '14px', color: '#0F2030', lineHeight: '1.4', textAlign: 'left' }}>{want.title}</h3>
-                <span style={{
-                  background: want.status === 'filled' ? '#EDF2F7' : offerCounts[want.id] ? '#EDFAF4' : '#EDF2F7',
-                  color: want.status === 'filled' ? '#8FA5B8' : offerCounts[want.id] ? '#0E9A6E' : '#8FA5B8',
-                  fontSize: '11px', padding: '3px 10px', borderRadius: '20px', fontWeight: '600', flexShrink: 0
-                }}>
+                <span style={{ background: want.status === 'filled' ? '#EDF2F7' : offerCounts[want.id] ? '#EDFAF4' : '#EDF2F7', color: want.status === 'filled' ? '#8FA5B8' : offerCounts[want.id] ? '#0E9A6E' : '#8FA5B8', fontSize: '11px', padding: '3px 10px', borderRadius: '20px', fontWeight: '600', flexShrink: 0 }}>
                   {want.status === 'filled' ? 'Filled' : offerCounts[want.id] ? `${offerCounts[want.id]} offer${offerCounts[want.id] !== 1 ? 's' : ''}` : 'No offers'}
                 </span>
               </div>
@@ -471,6 +605,12 @@ function App() {
                 {want.location && <span className="tag">📍 {want.location}</span>}
                 {want.category && <span className="tag">{want.category}</span>}
               </div>
+              {want.images && want.images.length > 0 && (
+                <div className="img-gallery" style={{ marginBottom: '14px' }}>
+                  {want.images.slice(0, 3).map((url, i) => <img key={i} src={url} className="img-thumb" alt="" />)}
+                  {want.images.length > 3 && <div style={{ width: '80px', height: '80px', borderRadius: '10px', background: '#EDF2F7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: '#8FA5B8', fontWeight: '600' }}>+{want.images.length - 3}</div>}
+                </div>
+              )}
               <div className="divider" style={{ marginBottom: '14px' }} />
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button className="btn" onClick={() => openWant(want)} style={{ fontSize: '12px' }}>View offers →</button>
