@@ -5,26 +5,16 @@ const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap');
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
-
   body { background: #E8EFF5; font-family: 'DM Sans', sans-serif; color: #0F2030; }
-
   ::placeholder { color: #8FA5B8; }
 
   input, textarea, select {
-    width: 100%;
-    padding: 12px 14px;
-    border-radius: 10px;
-    border: 1.5px solid #C8DCE8;
-    background: #FFFFFF;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    color: #0F2030;
-    outline: none;
-    transition: border-color 0.15s ease;
-    appearance: none;
+    width: 100%; padding: 12px 14px; border-radius: 10px;
+    border: 1.5px solid #C8DCE8; background: #FFFFFF;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; color: #0F2030;
+    outline: none; transition: border-color 0.15s ease; appearance: none;
   }
   input:focus, textarea:focus, select:focus { border-color: #0E7FA8; }
-
   button { font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s ease; }
 
   .btn {
@@ -33,102 +23,47 @@ const styles = `
     border: 1.5px solid #C8DCE8; background: #FFFFFF; color: #0F2030;
   }
   .btn:hover { border-color: #0E7FA8; background: #EBF6FB; color: #0E7FA8; }
-
-  .btn-primary {
-    background: #0E7FA8; color: #FFFFFF; border: 1.5px solid #0E7FA8;
-  }
+  .btn-primary { background: #0E7FA8; color: #FFFFFF; border: 1.5px solid #0E7FA8; }
   .btn-primary:hover { background: #0A6588; border-color: #0A6588; }
   .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
-
-  .btn-green {
-    background: #EDFAF4; color: #0E9A6E; border: 1.5px solid #A7EDD4;
-  }
+  .btn-green { background: #EDFAF4; color: #0E9A6E; border: 1.5px solid #A7EDD4; }
   .btn-green:hover { background: #d4f5e8; }
-
-  .btn-red {
-    background: #FEF2F2; color: #DC2626; border: 1.5px solid #FECACA;
-  }
+  .btn-red { background: #FEF2F2; color: #DC2626; border: 1.5px solid #FECACA; }
   .btn-red:hover { background: #fee2e2; }
 
   .card {
-    background: #FFFFFF;
-    border: 1.5px solid #D6E4EF;
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(14, 127, 168, 0.07);
+    background: #FFFFFF; border: 1.5px solid #D6E4EF; border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(14,127,168,0.07);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
-  .card-hover:hover {
-    border-color: #7EC8E0;
-    box-shadow: 0 6px 24px rgba(14, 127, 168, 0.13);
-    cursor: pointer;
-  }
+  .card-hover:hover { border-color: #7EC8E0; box-shadow: 0 6px 24px rgba(14,127,168,0.13); cursor: pointer; }
 
-  .badge {
-    display: inline-flex; align-items: center; flex-shrink: 0;
-    padding: 3px 10px; border-radius: 20px;
-    font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
-  }
+  .badge { display: inline-flex; align-items: center; flex-shrink: 0; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.03em; }
   .badge-want { background: #EBF6FB; color: #0E7FA8; }
   .badge-filled { background: #EDF2F7; color: #8FA5B8; }
 
-  .tag {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: 12px; color: #4A6278;
-  }
-
+  .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #4A6278; }
   .divider { height: 1px; background: #E4EFF7; }
 
-  .nav-btn {
-    flex: 1; padding: 10px 0; background: none; border: none;
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-  }
+  .nav-btn { flex: 1; padding: 10px 0; background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 3px; }
   .nav-label { font-size: 10px; font-weight: 500; }
 
-  .img-upload-area {
-    border: 2px dashed #C8DCE8;
-    border-radius: 12px;
-    padding: 24px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    background: #F5F9FC;
-  }
+  .img-upload-area { border: 2px dashed #C8DCE8; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.15s ease; background: #F5F9FC; }
   .img-upload-area:hover { border-color: #0E7FA8; background: #EBF6FB; }
-
-  .img-thumb {
-    width: 80px; height: 80px; object-fit: cover;
-    border-radius: 10px; border: 1.5px solid #D6E4EF;
-  }
-
-  .img-gallery {
-    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;
-  }
-
-  .img-gallery-full {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-  .img-gallery-full img {
-    width: 100%; aspect-ratio: 1; object-fit: cover;
-    border-radius: 12px; border: 1.5px solid #D6E4EF;
-    cursor: pointer;
-    transition: transform 0.15s ease;
-  }
+  .img-thumb { width: 80px; height: 80px; object-fit: cover; border-radius: 10px; border: 1.5px solid #D6E4EF; }
+  .img-gallery { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .img-gallery-full { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 16px; }
+  .img-gallery-full img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; border: 1.5px solid #D6E4EF; cursor: pointer; transition: transform 0.15s ease; }
   .img-gallery-full img:hover { transform: scale(1.02); }
-
-  .img-lightbox {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 100; cursor: pointer;
-  }
+  .img-lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 100; cursor: pointer; }
   .img-lightbox img { max-width: 92vw; max-height: 88vh; border-radius: 12px; }
 
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  .msg-bubble { max-width: 78%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.5; margin-bottom: 6px; }
+  .msg-mine { background: #0E7FA8; color: #fff; border-radius: 14px 14px 4px 14px; align-self: flex-end; }
+  .msg-theirs { background: #F0F5FA; color: #0F2030; border-radius: 14px 14px 14px 4px; align-self: flex-start; border: 1px solid #D6E4EF; }
+  .msg-thread { display: flex; flex-direction: column; gap: 2px; padding: 16px; max-height: 340px; overflow-y: auto; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   .fade-up { animation: fadeUp 0.3s ease forwards; }
   .stagger-1 { animation-delay: 0.05s; opacity: 0; }
   .stagger-2 { animation-delay: 0.1s; opacity: 0; }
@@ -142,8 +77,8 @@ function App() {
   const [budget, setBudget] = useState('')
   const [location, setLocation] = useState('')
   const [category, setCategory] = useState('')
-  const [images, setImages] = useState([]) // local File objects
-  const [imagePreviews, setImagePreviews] = useState([]) // local preview URLs
+  const [images, setImages] = useState([])
+  const [imagePreviews, setImagePreviews] = useState([])
   const [uploadingImages, setUploadingImages] = useState(false)
   const [loading, setLoading] = useState(true)
   const [posting, setPosting] = useState(false)
@@ -165,7 +100,14 @@ function App() {
   const [search, setSearch] = useState('')
   const [seenOffers, setSeenOffers] = useState(() => JSON.parse(localStorage.getItem('seenOffers') || '{}'))
   const [lightboxImg, setLightboxImg] = useState(null)
+  // Messaging state
+  const [activeThread, setActiveThread] = useState(null) // { offer, want }
+  const [messages, setMessages] = useState([])
+  const [newMessage, setNewMessage] = useState('')
+  const [sendingMessage, setSendingMessage] = useState(false)
+  const [myInbox, setMyInbox] = useState([]) // threads where I have messages
   const fileInputRef = useRef()
+  const messagesEndRef = useRef()
 
   const categories = ['All', 'Electronics', 'Sport & Outdoors', 'Vehicles', 'Furniture', 'Clothing', 'Tools', 'Music', 'Other']
   const locations = ['All', 'Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga', 'Dunedin', 'Other']
@@ -175,6 +117,14 @@ function App() {
     supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null))
     fetchWants()
   }, [])
+
+  useEffect(() => {
+    if (user) fetchInbox()
+  }, [user])
+
+  useEffect(() => {
+    if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   async function fetchWants() {
     const { data } = await supabase.from('wants').select('*').order('created_at', { ascending: false })
@@ -196,6 +146,53 @@ function App() {
     if (data) setOffers(data)
   }
 
+  async function fetchInbox() {
+    const { data } = await supabase.from('messages').select('*, offers(seller_email, price), wants(title)').order('created_at', { ascending: false })
+    if (data) {
+      // Group by offer_id, get unique threads
+      const seen = new Set()
+      const threads = []
+      data.forEach(m => {
+        if (!seen.has(m.offer_id)) {
+          seen.add(m.offer_id)
+          threads.push(m)
+        }
+      })
+      setMyInbox(threads)
+    }
+  }
+
+  async function fetchMessages(offerId) {
+    const { data } = await supabase.from('messages').select('*').eq('offer_id', offerId).order('created_at', { ascending: true })
+    if (data) setMessages(data)
+  }
+
+  async function openThread(offer, want) {
+    setActiveThread({ offer, want })
+    setMessages([])
+    await fetchMessages(offer.id)
+    setPage('messages')
+  }
+
+  async function sendMessage() {
+    if (!newMessage.trim() || !user || !activeThread) return
+    setSendingMessage(true)
+    const isOwner = activeThread.want.user_id === user.id
+    const recipientEmail = isOwner ? activeThread.offer.seller_email : activeThread.want.user_email
+    await supabase.from('messages').insert([{
+      offer_id: activeThread.offer.id,
+      want_id: activeThread.want.id,
+      sender_id: user.id,
+      sender_email: user.email,
+      recipient_email: recipientEmail,
+      message: newMessage.trim()
+    }])
+    setNewMessage('')
+    await fetchMessages(activeThread.offer.id)
+    await fetchInbox()
+    setSendingMessage(false)
+  }
+
   function handleImageSelect(e) {
     const files = Array.from(e.target.files).slice(0, 4)
     setImages(files)
@@ -203,12 +200,9 @@ function App() {
   }
 
   function removeImage(index) {
-    const newImages = images.filter((_, i) => i !== index)
-    const newPreviews = imagePreviews.filter((_, i) => i !== index)
-    setImages(newImages)
-    setImagePreviews(newPreviews)
+    setImages(images.filter((_, i) => i !== index))
+    setImagePreviews(imagePreviews.filter((_, i) => i !== index))
   }
-
 
   async function handleAuth() {
     setAuthLoading(true); setAuthError('')
@@ -306,13 +300,13 @@ function App() {
         <span onClick={() => { setPage('home'); setSelectedWant(null) }} style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', cursor: 'pointer', color: '#0E7FA8', letterSpacing: '-0.5px', fontStyle: 'italic' }}>Offr</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {!user && <span style={{ fontSize: '13px', color: '#8FA5B8' }}>See it. Want it. Offr it.</span>}
-          {user && page === 'want' && (
-            <button className="btn" onClick={() => setPage('home')}>
+          {user && (page === 'want' || page === 'messages') && (
+            <button className="btn" onClick={() => { setPage(page === 'messages' ? 'want' : 'home'); setActiveThread(null) }}>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
               Back
             </button>
           )}
-          {user && page !== 'want' && <button className="btn" onClick={handleLogout} style={{ fontSize: '12px' }}>Log out</button>}
+          {user && page !== 'want' && page !== 'messages' && <button className="btn" onClick={handleLogout} style={{ fontSize: '12px' }}>Log out</button>}
         </div>
       </div>
     </div>
@@ -337,6 +331,10 @@ function App() {
           {myNewOffers > 0 && <span style={{ position: 'absolute', top: '8px', right: 'calc(50% - 20px)', background: '#DC2626', color: '#fff', fontSize: '9px', fontWeight: '700', minWidth: '16px', height: '16px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{myNewOffers}</span>}
           <span className="nav-label" style={{ color: page === 'mylistings' ? '#0E7FA8' : '#8FA5B8' }}>Mine</span>
         </button>
+        <button className="nav-btn" onClick={() => setPage('inbox')} style={{ position: 'relative' }}>
+          <svg width="20" height="20" fill="none" stroke={page === 'inbox' || page === 'messages' ? '#0E7FA8' : '#8FA5B8'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <span className="nav-label" style={{ color: page === 'inbox' || page === 'messages' ? '#0E7FA8' : '#8FA5B8' }}>Messages</span>
+        </button>
       </div>
     )
   }
@@ -354,9 +352,7 @@ function App() {
                 {want.images[2] && (
                   <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
                     <img src={want.images[2]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    {want.images.length > 3 && (
-                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '14px', fontWeight: '700' }}>+{want.images.length - 3}</div>
-                    )}
+                    {want.images.length > 3 && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '14px', fontWeight: '700' }}>+{want.images.length - 3}</div>}
                   </div>
                 )}
               </div>
@@ -396,20 +392,18 @@ function App() {
           <p style={{ fontSize: '11px', color: '#B0C4D4', marginTop: '4px' }}>Up to 4 images</p>
         </div>
       ) : (
-        <div>
-          <div className="img-gallery">
-            {imagePreviews.map((src, i) => (
-              <div key={i} style={{ position: 'relative' }}>
-                <img src={src} className="img-thumb" alt="" />
-                <button onClick={() => removeImage(i)} style={{ position: 'absolute', top: '-6px', right: '-6px', width: '20px', height: '20px', borderRadius: '50%', background: '#DC2626', border: 'none', color: '#fff', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>×</button>
-              </div>
-            ))}
-            {imagePreviews.length < 4 && (
-              <div onClick={() => fileInputRef.current.click()} style={{ width: '80px', height: '80px', border: '2px dashed #C8DCE8', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#F5F9FC' }}>
-                <span style={{ fontSize: '22px', color: '#8FA5B8' }}>+</span>
-              </div>
-            )}
-          </div>
+        <div className="img-gallery">
+          {imagePreviews.map((src, i) => (
+            <div key={i} style={{ position: 'relative' }}>
+              <img src={src} className="img-thumb" alt="" />
+              <button onClick={() => removeImage(i)} style={{ position: 'absolute', top: '-6px', right: '-6px', width: '20px', height: '20px', borderRadius: '50%', background: '#DC2626', border: 'none', color: '#fff', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>×</button>
+            </div>
+          ))}
+          {imagePreviews.length < 4 && (
+            <div onClick={() => fileInputRef.current.click()} style={{ width: '80px', height: '80px', border: '2px dashed #C8DCE8', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#F5F9FC' }}>
+              <span style={{ fontSize: '22px', color: '#8FA5B8' }}>+</span>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -438,12 +432,90 @@ function App() {
     </div>
   )
 
-  // LIGHTBOX
   const Lightbox = () => {
     if (!lightboxImg) return null
+    return <div className="img-lightbox" onClick={() => setLightboxImg(null)}><img src={lightboxImg} alt="" /></div>
+  }
+
+  // MESSAGES PAGE
+  if (page === 'messages' && activeThread) {
+    const isOwner = activeThread.want.user_id === user?.id
+    const otherEmail = isOwner ? activeThread.offer.seller_email : activeThread.want.user_email
     return (
-      <div className="img-lightbox" onClick={() => setLightboxImg(null)}>
-        <img src={lightboxImg} alt="" />
+      <div style={pageStyle}>
+        <style>{styles}</style>
+        <Header />
+        <div style={inner}>
+          <div className="card fade-up" style={{ marginBottom: '14px', overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #E4EFF7' }}>
+              <p style={{ fontSize: '12px', color: '#8FA5B8', marginBottom: '2px' }}>Re: {activeThread.want.title}</p>
+              <p style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>{otherEmail}</p>
+              {activeThread.offer.price && <p style={{ fontSize: '12px', color: '#0E7FA8', marginTop: '2px' }}>Offer: {activeThread.offer.price}</p>}
+            </div>
+            <div className="msg-thread">
+              {messages.length === 0 && <p style={{ fontSize: '13px', color: '#8FA5B8', textAlign: 'center', padding: '20px 0' }}>No messages yet — say hello!</p>}
+              {messages.map(m => (
+                <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: m.sender_email === user.email ? 'flex-end' : 'flex-start' }}>
+                  <div className={`msg-bubble ${m.sender_email === user.email ? 'msg-mine' : 'msg-theirs'}`}>{m.message}</div>
+                  <span style={{ fontSize: '10px', color: '#B0C4D4', margin: '2px 4px 6px' }}>{new Date(m.created_at).toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+            <div style={{ padding: '12px 16px', borderTop: '1px solid #E4EFF7', display: 'flex', gap: '8px' }}>
+              <input
+                placeholder="Type a message…"
+                value={newMessage}
+                onChange={e => setNewMessage(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                style={{ flex: 1 }}
+              />
+              <button className="btn btn-primary" onClick={sendMessage} disabled={!newMessage.trim() || sendingMessage} style={{ flexShrink: 0, padding: '10px 16px' }}>
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+        <BottomNav />
+      </div>
+    )
+  }
+
+  // INBOX PAGE
+  if (page === 'inbox') {
+    return (
+      <div style={pageStyle}>
+        <style>{styles}</style>
+        <Header />
+        <div style={inner}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '20px' }} className="fade-up">
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', color: '#0F2030', fontStyle: 'italic' }}>Messages</h2>
+            <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{myInbox.length} thread{myInbox.length !== 1 ? 's' : ''}</span>
+          </div>
+          {myInbox.length === 0 && (
+            <div className="card fade-up" style={{ padding: '48px 24px', textAlign: 'center' }}>
+              <p style={{ fontSize: '15px', color: '#4A6278', marginBottom: '6px' }}>No messages yet</p>
+              <p style={{ fontSize: '13px', color: '#8FA5B8' }}>When you message a seller or buyer, threads appear here</p>
+            </div>
+          )}
+          {myInbox.map((thread, i) => {
+            const want = wants.find(w => w.id === thread.want_id)
+            const offer = { id: thread.offer_id, seller_email: thread.offers?.seller_email, price: thread.offers?.price }
+            if (!want) return null
+            const otherEmail = want.user_id === user.id ? offer.seller_email : want.user_email
+            return (
+              <div key={thread.offer_id} className={`card card-hover fade-up stagger-${Math.min(i + 1, 3)}`} style={{ padding: '16px 20px', marginBottom: '10px' }} onClick={() => openThread(offer, want)}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                  <p style={{ fontSize: '14px', fontWeight: '600', color: '#0F2030' }}>{otherEmail}</p>
+                  <span style={{ fontSize: '11px', color: '#8FA5B8' }}>{new Date(thread.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
+                </div>
+                <p style={{ fontSize: '12px', color: '#8FA5B8', marginBottom: '4px' }}>Re: {want.title}</p>
+                <p style={{ fontSize: '13px', color: '#4A6278', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{thread.message}</p>
+              </div>
+            )
+          })}
+        </div>
+        <BottomNav />
       </div>
     )
   }
@@ -451,6 +523,7 @@ function App() {
   // WANT DETAIL PAGE
   if (page === 'want' && selectedWant) {
     const hasImages = selectedWant.images && selectedWant.images.length > 0
+    const isOwner = user && user.id === selectedWant.user_id
     return (
       <div style={pageStyle}>
         <style>{styles}</style>
@@ -460,9 +533,7 @@ function App() {
           <div className="card fade-up" style={{ marginBottom: '14px', overflow: 'hidden' }}>
             {hasImages && (
               <div className="img-gallery-full" style={{ padding: '16px 16px 0' }}>
-                {selectedWant.images.map((url, i) => (
-                  <img key={i} src={url} alt="" onClick={() => setLightboxImg(url)} />
-                ))}
+                {selectedWant.images.map((url, i) => <img key={i} src={url} alt="" onClick={() => setLightboxImg(url)} />)}
               </div>
             )}
             <div style={{ padding: '20px 24px 24px' }}>
@@ -476,7 +547,7 @@ function App() {
                 {selectedWant.location && <span className="tag" style={{ fontSize: '13px' }}>📍 {selectedWant.location}</span>}
                 {selectedWant.category && <span className="tag" style={{ fontSize: '13px' }}>🏷 {selectedWant.category}</span>}
               </div>
-              {user && user.id === selectedWant.user_id && (
+              {isOwner && (
                 <>
                   <div className="divider" style={{ margin: '20px 0 16px' }} />
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -488,7 +559,7 @@ function App() {
             </div>
           </div>
 
-          {user && selectedWant.status !== 'filled' ? (
+          {user && selectedWant.status !== 'filled' && !isOwner ? (
             <div className="card fade-up" style={{ padding: '24px', marginBottom: '14px' }}>
               <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', color: '#0F2030' }}>Make an offer</h3>
               <input placeholder="Your price — e.g. $250" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} style={{ marginBottom: '10px' }} />
@@ -515,8 +586,16 @@ function App() {
                 <span style={{ fontSize: '12px', color: '#4A6278', fontWeight: '500' }}>{offer.seller_email}</span>
                 {offer.price && <span style={{ fontSize: '16px', fontWeight: '700', color: '#0E7FA8' }}>{offer.price}</span>}
               </div>
-              <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.55', marginBottom: '10px' }}>{offer.message}</p>
-              <span style={{ fontSize: '11px', color: '#8FA5B8' }}>{new Date(offer.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+              <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.55', marginBottom: '12px' }}>{offer.message}</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', color: '#8FA5B8' }}>{new Date(offer.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                {user && (isOwner || offer.seller_email === user.email) && (
+                  <button className="btn" style={{ fontSize: '12px', padding: '6px 12px' }} onClick={() => openThread(offer, selectedWant)}>
+                    <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                    Message
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
