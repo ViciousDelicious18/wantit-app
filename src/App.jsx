@@ -63,12 +63,35 @@ const styles = `
   .msg-theirs { background: #F0F5FA; color: #0F2030; border-radius: 14px 14px 14px 4px; align-self: flex-start; border: 1px solid #D6E4EF; }
   .msg-thread { display: flex; flex-direction: column; gap: 2px; padding: 16px; max-height: 340px; overflow-y: auto; }
 
+  .star { font-size: 22px; cursor: pointer; transition: transform 0.1s ease; line-height: 1; }
+  .star:hover { transform: scale(1.2); }
+
+  .avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #0E7FA8, #0E9A6E); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+
   @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   .fade-up { animation: fadeUp 0.3s ease forwards; }
   .stagger-1 { animation-delay: 0.05s; opacity: 0; }
   .stagger-2 { animation-delay: 0.1s; opacity: 0; }
   .stagger-3 { animation-delay: 0.15s; opacity: 0; }
 `
+
+function StarRating({ score, onSelect, readonly = false, size = 20 }) {
+  const [hover, setHover] = useState(0)
+  return (
+    <div style={{ display: 'flex', gap: '4px' }}>
+      {[1,2,3,4,5].map(i => (
+        <span
+          key={i}
+          className={readonly ? '' : 'star'}
+          style={{ fontSize: size, cursor: readonly ? 'default' : 'pointer', color: i <= (hover || score) ? '#F59E0B' : '#D6E4EF', lineHeight: 1 }}
+          onClick={() => !readonly && onSelect && onSelect(i)}
+          onMouseEnter={() => !readonly && setHover(i)}
+          onMouseLeave={() => !readonly && setHover(0)}
+        >★</span>
+      ))}
+    </div>
+  )
+}
 
 function App() {
   const [wants, setWants] = useState([])
@@ -100,12 +123,20 @@ function App() {
   const [search, setSearch] = useState('')
   const [seenOffers, setSeenOffers] = useState(() => JSON.parse(localStorage.getItem('seenOffers') || '{}'))
   const [lightboxImg, setLightboxImg] = useState(null)
-  // Messaging state
-  const [activeThread, setActiveThread] = useState(null) // { offer, want }
+  const [activeThread, setActiveThread] = useState(null)
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
   const [sendingMessage, setSendingMessage] = useState(false)
-  const [myInbox, setMyInbox] = useState([]) // threads where I have messages
+  const [myInbox, setMyInbox] = useState([])
+  // Profile & ratings
+  const [profileEmail, setProfileEmail] = useState(null)
+  const [profileWants, setProfileWants] = useState([])
+  const [profileRatings, setProfileRatings] = useState([])
+  const [ratingScore, setRatingScore] = useState(0)
+  const [ratingComment, setRatingComment] = useState('')
+  const [submittingRating, setSubmittingRating] = useState(false)
+  const [allRatings, setAllRatings] = useState({}) // email -> { avg, count }
+
   const fileInputRef = useRef()
   const messagesEndRef = useRef()
 
@@ -116,6 +147,7 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null))
     supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null))
     fetchWants()
+    fetchAllRatings()
   }, [])
 
   useEffect(() => {
@@ -130,6 +162,49 @@ function App() {
     const { data } = await supabase.from('wants').select('*').order('created_at', { ascending: false })
     if (data) { setWants(data); fetchOfferCounts() }
     setLoading(false)
+  }
+
+  async function fetchAllRatings() {
+    const { data } = await supabase.from('ratings').select('rated_user_email, score')
+    if (data) {
+      const map = {}
+      data.forEach(r => {
+        if (!map[r.rated_user_email]) map[r.rated_user_email] = { total: 0, count: 0 }
+        map[r.rated_user_email].total += r.score
+        map[r.rated_user_email].count += 1
+      })
+      const result = {}
+      Object.entries(map).forEach(([email, v]) => {
+        result[email] = { avg: (v.total / v.count).toFixed(1), count: v.count }
+      })
+      setAllRatings(result)
+    }
+  }
+
+  async function openProfile(email) {
+    setProfileEmail(email)
+    setPage('profile')
+    const { data: ws } = await supabase.from('wants').select('*').eq('user_email', email).order('created_at', { ascending: false })
+    if (ws) setProfileWants(ws)
+    const { data: rs } = await supabase.from('ratings').select('*').eq('rated_user_email', email).order('created_at', { ascending: false })
+    if (rs) setProfileRatings(rs)
+  }
+
+  async function submitRating(targetEmail, wantId) {
+    if (!ratingScore || !user) return
+    setSubmittingRating(true)
+    await supabase.from('ratings').insert([{
+      rated_user_email: targetEmail,
+      rater_user_id: user.id,
+      rater_email: user.email,
+      want_id: wantId,
+      score: ratingScore,
+      comment: ratingComment
+    }])
+    setRatingScore(0); setRatingComment('')
+    await fetchAllRatings()
+    await openProfile(targetEmail)
+    setSubmittingRating(false)
   }
 
   async function fetchOfferCounts() {
@@ -149,15 +224,9 @@ function App() {
   async function fetchInbox() {
     const { data } = await supabase.from('messages').select('*, offers(seller_email, price), wants(title)').order('created_at', { ascending: false })
     if (data) {
-      // Group by offer_id, get unique threads
       const seen = new Set()
       const threads = []
-      data.forEach(m => {
-        if (!seen.has(m.offer_id)) {
-          seen.add(m.offer_id)
-          threads.push(m)
-        }
-      })
+      data.forEach(m => { if (!seen.has(m.offer_id)) { seen.add(m.offer_id); threads.push(m) } })
       setMyInbox(threads)
     }
   }
@@ -168,10 +237,8 @@ function App() {
   }
 
   async function openThread(offer, want) {
-    setActiveThread({ offer, want })
-    setMessages([])
-    await fetchMessages(offer.id)
-    setPage('messages')
+    setActiveThread({ offer, want }); setMessages([])
+    await fetchMessages(offer.id); setPage('messages')
   }
 
   async function sendMessage() {
@@ -179,14 +246,7 @@ function App() {
     setSendingMessage(true)
     const isOwner = activeThread.want.user_id === user.id
     const recipientEmail = isOwner ? activeThread.offer.seller_email : activeThread.want.user_email
-    await supabase.from('messages').insert([{
-      offer_id: activeThread.offer.id,
-      want_id: activeThread.want.id,
-      sender_id: user.id,
-      sender_email: user.email,
-      recipient_email: recipientEmail,
-      message: newMessage.trim()
-    }])
+    await supabase.from('messages').insert([{ offer_id: activeThread.offer.id, want_id: activeThread.want.id, sender_id: user.id, sender_email: user.email, recipient_email: recipientEmail, message: newMessage.trim() }])
     setNewMessage('')
     await fetchMessages(activeThread.offer.id)
     await fetchInbox()
@@ -195,8 +255,7 @@ function App() {
 
   function handleImageSelect(e) {
     const files = Array.from(e.target.files).slice(0, 4)
-    setImages(files)
-    setImagePreviews(files.map(f => URL.createObjectURL(f)))
+    setImages(files); setImagePreviews(files.map(f => URL.createObjectURL(f)))
   }
 
   function removeImage(index) {
@@ -238,10 +297,7 @@ function App() {
       setUploadingImages(false)
     }
     const { data } = await supabase.from('wants').insert([{ title, description, budget, location, category, user_id: user.id, user_email: user.email, images: imageUrls }]).select()
-    if (data && data[0]) {
-      setWants([{ ...data[0], images: imageUrls }, ...wants])
-      setOfferCounts({ ...offerCounts, [data[0].id]: 0 })
-    }
+    if (data && data[0]) { setWants([{ ...data[0], images: imageUrls }, ...wants]); setOfferCounts({ ...offerCounts, [data[0].id]: 0 }) }
     setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory('')
     setImages([]); setImagePreviews([])
     setPosting(false); setPage('home')
@@ -286,13 +342,31 @@ function App() {
 
   const myWants = wants.filter(w => w.user_id === user?.id)
   const myNewOffers = myWants.reduce((sum, w) => {
-    const current = offerCounts[w.id] || 0
-    const seen = seenOffers[w.id] || 0
+    const current = offerCounts[w.id] || 0; const seen = seenOffers[w.id] || 0
     return sum + Math.max(0, current - seen)
   }, 0)
 
   const pageStyle = { minHeight: '100vh', background: '#E8EFF5', fontFamily: "'DM Sans', sans-serif", paddingBottom: user ? '72px' : '0' }
   const inner = { maxWidth: '640px', margin: '0 auto', padding: '20px 16px' }
+
+  function RatingBadge({ email, small = false }) {
+    const r = allRatings[email]
+    if (!r) return null
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: small ? '11px' : '12px', color: '#F59E0B', fontWeight: '600' }}>
+        ★ {r.avg} <span style={{ color: '#8FA5B8', fontWeight: '400' }}>({r.count})</span>
+      </span>
+    )
+  }
+
+  function Avatar({ email, size = 48 }) {
+    const initial = email ? email[0].toUpperCase() : '?'
+    return (
+      <div style={{ width: size, height: size, borderRadius: '50%', background: 'linear-gradient(135deg, #0E7FA8, #0E9A6E)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: size * 0.38, fontWeight: '700', flexShrink: 0 }}>
+        {initial}
+      </div>
+    )
+  }
 
   const Header = () => (
     <div style={{ background: 'rgba(255,255,255,0.88)', backdropFilter: 'blur(14px)', borderBottom: '1px solid #D6E4EF', padding: '0 16px', position: 'sticky', top: 0, zIndex: 10 }}>
@@ -300,13 +374,13 @@ function App() {
         <span onClick={() => { setPage('home'); setSelectedWant(null) }} style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', cursor: 'pointer', color: '#0E7FA8', letterSpacing: '-0.5px', fontStyle: 'italic' }}>Offr</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {!user && <span style={{ fontSize: '13px', color: '#8FA5B8' }}>See it. Want it. Offr it.</span>}
-          {user && (page === 'want' || page === 'messages') && (
-            <button className="btn" onClick={() => { setPage(page === 'messages' ? 'want' : 'home'); setActiveThread(null) }}>
+          {user && (page === 'want' || page === 'messages' || page === 'profile') && (
+            <button className="btn" onClick={() => { if (page === 'messages') { setPage('want'); setActiveThread(null) } else if (page === 'profile') { setPage('home') } else { setPage('home') } }}>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
               Back
             </button>
           )}
-          {user && page !== 'want' && page !== 'messages' && <button className="btn" onClick={handleLogout} style={{ fontSize: '12px' }}>Log out</button>}
+          {user && !['want','messages','profile'].includes(page) && <button className="btn" onClick={handleLogout} style={{ fontSize: '12px' }}>Log out</button>}
         </div>
       </div>
     </div>
@@ -317,8 +391,8 @@ function App() {
     return (
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)', borderTop: '1px solid #D6E4EF', display: 'flex', zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <button className="nav-btn" onClick={() => { setPage('home'); setSelectedWant(null) }}>
-          <svg width="20" height="20" fill="none" stroke={page === 'home' || page === 'want' ? '#0E7FA8' : '#8FA5B8'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          <span className="nav-label" style={{ color: page === 'home' || page === 'want' ? '#0E7FA8' : '#8FA5B8' }}>Browse</span>
+          <svg width="20" height="20" fill="none" stroke={['home','want'].includes(page) ? '#0E7FA8' : '#8FA5B8'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span className="nav-label" style={{ color: ['home','want'].includes(page) ? '#0E7FA8' : '#8FA5B8' }}>Browse</span>
         </button>
         <button className="nav-btn" onClick={() => setPage('post')}>
           <div style={{ width: '40px', height: '40px', background: '#0E7FA8', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '-20px', boxShadow: '0 4px 16px rgba(14,127,168,0.35)' }}>
@@ -331,9 +405,9 @@ function App() {
           {myNewOffers > 0 && <span style={{ position: 'absolute', top: '8px', right: 'calc(50% - 20px)', background: '#DC2626', color: '#fff', fontSize: '9px', fontWeight: '700', minWidth: '16px', height: '16px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{myNewOffers}</span>}
           <span className="nav-label" style={{ color: page === 'mylistings' ? '#0E7FA8' : '#8FA5B8' }}>Mine</span>
         </button>
-        <button className="nav-btn" onClick={() => setPage('inbox')} style={{ position: 'relative' }}>
-          <svg width="20" height="20" fill="none" stroke={page === 'inbox' || page === 'messages' ? '#0E7FA8' : '#8FA5B8'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-          <span className="nav-label" style={{ color: page === 'inbox' || page === 'messages' ? '#0E7FA8' : '#8FA5B8' }}>Messages</span>
+        <button className="nav-btn" onClick={() => setPage('inbox')}>
+          <svg width="20" height="20" fill="none" stroke={['inbox','messages'].includes(page) ? '#0E7FA8' : '#8FA5B8'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <span className="nav-label" style={{ color: ['inbox','messages'].includes(page) ? '#0E7FA8' : '#8FA5B8' }}>Messages</span>
         </button>
       </div>
     )
@@ -364,7 +438,11 @@ function App() {
             <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#0F2030', flex: 1, paddingRight: '14px', lineHeight: '1.4', textAlign: 'left' }}>{want.title}</h3>
             <span className={`badge ${want.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>{want.status === 'filled' ? 'Filled' : 'Want'}</span>
           </div>
-          {want.description && <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.55', marginBottom: '12px', textAlign: 'left' }}>{want.description}</p>}
+          {want.description && <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.55', marginBottom: '8px', textAlign: 'left' }}>{want.description}</p>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '12px', color: '#8FA5B8', cursor: 'pointer' }} onClick={e => { e.stopPropagation(); openProfile(want.user_email) }}>{want.user_email?.split('@')[0]}</span>
+            <RatingBadge email={want.user_email} small />
+          </div>
           <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '14px' }}>
             {want.budget && <span className="tag">💰 {want.budget}</span>}
             {want.location && <span className="tag">📍 {want.location}</span>}
@@ -437,6 +515,115 @@ function App() {
     return <div className="img-lightbox" onClick={() => setLightboxImg(null)}><img src={lightboxImg} alt="" /></div>
   }
 
+  // PROFILE PAGE
+  if (page === 'profile' && profileEmail) {
+    const r = allRatings[profileEmail]
+    const isOwnProfile = user?.email === profileEmail
+    const alreadyRated = profileRatings.some(r => r.rater_email === user?.email)
+    return (
+      <div style={pageStyle}>
+        <style>{styles}</style>
+        <Header />
+        <div style={inner}>
+          {/* Profile header */}
+          <div className="card fade-up" style={{ padding: '24px', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+              <Avatar email={profileEmail} size={56} />
+              <div>
+                <p style={{ fontSize: '16px', fontWeight: '700', color: '#0F2030', marginBottom: '4px' }}>{profileEmail?.split('@')[0]}</p>
+                <p style={{ fontSize: '12px', color: '#8FA5B8', marginBottom: '6px' }}>{profileEmail}</p>
+                {r ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <StarRating score={parseFloat(r.avg)} readonly size={16} />
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: '#F59E0B' }}>{r.avg}</span>
+                    <span style={{ fontSize: '12px', color: '#8FA5B8' }}>({r.count} rating{r.count !== 1 ? 's' : ''})</span>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: '12px', color: '#8FA5B8' }}>No ratings yet</span>
+                )}
+              </div>
+            </div>
+            <div className="divider" style={{ marginBottom: '14px' }} />
+            <div style={{ display: 'flex', gap: '20px' }}>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: '20px', fontWeight: '700', color: '#0E7FA8' }}>{profileWants.length}</p>
+                <p style={{ fontSize: '11px', color: '#8FA5B8' }}>listings</p>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: '20px', fontWeight: '700', color: '#0E7FA8' }}>{profileWants.filter(w => w.status === 'filled').length}</p>
+                <p style={{ fontSize: '11px', color: '#8FA5B8' }}>filled</p>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: '20px', fontWeight: '700', color: '#0E7FA8' }}>{r?.count || 0}</p>
+                <p style={{ fontSize: '11px', color: '#8FA5B8' }}>ratings</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Leave a rating */}
+          {user && !isOwnProfile && !alreadyRated && (
+            <div className="card fade-up" style={{ padding: '20px', marginBottom: '14px' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#0F2030', marginBottom: '12px' }}>Leave a rating</h3>
+              <div style={{ marginBottom: '12px' }}>
+                <StarRating score={ratingScore} onSelect={setRatingScore} size={28} />
+              </div>
+              <textarea placeholder="Add a comment (optional)" value={ratingComment} onChange={e => setRatingComment(e.target.value)} rows={2} style={{ marginBottom: '12px', resize: 'none' }} />
+              <button className="btn btn-primary" onClick={() => submitRating(profileEmail, null)} disabled={!ratingScore || submittingRating} style={{ width: '100%', padding: '11px' }}>
+                {submittingRating ? 'Submitting…' : 'Submit rating'}
+              </button>
+            </div>
+          )}
+
+          {alreadyRated && !isOwnProfile && (
+            <div style={{ background: '#EDFAF4', border: '1.5px solid #A7EDD4', borderRadius: '12px', padding: '14px', marginBottom: '14px', fontSize: '13px', color: '#0E9A6E', textAlign: 'center' }}>
+              ✓ You've already rated this user
+            </div>
+          )}
+
+          {/* Ratings list */}
+          {profileRatings.length > 0 && (
+            <div style={{ marginBottom: '14px' }}>
+              <p style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030', marginBottom: '10px' }}>Reviews ({profileRatings.length})</p>
+              {profileRatings.map((r, i) => (
+                <div key={r.id} className={`card fade-up stagger-${Math.min(i + 1, 3)}`} style={{ padding: '14px 18px', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Avatar email={r.rater_email} size={28} />
+                      <span style={{ fontSize: '12px', color: '#4A6278', fontWeight: '500' }}>{r.rater_email?.split('@')[0]}</span>
+                    </div>
+                    <StarRating score={r.score} readonly size={14} />
+                  </div>
+                  {r.comment && <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.5' }}>{r.comment}</p>}
+                  <p style={{ fontSize: '11px', color: '#B0C4D4', marginTop: '6px' }}>{new Date(r.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* User's listings */}
+          {profileWants.length > 0 && (
+            <div>
+              <p style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030', marginBottom: '10px' }}>Listings ({profileWants.length})</p>
+              {profileWants.map((want, i) => (
+                <div key={want.id} className={`card card-hover fade-up stagger-${Math.min(i + 1, 3)}`} onClick={() => openWant(want)} style={{ padding: '14px 18px', marginBottom: '8px', opacity: want.status === 'filled' ? 0.6 : 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <p style={{ fontSize: '14px', fontWeight: '600', color: '#0F2030' }}>{want.title}</p>
+                    <span className={`badge ${want.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>{want.status === 'filled' ? 'Filled' : 'Want'}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
+                    {want.budget && <span className="tag">💰 {want.budget}</span>}
+                    {want.location && <span className="tag">📍 {want.location}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <BottomNav />
+      </div>
+    )
+  }
+
   // MESSAGES PAGE
   if (page === 'messages' && activeThread) {
     const isOwner = activeThread.want.user_id === user?.id
@@ -447,10 +634,16 @@ function App() {
         <Header />
         <div style={inner}>
           <div className="card fade-up" style={{ marginBottom: '14px', overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #E4EFF7' }}>
-              <p style={{ fontSize: '12px', color: '#8FA5B8', marginBottom: '2px' }}>Re: {activeThread.want.title}</p>
-              <p style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>{otherEmail}</p>
-              {activeThread.offer.price && <p style={{ fontSize: '12px', color: '#0E7FA8', marginTop: '2px' }}>Offer: {activeThread.offer.price}</p>}
+            <div style={{ padding: '14px 20px', borderBottom: '1px solid #E4EFF7', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Avatar email={otherEmail} size={36} />
+              <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => openProfile(otherEmail)}>
+                <p style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>{otherEmail?.split('@')[0]}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <RatingBadge email={otherEmail} small />
+                  <span style={{ fontSize: '11px', color: '#8FA5B8' }}>Re: {activeThread.want.title}</span>
+                </div>
+              </div>
+              {activeThread.offer.price && <span style={{ fontSize: '13px', fontWeight: '700', color: '#0E7FA8' }}>{activeThread.offer.price}</span>}
             </div>
             <div className="msg-thread">
               {messages.length === 0 && <p style={{ fontSize: '13px', color: '#8FA5B8', textAlign: 'center', padding: '20px 0' }}>No messages yet — say hello!</p>}
@@ -463,16 +656,8 @@ function App() {
               <div ref={messagesEndRef} />
             </div>
             <div style={{ padding: '12px 16px', borderTop: '1px solid #E4EFF7', display: 'flex', gap: '8px' }}>
-              <input
-                placeholder="Type a message…"
-                value={newMessage}
-                onChange={e => setNewMessage(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                style={{ flex: 1 }}
-              />
-              <button className="btn btn-primary" onClick={sendMessage} disabled={!newMessage.trim() || sendingMessage} style={{ flexShrink: 0, padding: '10px 16px' }}>
-                Send
-              </button>
+              <input placeholder="Type a message…" value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()} style={{ flex: 1 }} />
+              <button className="btn btn-primary" onClick={sendMessage} disabled={!newMessage.trim() || sendingMessage} style={{ flexShrink: 0, padding: '10px 16px' }}>Send</button>
             </div>
           </div>
         </div>
@@ -504,13 +689,18 @@ function App() {
             if (!want) return null
             const otherEmail = want.user_id === user.id ? offer.seller_email : want.user_email
             return (
-              <div key={thread.offer_id} className={`card card-hover fade-up stagger-${Math.min(i + 1, 3)}`} style={{ padding: '16px 20px', marginBottom: '10px' }} onClick={() => openThread(offer, want)}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                  <p style={{ fontSize: '14px', fontWeight: '600', color: '#0F2030' }}>{otherEmail}</p>
-                  <span style={{ fontSize: '11px', color: '#8FA5B8' }}>{new Date(thread.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
+              <div key={thread.offer_id} className={`card card-hover fade-up stagger-${Math.min(i + 1, 3)}`} style={{ padding: '14px 18px', marginBottom: '10px' }} onClick={() => openThread(offer, want)}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Avatar email={otherEmail} size={40} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                      <p style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>{otherEmail?.split('@')[0]}</p>
+                      <span style={{ fontSize: '11px', color: '#8FA5B8' }}>{new Date(thread.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
+                    </div>
+                    <p style={{ fontSize: '11px', color: '#8FA5B8', marginBottom: '2px' }}>Re: {want.title}</p>
+                    <p style={{ fontSize: '12px', color: '#4A6278', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{thread.message}</p>
+                  </div>
                 </div>
-                <p style={{ fontSize: '12px', color: '#8FA5B8', marginBottom: '4px' }}>Re: {want.title}</p>
-                <p style={{ fontSize: '13px', color: '#4A6278', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{thread.message}</p>
               </div>
             )
           })}
@@ -537,9 +727,14 @@ function App() {
               </div>
             )}
             <div style={{ padding: '20px 24px 24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#0F2030', flex: 1, paddingRight: '14px', lineHeight: '1.3', fontFamily: "'DM Serif Display', serif", textAlign: 'left' }}>{selectedWant.title}</h2>
                 <span className={`badge ${selectedWant.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>{selectedWant.status === 'filled' ? 'Filled' : 'Want'}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', cursor: 'pointer' }} onClick={() => openProfile(selectedWant.user_email)}>
+                <Avatar email={selectedWant.user_email} size={24} />
+                <span style={{ fontSize: '13px', color: '#4A6278', fontWeight: '500' }}>{selectedWant.user_email?.split('@')[0]}</span>
+                <RatingBadge email={selectedWant.user_email} />
               </div>
               {selectedWant.description && <p style={{ fontSize: '14px', color: '#4A6278', lineHeight: '1.65', marginBottom: '16px' }}>{selectedWant.description}</p>}
               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
@@ -583,7 +778,13 @@ function App() {
           {offers.map((offer, i) => (
             <div key={offer.id} className={`card fade-up stagger-${Math.min(i + 1, 3)}`} style={{ padding: '16px 20px', marginBottom: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '12px', color: '#4A6278', fontWeight: '500' }}>{offer.seller_email}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => openProfile(offer.seller_email)}>
+                  <Avatar email={offer.seller_email} size={28} />
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#4A6278', fontWeight: '600' }}>{offer.seller_email?.split('@')[0]}</p>
+                    <RatingBadge email={offer.seller_email} small />
+                  </div>
+                </div>
                 {offer.price && <span style={{ fontSize: '16px', fontWeight: '700', color: '#0E7FA8' }}>{offer.price}</span>}
               </div>
               <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.55', marginBottom: '12px' }}>{offer.message}</p>
@@ -656,7 +857,7 @@ function App() {
         <div style={inner}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '20px' }} className="fade-up">
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', color: '#0F2030', fontStyle: 'italic' }}>My listings</h2>
-            <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{myWants.length} listing{myWants.length !== 1 ? 's' : ''}</span>
+            <span style={{ fontSize: '12px', color: '#8FA5B8', cursor: 'pointer', color: '#0E7FA8' }} onClick={() => openProfile(user.email)}>View profile →</span>
           </div>
           {myWants.length === 0 && (
             <div className="card fade-up" style={{ padding: '48px 24px', textAlign: 'center' }}>
