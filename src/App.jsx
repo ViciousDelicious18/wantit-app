@@ -489,7 +489,7 @@ function App() {
   }
 
   const Header = ({ transparent = false }) => (
-    <div style={{ background: transparent ? 'transparent' : 'rgba(255,255,255,0.88)', backdropFilter: transparent ? 'none' : 'blur(14px)', borderBottom: transparent ? 'none' : '1px solid #D6E4EF', padding: '0 16px', position: transparent ? 'absolute' : 'sticky', top: 0, zIndex: 10, width: '100%' }}>
+    <div style={{ background: transparent ? 'transparent' : 'rgba(255,255,255,0.88)', backdropFilter: transparent ? 'none' : 'blur(14px)', borderBottom: transparent ? 'none' : '1px solid #D6E4EF', padding: '0 16px', position: 'sticky', top: 0, zIndex: 10, width: '100%' }}>
       <div style={{ maxWidth: '640px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span onClick={() => setPage(user ? 'home' : 'landing')} style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', cursor: 'pointer', color: transparent ? '#fff' : '#0E7FA8', letterSpacing: '-0.5px', fontStyle: 'italic' }}>Offrit</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -657,7 +657,7 @@ function App() {
         <style>{styles}</style>
         <div style={{ position: 'relative', width: '100%' }}>
           <Header transparent />
-          <div className="hero">
+          <div className="hero" style={{ width: '100%', boxSizing: 'border-box' }}>
             <div className="hero-content">
               <div className="hero-logo">Offrit</div>
               <p className="hero-tag">Post what you want. Get offers from sellers.</p>
