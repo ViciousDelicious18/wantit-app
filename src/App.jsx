@@ -84,7 +84,7 @@ const styles = `
   .filter-chip { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1.5px solid #C8DCE8; background: #fff; color: #4A6278; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
   .filter-chip.active { background: #0E7FA8; color: #fff; border-color: #0E7FA8; }
   .filter-chip:hover { border-color: #0E7FA8; }
-  .chips-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .chips-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; max-width: 100%; }
   .chips-row::-webkit-scrollbar { display: none; }
 
   .skeleton { background: linear-gradient(90deg, #E4EFF7 25%, #EDF4F8 50%, #E4EFF7 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
@@ -475,8 +475,8 @@ function App() {
   const myWants = wants.filter(w => w.user_id === user?.id)
   const myNewOffers = myWants.reduce((sum, w) => { const current = offerCounts[w.id] || 0; const seen = seenOffers[w.id] || 0; return sum + Math.max(0, current - seen) }, 0)
 
-  const pageStyle = { minHeight: '100vh', background: '#E8EFF5', fontFamily: "'DM Sans', sans-serif", paddingBottom: user ? '72px' : '0' }
-  const inner = { maxWidth: '640px', margin: '0 auto', padding: '20px 16px' }
+  const pageStyle = { minHeight: '100vh', background: '#E8EFF5', fontFamily: "'DM Sans', sans-serif", paddingBottom: user ? '72px' : '0', overflowX: 'hidden', width: '100%' }
+  const inner = { maxWidth: '640px', margin: '0 auto', padding: '20px 16px', overflowX: 'hidden', width: '100%', boxSizing: 'border-box' }
 
   function RatingBadge({ email, small = false }) {
     const r = allRatings[email]; if (!r) return null
