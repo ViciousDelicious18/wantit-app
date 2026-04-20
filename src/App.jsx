@@ -533,7 +533,7 @@ function App() {
     )
   }
 
-  const WantCard = ({ want, index = 0 }) => {
+  const WantCard = ({ want, index = 0, noAnimate = false }) => {
     const hasImages = want.images && want.images.length > 0
     const username = getUsername(want.user_email)
     return (
