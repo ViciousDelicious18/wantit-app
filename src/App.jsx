@@ -98,7 +98,7 @@ const styles = `
   .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #0F2030; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 200; white-space: nowrap; animation: fadeUp 0.2s ease; }
 
   @keyframes fadeUp { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-  .fade-up { animation: fadeUp 0.3s ease forwards; }
+  .fade-up { animation: fadeUp 0.3s ease forwards; width: 100%; }
   .stagger-1 { animation-delay: 0.05s; opacity: 0; }
   .stagger-2 { animation-delay: 0.1s; opacity: 0; }
   .stagger-3 { animation-delay: 0.15s; opacity: 0; }
@@ -672,7 +672,7 @@ function App() {
             </div>
           </div>
         </div>
-        <div style={{ maxWidth: '640px', margin: '0 auto', padding: '24px 16px', width: '100%' }}>
+        <div style={{ maxWidth: '640px', margin: '0 auto', padding: '24px 16px', width: '100%', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }}>
             <span style={{ fontSize: '15px', fontWeight: '600', color: '#0F2030' }}>Recent listings</span>
             {wants.length > 0 && <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{wants.length} listings</span>}
