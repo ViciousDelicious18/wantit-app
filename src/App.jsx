@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from './supabase'
 
 const styles = `
@@ -86,7 +86,17 @@ const styles = `
   .chips-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
   .chips-row::-webkit-scrollbar { display: none; }
 
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .skeleton { background: linear-gradient(90deg, #E4EFF7 25%, #EDF4F8 50%, #E4EFF7 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  .pull-indicator { text-align: center; padding: 12px; font-size: 12px; color: #8FA5B8; transition: all 0.2s ease; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; z-index: 50; padding: 0; }
+  .modal { background: #fff; border-radius: 20px 20px 0 0; padding: 24px; width: 100%; max-width: 640px; }
+
+  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #0F2030; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 200; white-space: nowrap; animation: fadeUp 0.2s ease; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
   .fade-up { animation: fadeUp 0.3s ease forwards; }
   .stagger-1 { animation-delay: 0.05s; opacity: 0; }
   .stagger-2 { animation-delay: 0.1s; opacity: 0; }
@@ -107,6 +117,24 @@ function StarRating({ score, onSelect, readonly = false, size = 20 }) {
   )
 }
 
+function SkeletonCard() {
+  return (
+    <div className="card" style={{ padding: '18px 20px', marginBottom: '10px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+        <div className="skeleton" style={{ height: '18px', width: '60%' }} />
+        <div className="skeleton" style={{ height: '18px', width: '50px', borderRadius: '20px' }} />
+      </div>
+      <div className="skeleton" style={{ height: '13px', width: '80%', marginBottom: '8px' }} />
+      <div className="skeleton" style={{ height: '13px', width: '40%', marginBottom: '14px' }} />
+      <div style={{ height: '1px', background: '#E4EFF7', marginBottom: '12px' }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div className="skeleton" style={{ height: '12px', width: '80px' }} />
+        <div className="skeleton" style={{ height: '12px', width: '50px' }} />
+      </div>
+    </div>
+  )
+}
+
 function App() {
   const [wants, setWants] = useState([])
   const [title, setTitle] = useState('')
@@ -122,6 +150,7 @@ function App() {
   const [user, setUser] = useState(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [username, setUsername] = useState('')
   const [authMode, setAuthMode] = useState('login')
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
@@ -151,22 +180,39 @@ function App() {
   const [ratingComment, setRatingComment] = useState('')
   const [submittingRating, setSubmittingRating] = useState(false)
   const [allRatings, setAllRatings] = useState({})
+  const [profiles, setProfiles] = useState({}) // email -> username
+  const [myProfile, setMyProfile] = useState(null)
+  const [reportModal, setReportModal] = useState(null) // want object
+  const [reportReason, setReportReason] = useState('')
+  const [submittingReport, setSubmittingReport] = useState(false)
+  const [toast, setToast] = useState(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const [pullStart, setPullStart] = useState(null)
+  const [pullDistance, setPullDistance] = useState(0)
+
   const fileInputRef = useRef()
   const messagesEndRef = useRef()
+  const realtimeRef = useRef(null)
 
   const categories = ['Electronics', 'Sport & Outdoors', 'Vehicles', 'Furniture', 'Clothing', 'Tools', 'Music', 'Other']
   const locations = ['Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga', 'Dunedin', 'Other']
+  const reportReasons = ['Spam or scam', 'Inappropriate content', 'Wrong category', 'Already sold', 'Other']
+
+  function showToast(msg) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2500)
+  }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       const u = session?.user ?? null
       setUser(u)
-      if (u) setPage('home')
+      if (u) { setPage('home'); await fetchMyProfile(u) }
     })
-    supabase.auth.onAuthStateChange((_e, session) => {
+    supabase.auth.onAuthStateChange(async (_e, session) => {
       const u = session?.user ?? null
       setUser(u)
-      if (u && page === 'landing') setPage('home')
+      if (u) { if (page === 'landing') setPage('home'); await fetchMyProfile(u) }
     })
     fetchWants()
     fetchAllRatings()
@@ -175,9 +221,42 @@ function App() {
   useEffect(() => { if (user) fetchInbox() }, [user])
   useEffect(() => { if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
+  // Realtime messages subscription
+  useEffect(() => {
+    if (!activeThread || page !== 'messages') {
+      if (realtimeRef.current) { supabase.removeChannel(realtimeRef.current); realtimeRef.current = null }
+      return
+    }
+    const channel = supabase.channel('messages-' + activeThread.offer.id)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'offer_id=eq.' + activeThread.offer.id },
+        payload => { setMessages(prev => [...prev, payload.new]) })
+      .subscribe()
+    realtimeRef.current = channel
+    return () => { supabase.removeChannel(channel); realtimeRef.current = null }
+  }, [activeThread, page])
+
+  async function fetchMyProfile(u) {
+    const { data } = await supabase.from('profiles').select('*').eq('id', u.id).single()
+    if (data) setMyProfile(data)
+  }
+
+  async function fetchAllProfiles(emails) {
+    if (!emails || emails.length === 0) return
+    const { data } = await supabase.from('profiles').select('email, username').in('email', emails)
+    if (data) {
+      const map = {}
+      data.forEach(p => { map[p.email] = p.username })
+      setProfiles(prev => ({ ...prev, ...map }))
+    }
+  }
+
   async function fetchWants() {
     const { data } = await supabase.from('wants').select('*').order('created_at', { ascending: false })
-    if (data) { setWants(data); fetchOfferCounts() }
+    if (data) {
+      setWants(data)
+      fetchOfferCounts()
+      fetchAllProfiles([...new Set(data.map(w => w.user_email).filter(Boolean))])
+    }
     setLoading(false)
   }
 
@@ -209,6 +288,25 @@ function App() {
     setSubmittingRating(false)
   }
 
+  async function submitReport() {
+    if (!reportReason || !user || !reportModal) return
+    setSubmittingReport(true)
+    await supabase.from('reports').insert([{ want_id: reportModal.id, reporter_id: user.id, reporter_email: user.email, reason: reportReason }])
+    setReportModal(null); setReportReason('')
+    setSubmittingReport(false)
+    showToast('Report submitted — thanks!')
+  }
+
+  async function shareWant(want) {
+    const url = window.location.origin + '?listing=' + want.id
+    if (navigator.share) {
+      try { await navigator.share({ title: want.title, text: 'Check out this listing on Offrit', url }) } catch {}
+    } else {
+      await navigator.clipboard.writeText(url)
+      showToast('Link copied!')
+    }
+  }
+
   async function fetchOfferCounts() {
     const { data } = await supabase.from('offers').select('want_id')
     if (data) { const counts = {}; data.forEach(o => { counts[o.want_id] = (counts[o.want_id] || 0) + 1 }); setOfferCounts(counts) }
@@ -216,20 +314,29 @@ function App() {
 
   async function fetchOffers(wantId) {
     const { data } = await supabase.from('offers').select('*').eq('want_id', wantId).order('created_at', { ascending: false })
-    if (data) setOffers(data)
+    if (data) {
+      setOffers(data)
+      fetchAllProfiles([...new Set(data.map(o => o.seller_email).filter(Boolean))])
+    }
   }
 
   async function acceptOffer(offerId, wantId) {
     await supabase.from('offers').update({ status: 'accepted' }).eq('id', offerId)
     await supabase.from('wants').update({ status: 'filled' }).eq('id', wantId)
-    setOffers(offers.map(o => o.id === offerId ? { ...o, status: 'accepted' } : { ...o, status: o.status === 'accepted' ? null : o.status }))
+    setOffers(offers.map(o => o.id === offerId ? { ...o, status: 'accepted' } : o))
     setWants(wants.map(w => w.id === wantId ? { ...w, status: 'filled' } : w))
     if (selectedWant?.id === wantId) setSelectedWant({ ...selectedWant, status: 'filled' })
+    showToast('Offer accepted!')
   }
 
   async function fetchInbox() {
     const { data } = await supabase.from('messages').select('*, offers(seller_email, price), wants(title)').order('created_at', { ascending: false })
-    if (data) { const seen = new Set(); const threads = []; data.forEach(m => { if (!seen.has(m.offer_id)) { seen.add(m.offer_id); threads.push(m) } }); setMyInbox(threads) }
+    if (data) {
+      const seen = new Set(); const threads = []
+      data.forEach(m => { if (!seen.has(m.offer_id)) { seen.add(m.offer_id); threads.push(m) } })
+      setMyInbox(threads)
+      fetchAllProfiles([...new Set(data.map(m => m.sender_email).filter(Boolean))])
+    }
   }
 
   async function fetchMessages(offerId) {
@@ -245,8 +352,9 @@ function App() {
     const isOwner = activeThread.want.user_id === user.id
     const recipientEmail = isOwner ? activeThread.offer.seller_email : activeThread.want.user_email
     await supabase.from('messages').insert([{ offer_id: activeThread.offer.id, want_id: activeThread.want.id, sender_id: user.id, sender_email: user.email, recipient_email: recipientEmail, message: newMessage.trim() }])
-    setNewMessage(''); await fetchMessages(activeThread.offer.id); await fetchInbox()
+    setNewMessage('')
     setSendingMessage(false)
+    await fetchInbox()
   }
 
   function handleImageSelect(e) { const files = Array.from(e.target.files).slice(0, 4); setImages(files); setImagePreviews(files.map(f => URL.createObjectURL(f))) }
@@ -259,9 +367,14 @@ function App() {
       if (error) setAuthError(error.message)
       else setPage('home')
     } else {
-      const { error } = await supabase.auth.signUp({ email, password })
-      if (error) setAuthError(error.message)
-      else setAuthError('Check your email to confirm your account!')
+      if (!username.trim()) { setAuthError('Please choose a username'); setAuthLoading(false); return }
+      const { data, error } = await supabase.auth.signUp({ email, password })
+      if (error) { setAuthError(error.message); setAuthLoading(false); return }
+      if (data.user) {
+        const { error: profileError } = await supabase.from('profiles').insert([{ id: data.user.id, username: username.trim().toLowerCase().replace(/\s+/g, '_'), email }])
+        if (profileError) { setAuthError('Username already taken — try another'); setAuthLoading(false); return }
+      }
+      setAuthError('Check your email to confirm your account!')
     }
     setAuthLoading(false)
   }
@@ -287,6 +400,7 @@ function App() {
     if (data && data[0]) { setWants([{ ...data[0], images: imageUrls }, ...wants]); setOfferCounts({ ...offerCounts, [data[0].id]: 0 }) }
     setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory(''); setImages([]); setImagePreviews([])
     setPosting(false); setPage('home')
+    showToast('Listing posted!')
   }
 
   async function deleteWant(wantId) {
@@ -308,6 +422,7 @@ function App() {
     setOfferPrice(''); setOfferMessage(''); fetchOffers(selectedWant.id)
     setOfferCounts({ ...offerCounts, [selectedWant.id]: (offerCounts[selectedWant.id] || 0) + 1 })
     setSubmittingOffer(false)
+    showToast('Offer submitted!')
   }
 
   function openWant(want) {
@@ -317,6 +432,28 @@ function App() {
       setSeenOffers(updated); localStorage.setItem('seenOffers', JSON.stringify(updated))
     }
   }
+
+  async function pullToRefresh() {
+    setRefreshing(true)
+    await fetchWants()
+    await fetchAllRatings()
+    setRefreshing(false)
+    showToast('Refreshed!')
+  }
+
+  // Pull to refresh handlers
+  function onTouchStart(e) { setPullStart(e.touches[0].clientY) }
+  function onTouchMove(e) {
+    if (!pullStart) return
+    const dist = e.touches[0].clientY - pullStart
+    if (dist > 0 && window.scrollY === 0) setPullDistance(Math.min(dist, 80))
+  }
+  function onTouchEnd() {
+    if (pullDistance > 60) pullToRefresh()
+    setPullStart(null); setPullDistance(0)
+  }
+
+  function getUsername(email) { return profiles[email] || email?.split('@')[0] || 'unknown' }
 
   const filteredWants = wants.filter(w => {
     const locMatch = !filterLocation || w.location === filterLocation
@@ -345,17 +482,16 @@ function App() {
   }
 
   function Avatar({ email, size = 48 }) {
-    return <div style={{ width: size, height: size, borderRadius: '50%', background: 'linear-gradient(135deg, #0E7FA8, #0E9A6E)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: size * 0.38, fontWeight: '700', flexShrink: 0 }}>{email ? email[0].toUpperCase() : '?'}</div>
+    const name = getUsername(email)
+    return <div style={{ width: size, height: size, borderRadius: '50%', background: 'linear-gradient(135deg, #0E7FA8, #0E9A6E)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: size * 0.38, fontWeight: '700', flexShrink: 0 }}>{name ? name[0].toUpperCase() : '?'}</div>
   }
 
   const Header = ({ transparent = false }) => (
     <div style={{ background: transparent ? 'transparent' : 'rgba(255,255,255,0.88)', backdropFilter: transparent ? 'none' : 'blur(14px)', borderBottom: transparent ? 'none' : '1px solid #D6E4EF', padding: '0 16px', position: transparent ? 'absolute' : 'sticky', top: 0, zIndex: 10, width: '100%' }}>
       <div style={{ maxWidth: '640px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span onClick={() => setPage(user ? 'home' : 'landing')} style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', cursor: 'pointer', color: transparent ? '#fff' : '#0E7FA8', letterSpacing: '-0.5px', fontStyle: 'italic' }}>Offr</span>
+        <span onClick={() => setPage(user ? 'home' : 'landing')} style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', cursor: 'pointer', color: transparent ? '#fff' : '#0E7FA8', letterSpacing: '-0.5px', fontStyle: 'italic' }}>Offrit</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {!user && page === 'landing' && (
-            <button className="btn btn-primary" onClick={() => setPage('login')} style={{ fontSize: '13px', padding: '8px 18px' }}>Log in</button>
-          )}
+          {!user && page === 'landing' && <button className="btn btn-primary" onClick={() => setPage('login')} style={{ fontSize: '13px', padding: '8px 18px' }}>Log in</button>}
           {user && (page === 'want' || page === 'messages' || page === 'profile') && (
             <button className="btn" onClick={() => { if (page === 'messages') { setPage('want'); setActiveThread(null) } else { setPage('home') } }}>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
@@ -397,6 +533,7 @@ function App() {
 
   const WantCard = ({ want, index = 0 }) => {
     const hasImages = want.images && want.images.length > 0
+    const username = getUsername(want.user_email)
     return (
       <div className={`card card-hover fade-up stagger-${Math.min(index + 1, 3)}`} onClick={() => openWant(want)} style={{ marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden' }}>
         {hasImages && (
@@ -417,7 +554,7 @@ function App() {
           </div>
           {want.description && <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.55', marginBottom: '8px', textAlign: 'left' }}>{want.description}</p>}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{want.user_email?.split('@')[0]}</span>
+            <span style={{ fontSize: '12px', color: '#0E7FA8', fontWeight: '500', cursor: 'pointer' }} onClick={e => { e.stopPropagation(); openProfile(want.user_email) }}>@{username}</span>
             <RatingBadge email={want.user_email} small />
           </div>
           <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '14px' }}>
@@ -451,11 +588,11 @@ function App() {
         </select>
       </div>
       <div className="chips-row" style={{ marginBottom: '8px' }}>
-        <span className={`filter-chip ${!filterLocation ? 'active' : ''}`} onClick={() => setFilterLocation('')}>All locations</span>
+        <span className={`filter-chip ${!filterLocation ? 'active' : ''}`} onClick={() => setFilterLocation('')}>All</span>
         {locations.map(l => <span key={l} className={`filter-chip ${filterLocation === l ? 'active' : ''}`} onClick={() => setFilterLocation(filterLocation === l ? '' : l)}>{l}</span>)}
       </div>
       <div className="chips-row">
-        <span className={`filter-chip ${!filterCategory ? 'active' : ''}`} onClick={() => setFilterCategory('')}>All categories</span>
+        <span className={`filter-chip ${!filterCategory ? 'active' : ''}`} onClick={() => setFilterCategory('')}>All</span>
         {categories.map(c => <span key={c} className={`filter-chip ${filterCategory === c ? 'active' : ''}`} onClick={() => setFilterCategory(filterCategory === c ? '' : c)}>{c}</span>)}
       </div>
     </div>
@@ -489,6 +626,28 @@ function App() {
     return <div className="img-lightbox" onClick={() => setLightboxImg(null)}><img src={lightboxImg} alt="" /></div>
   }
 
+  const ReportModal = () => {
+    if (!reportModal) return null
+    return (
+      <div className="modal-overlay" onClick={() => setReportModal(null)}>
+        <div className="modal" onClick={e => e.stopPropagation()}>
+          <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '6px', color: '#0F2030' }}>Report listing</h3>
+          <p style={{ fontSize: '13px', color: '#8FA5B8', marginBottom: '16px' }}>Why are you reporting "{reportModal.title}"?</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+            {reportReasons.map(r => (
+              <div key={r} onClick={() => setReportReason(r)} style={{ padding: '12px 14px', borderRadius: '10px', border: `1.5px solid ${reportReason === r ? '#0E7FA8' : '#D6E4EF'}`, background: reportReason === r ? '#EBF6FB' : '#fff', cursor: 'pointer', fontSize: '14px', color: reportReason === r ? '#0E7FA8' : '#0F2030', fontWeight: reportReason === r ? '600' : '400' }}>
+                {r}
+              </div>
+            ))}
+          </div>
+          <button className="btn btn-primary" onClick={submitReport} disabled={!reportReason || submittingReport} style={{ width: '100%', padding: '13px' }}>
+            {submittingReport ? 'Submitting…' : 'Submit report'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   // LANDING PAGE
   if (page === 'landing') {
     return (
@@ -498,7 +657,7 @@ function App() {
           <Header transparent />
           <div className="hero">
             <div className="hero-content">
-              <div className="hero-logo">Offr</div>
+              <div className="hero-logo">Offrit</div>
               <p className="hero-tag">Post what you want. Get offers from sellers.</p>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button className="btn-primary btn" onClick={() => setPage('signup')} style={{ padding: '13px 28px', fontSize: '15px', borderRadius: '12px' }}>Get started free</button>
@@ -517,11 +676,8 @@ function App() {
             <span style={{ fontSize: '15px', fontWeight: '600', color: '#0F2030' }}>Recent listings</span>
             {wants.length > 0 && <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{wants.length} listings</span>}
           </div>
-          {loading && <p style={{ color: '#8FA5B8', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>Loading…</p>}
-          {wants.slice(0, 6).map((want, i) => <WantCard key={want.id} want={want} index={i} />)}
-          {wants.length > 6 && (
-            <button className="btn" onClick={() => setPage('browse')} style={{ width: '100%', padding: '13px', marginTop: '4px', fontSize: '14px' }}>View all {wants.length} listings →</button>
-          )}
+          {loading ? [1,2,3].map(i => <SkeletonCard key={i} />) : wants.slice(0, 6).map((want, i) => <WantCard key={want.id} want={want} index={i} />)}
+          {wants.length > 6 && <button className="btn" onClick={() => setPage('browse')} style={{ width: '100%', padding: '13px', marginTop: '4px', fontSize: '14px' }}>View all {wants.length} listings →</button>}
         </div>
       </div>
     )
@@ -529,7 +685,7 @@ function App() {
 
   // AUTH PAGE
   if (page === 'login' || page === 'signup') {
-    const mode = page === 'login' ? 'login' : 'signup'
+    const mode = page
     return (
       <div style={pageStyle}>
         <style>{styles}</style>
@@ -537,12 +693,13 @@ function App() {
         <div style={inner}>
           <div className="card fade-up" style={{ padding: '32px' }}>
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', marginBottom: '6px', color: '#0F2030', fontStyle: 'italic' }}>
-              {mode === 'login' ? 'Welcome back' : 'Join Offr'}
+              {mode === 'login' ? 'Welcome back' : 'Join Offrit'}
             </h2>
             <p style={{ fontSize: '13px', color: '#8FA5B8', marginBottom: '24px' }}>
-              {mode === 'login' ? 'Log in to post and manage your listings' : 'Post what you want, let sellers come to you'}
+              {mode === 'login' ? 'Log in to post and manage your listings' : 'Create an account and start getting offers'}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+              {mode === 'signup' && <input placeholder="Username e.g. johndoe" value={username} onChange={e => setUsername(e.target.value)} />}
               <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} type="email" />
               <input placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} type="password" />
             </div>
@@ -552,7 +709,7 @@ function App() {
             </button>
             <p style={{ fontSize: '13px', color: '#8FA5B8', textAlign: 'center' }}>
               {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-              <span onClick={() => setPage(mode === 'login' ? 'signup' : 'login')} style={{ color: '#0E7FA8', fontWeight: '600', cursor: 'pointer' }}>
+              <span onClick={() => { setPage(mode === 'login' ? 'signup' : 'login'); setAuthError('') }} style={{ color: '#0E7FA8', fontWeight: '600', cursor: 'pointer' }}>
                 {mode === 'login' ? 'Sign up free' : 'Log in'}
               </span>
             </p>
@@ -574,9 +731,7 @@ function App() {
             <span style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>Listings</span>
             <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{filteredWants.length} result{filteredWants.length !== 1 ? 's' : ''}</span>
           </div>
-          {loading && <p style={{ color: '#8FA5B8', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>Loading…</p>}
-          {!loading && filteredWants.length === 0 && <p style={{ color: '#8FA5B8', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No listings found</p>}
-          {filteredWants.map((want, i) => <WantCard key={want.id} want={want} index={i} />)}
+          {loading ? [1,2,3].map(i => <SkeletonCard key={i} />) : filteredWants.length === 0 ? <p style={{ color: '#8FA5B8', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No listings found</p> : filteredWants.map((want, i) => <WantCard key={want.id} want={want} index={i} />)}
           <div style={{ background: 'linear-gradient(135deg, #0E7FA8, #0E4A6A)', borderRadius: '16px', padding: '24px', textAlign: 'center', marginTop: '8px', marginBottom: '20px' }}>
             <p style={{ color: '#fff', fontWeight: '600', fontSize: '15px', marginBottom: '6px' }}>Want to post a listing?</p>
             <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', marginBottom: '16px' }}>Sign up free and let sellers come to you</p>
@@ -592,6 +747,7 @@ function App() {
     const r = allRatings[profileEmail]
     const isOwnProfile = user?.email === profileEmail
     const alreadyRated = profileRatings.some(r => r.rater_email === user?.email)
+    const profileUsername = getUsername(profileEmail)
     return (
       <div style={pageStyle}>
         <style>{styles}</style>
@@ -601,7 +757,7 @@ function App() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
               <Avatar email={profileEmail} size={56} />
               <div>
-                <p style={{ fontSize: '16px', fontWeight: '700', color: '#0F2030', marginBottom: '4px' }}>{profileEmail?.split('@')[0]}</p>
+                <p style={{ fontSize: '16px', fontWeight: '700', color: '#0F2030', marginBottom: '2px' }}>@{profileUsername}</p>
                 <p style={{ fontSize: '12px', color: '#8FA5B8', marginBottom: '6px' }}>{profileEmail}</p>
                 {r ? <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><StarRating score={parseFloat(r.avg)} readonly size={16} /><span style={{ fontSize: '13px', fontWeight: '600', color: '#F59E0B' }}>{r.avg}</span><span style={{ fontSize: '12px', color: '#8FA5B8' }}>({r.count} rating{r.count !== 1 ? 's' : ''})</span></div>
                 : <span style={{ fontSize: '12px', color: '#8FA5B8' }}>No ratings yet</span>}
@@ -631,7 +787,7 @@ function App() {
               {profileRatings.map((r, i) => (
                 <div key={r.id} className={`card fade-up stagger-${Math.min(i+1,3)}`} style={{ padding: '14px 18px', marginBottom: '8px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Avatar email={r.rater_email} size={28} /><span style={{ fontSize: '12px', color: '#4A6278', fontWeight: '500' }}>{r.rater_email?.split('@')[0]}</span></div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Avatar email={r.rater_email} size={28} /><span style={{ fontSize: '12px', color: '#4A6278', fontWeight: '500' }}>@{getUsername(r.rater_email)}</span></div>
                     <StarRating score={r.score} readonly size={14} />
                   </div>
                   {r.comment && <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.5' }}>{r.comment}</p>}
@@ -676,7 +832,7 @@ function App() {
             <div style={{ padding: '14px 20px', borderBottom: '1px solid #E4EFF7', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <Avatar email={otherEmail} size={36} />
               <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => openProfile(otherEmail)}>
-                <p style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>{otherEmail?.split('@')[0]}</p>
+                <p style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>@{getUsername(otherEmail)}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><RatingBadge email={otherEmail} small /><span style={{ fontSize: '11px', color: '#8FA5B8' }}>Re: {activeThread.want.title}</span></div>
               </div>
               {activeThread.offer.price && <span style={{ fontSize: '13px', fontWeight: '700', color: '#0E7FA8' }}>{activeThread.offer.price}</span>}
@@ -725,7 +881,7 @@ function App() {
                   <Avatar email={otherEmail} size={40} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                      <p style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>{otherEmail?.split('@')[0]}</p>
+                      <p style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>@{getUsername(otherEmail)}</p>
                       <span style={{ fontSize: '11px', color: '#8FA5B8' }}>{new Date(thread.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
                     </div>
                     <p style={{ fontSize: '11px', color: '#8FA5B8', marginBottom: '2px' }}>Re: {want.title}</p>
@@ -751,6 +907,8 @@ function App() {
         <style>{styles}</style>
         <Header />
         <Lightbox />
+        <ReportModal />
+        {toast && <div className="toast">{toast}</div>}
         <div style={inner}>
           <div className="card fade-up" style={{ marginBottom: '14px', overflow: 'hidden' }}>
             {hasImages && <div className="img-gallery-full" style={{ padding: '16px 16px 0' }}>{selectedWant.images.map((url, i) => <img key={i} src={url} alt="" onClick={() => setLightboxImg(url)} />)}</div>}
@@ -759,10 +917,23 @@ function App() {
                 <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#0F2030', flex: 1, paddingRight: '14px', lineHeight: '1.3', fontFamily: "'DM Serif Display', serif", textAlign: 'left' }}>{selectedWant.title}</h2>
                 <span className={`badge ${selectedWant.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>{selectedWant.status === 'filled' ? 'Filled' : 'Want'}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', cursor: 'pointer' }} onClick={() => openProfile(selectedWant.user_email)}>
-                <Avatar email={selectedWant.user_email} size={24} />
-                <span style={{ fontSize: '13px', color: '#4A6278', fontWeight: '500' }}>{selectedWant.user_email?.split('@')[0]}</span>
-                <RatingBadge email={selectedWant.user_email} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => openProfile(selectedWant.user_email)}>
+                  <Avatar email={selectedWant.user_email} size={24} />
+                  <span style={{ fontSize: '13px', color: '#0E7FA8', fontWeight: '600' }}>@{getUsername(selectedWant.user_email)}</span>
+                  <RatingBadge email={selectedWant.user_email} />
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="btn" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => shareWant(selectedWant)}>
+                    <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    Share
+                  </button>
+                  {user && !isOwner && (
+                    <button className="btn btn-red" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => setReportModal(selectedWant)}>
+                      Report
+                    </button>
+                  )}
+                </div>
               </div>
               {selectedWant.description && <p style={{ fontSize: '14px', color: '#4A6278', lineHeight: '1.65', marginBottom: '16px' }}>{selectedWant.description}</p>}
               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
@@ -787,7 +958,7 @@ function App() {
               <span style={{ fontSize: '20px' }}>🎉</span>
               <div>
                 <p style={{ fontSize: '13px', fontWeight: '600', color: '#D97706' }}>Offer accepted!</p>
-                <p style={{ fontSize: '12px', color: '#92400E' }}>{acceptedOffer.seller_email?.split('@')[0]} {acceptedOffer.price ? `· ${acceptedOffer.price}` : ''}</p>
+                <p style={{ fontSize: '12px', color: '#92400E' }}>@{getUsername(acceptedOffer.seller_email)} {acceptedOffer.price ? `· ${acceptedOffer.price}` : ''}</p>
               </div>
             </div>
           )}
@@ -815,11 +986,11 @@ function App() {
           {offers.length === 0 && <div style={{ textAlign: 'center', padding: '40px 20px', color: '#8FA5B8', fontSize: '13px' }}>No offers yet</div>}
           {offers.map((offer, i) => (
             <div key={offer.id} className={`card fade-up stagger-${Math.min(i+1,3)}`} style={{ padding: '16px 20px', marginBottom: '10px', border: offer.status === 'accepted' ? '1.5px solid #FDE68A' : undefined }}>
-              {offer.status === 'accepted' && <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}><span className="badge badge-accepted">✓ Accepted</span></div>}
+              {offer.status === 'accepted' && <div style={{ marginBottom: '10px' }}><span className="badge badge-accepted">✓ Accepted</span></div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => openProfile(offer.seller_email)}>
                   <Avatar email={offer.seller_email} size={28} />
-                  <div><p style={{ fontSize: '12px', color: '#4A6278', fontWeight: '600' }}>{offer.seller_email?.split('@')[0]}</p><RatingBadge email={offer.seller_email} small /></div>
+                  <div><p style={{ fontSize: '12px', color: '#0E7FA8', fontWeight: '600' }}>@{getUsername(offer.seller_email)}</p><RatingBadge email={offer.seller_email} small /></div>
                 </div>
                 {offer.price && <span style={{ fontSize: '16px', fontWeight: '700', color: '#0E7FA8' }}>{offer.price}</span>}
               </div>
@@ -828,9 +999,7 @@ function App() {
                 <span style={{ fontSize: '11px', color: '#8FA5B8' }}>{new Date(offer.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {isOwner && selectedWant.status !== 'filled' && offer.status !== 'accepted' && (
-                    <button className="btn btn-amber" style={{ fontSize: '12px', padding: '6px 12px' }} onClick={() => acceptOffer(offer.id, selectedWant.id)}>
-                      ✓ Accept offer
-                    </button>
+                    <button className="btn btn-amber" style={{ fontSize: '12px', padding: '6px 12px' }} onClick={() => acceptOffer(offer.id, selectedWant.id)}>✓ Accept</button>
                   )}
                   {user && (isOwner || offer.seller_email === user.email) && (
                     <button className="btn" style={{ fontSize: '12px', padding: '6px 12px' }} onClick={() => openThread(offer, selectedWant)}>
@@ -938,18 +1107,24 @@ function App() {
 
   // HOME (logged in)
   return (
-    <div style={pageStyle}>
+    <div style={pageStyle} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
       <style>{styles}</style>
       <Header />
+      {toast && <div className="toast">{toast}</div>}
+      <ReportModal />
+      {pullDistance > 20 && (
+        <div className="pull-indicator" style={{ opacity: pullDistance / 80 }}>
+          {pullDistance > 60 ? '↓ Release to refresh' : '↓ Pull to refresh'}
+        </div>
+      )}
+      {refreshing && <div className="pull-indicator">Refreshing…</div>}
       <div style={inner}>
         <SearchFilters />
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }}>
           <span style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>Listings</span>
           <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{filteredWants.length} result{filteredWants.length !== 1 ? 's' : ''}</span>
         </div>
-        {loading && <p style={{ color: '#8FA5B8', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>Loading…</p>}
-        {!loading && filteredWants.length === 0 && <p style={{ color: '#8FA5B8', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No listings found</p>}
-        {filteredWants.map((want, i) => <WantCard key={want.id} want={want} index={i} />)}
+        {loading ? [1,2,3].map(i => <SkeletonCard key={i} />) : filteredWants.length === 0 ? <p style={{ color: '#8FA5B8', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No listings found</p> : filteredWants.map((want, i) => <WantCard key={want.id} want={want} index={i} />)}
       </div>
       <BottomNav />
     </div>
