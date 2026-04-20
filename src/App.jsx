@@ -100,9 +100,9 @@ const styles = `
 
   @keyframes fadeUp { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
   .fade-up { animation: fadeUp 0.3s ease forwards; width: 100%; }
-  .stagger-1 { animation-delay: 0.05s; opacity: 0; }
-  .stagger-2 { animation-delay: 0.1s; opacity: 0; }
-  .stagger-3 { animation-delay: 0.15s; opacity: 0; }
+  .fade-up.stagger-1 { animation-delay: 0.05s; opacity: 0; }
+  .fade-up.stagger-2 { animation-delay: 0.1s; opacity: 0; }
+  .fade-up.stagger-3 { animation-delay: 0.15s; opacity: 0; }
 `
 
 function StarRating({ score, onSelect, readonly = false, size = 20 }) {
