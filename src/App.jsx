@@ -537,7 +537,7 @@ function App() {
     const hasImages = want.images && want.images.length > 0
     const username = getUsername(want.user_email)
     return (
-      <div className={`card card-hover fade-up stagger-${Math.min(index + 1, 3)}`} onClick={() => openWant(want)} style={{ marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden' }}>
+      <div className={noAnimate ? "card card-hover" : `card card-hover fade-up stagger-${Math.min(index + 1, 3)}`} onClick={() => openWant(want)} style={{ marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden' }}>
         {hasImages && (
           <div style={{ display: 'flex', gap: '2px', height: '160px', overflow: 'hidden', borderRadius: '14px 14px 0 0' }}>
             <img src={want.images[0]} alt="" style={{ flex: 1, objectFit: 'cover', minWidth: 0 }} />
@@ -678,7 +678,7 @@ function App() {
             <span style={{ fontSize: '15px', fontWeight: '600', color: '#0F2030' }}>Recent listings</span>
             {wants.length > 0 && <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{wants.length} listings</span>}
           </div>
-          {loading ? [1,2,3].map(i => <SkeletonCard key={i} />) : wants.slice(0, 6).map((want, i) => <WantCard key={want.id} want={want} index={i} />)}
+          {loading ? [1,2,3].map(i => <SkeletonCard key={i} />) : wants.slice(0, 6).map((want, i) => <WantCard key={want.id} want={want} index={i} noAnimate />)}
           {wants.length > 6 && <button className="btn" onClick={() => setPage('browse')} style={{ width: '100%', padding: '13px', marginTop: '4px', fontSize: '14px' }}>View all {wants.length} listings →</button>}
         </div>
       </div>
