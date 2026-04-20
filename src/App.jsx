@@ -90,6 +90,7 @@ const styles = `
   @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
   .pull-indicator { text-align: center; padding: 12px; font-size: 12px; color: #8FA5B8; transition: all 0.2s ease; }
+  .page-inner { max-width: 640px; margin: 0 auto; padding: 20px 16px; }
 
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; z-index: 50; padding: 0; }
   .modal { background: #fff; border-radius: 20px 20px 0 0; padding: 24px; width: 100%; max-width: 640px; }
@@ -651,7 +652,7 @@ function App() {
   // LANDING PAGE
   if (page === 'landing') {
     return (
-      <div style={{ minHeight: '100vh', background: '#E8EFF5', fontFamily: "'DM Sans', sans-serif" }}>
+      <div style={{ minHeight: '100vh', background: '#E8EFF5', fontFamily: "'DM Sans', sans-serif", maxWidth: '100vw', overflowX: 'hidden' }}>
         <style>{styles}</style>
         <div style={{ position: 'relative' }}>
           <Header transparent />
