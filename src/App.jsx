@@ -654,7 +654,7 @@ function App() {
     return (
       <div style={{ minHeight: '100vh', background: '#E8EFF5', fontFamily: "'DM Sans', sans-serif", maxWidth: '100vw', overflowX: 'hidden' }}>
         <style>{styles}</style>
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', width: '100%' }}>
           <Header transparent />
           <div className="hero">
             <div className="hero-content">
@@ -672,7 +672,7 @@ function App() {
             </div>
           </div>
         </div>
-        <div style={{ maxWidth: '640px', margin: '0 auto', padding: '24px 16px' }}>
+        <div style={{ maxWidth: '640px', margin: '0 auto', padding: '24px 16px', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }}>
             <span style={{ fontSize: '15px', fontWeight: '600', color: '#0F2030' }}>Recent listings</span>
             {wants.length > 0 && <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{wants.length} listings</span>}
