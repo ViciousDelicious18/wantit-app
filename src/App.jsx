@@ -4,7 +4,8 @@ import { supabase } from './supabase'
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap');
 
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+  html, body { overflow-x: hidden; width: 100%; }
   body { background: #E8EFF5; font-family: 'DM Sans', sans-serif; color: #0F2030; }
   ::placeholder { color: #8FA5B8; }
 
@@ -69,7 +70,7 @@ const styles = `
   .star { font-size: 22px; cursor: pointer; transition: transform 0.1s ease; line-height: 1; }
   .star:hover { transform: scale(1.2); }
 
-  .hero { background: linear-gradient(135deg, #0F2030 0%, #0E4A6A 60%, #0E7FA8 100%); padding: 56px 24px 48px; text-align: center; position: relative; overflow: hidden; }
+  .hero { background: linear-gradient(135deg, #0F2030 0%, #0E4A6A 60%, #0E7FA8 100%); padding: 56px 24px 48px; text-align: center; position: relative; overflow: hidden; width: 100%; box-sizing: border-box; }
   .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 50%, rgba(14,127,168,0.3) 0%, transparent 70%); }
   .hero-content { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; }
   .hero-logo { font-family: 'DM Serif Display', serif; font-size: 52px; color: #fff; font-style: italic; letter-spacing: -2px; margin-bottom: 12px; }
@@ -652,7 +653,7 @@ function App() {
   // LANDING PAGE
   if (page === 'landing') {
     return (
-      <div style={{ minHeight: '100vh', background: '#E8EFF5', fontFamily: "'DM Sans', sans-serif", maxWidth: '100vw', overflowX: 'hidden' }}>
+      <div style={{ minHeight: '100vh', background: '#E8EFF5', fontFamily: "'DM Sans', sans-serif", overflowX: 'hidden', position: 'relative', width: '100%' }}>
         <style>{styles}</style>
         <div style={{ position: 'relative', width: '100%' }}>
           <Header transparent />
