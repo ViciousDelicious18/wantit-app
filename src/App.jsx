@@ -1,3 +1,15 @@
+/*
+ * SQL — run in Supabase SQL editor before testing new features:
+ *
+ * -- Feature: view counts
+ * ALTER TABLE wants ADD COLUMN IF NOT EXISTS views integer DEFAULT 0;
+ *
+ * -- Feature: item condition
+ * ALTER TABLE wants ADD COLUMN IF NOT EXISTS condition text;
+ *
+ * -- Feature: flexible/negotiable budget
+ * ALTER TABLE wants ADD COLUMN IF NOT EXISTS negotiable boolean DEFAULT false;
+ */
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from './supabase'
 
@@ -73,7 +85,7 @@ const styles = `
   .hero { background: linear-gradient(135deg, #0F2030 0%, #0E4A6A 60%, #0E7FA8 100%); padding: 56px 24px 48px; text-align: center; position: relative; overflow: hidden; width: 100%; box-sizing: border-box; }
   .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 50%, rgba(14,127,168,0.3) 0%, transparent 70%); }
   .hero-content { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; }
-  .hero-logo { font-family: 'DM Serif Display', serif; font-size: 52px; color: #fff; font-style: italic; letter-spacing: -2px; margin-bottom: 12px; }
+  .hero-logo { font-family: 'DM Serif Display', serif; font-size: 58px; color: #ffffff; font-style: italic; letter-spacing: -2px; margin-bottom: 12px; text-shadow: 0 2px 20px rgba(0,0,0,0.3); }
   .hero-tag { font-size: 18px; color: rgba(255,255,255,0.75); margin-bottom: 32px; font-weight: 300; }
   .how-it-works { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 32px 0; }
   .how-step { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 18px 14px; text-align: center; }
@@ -104,6 +116,35 @@ const styles = `
   .fade-up.stagger-1 { animation-delay: 0.05s; opacity: 0; }
   .fade-up.stagger-2 { animation-delay: 0.1s; opacity: 0; }
   .fade-up.stagger-3 { animation-delay: 0.15s; opacity: 0; }
+
+  html[data-dark="true"] body { background: #0B1829 !important; color: #CCD6F6; }
+  html[data-dark="true"] input, html[data-dark="true"] textarea, html[data-dark="true"] select { background: #0A192F; border-color: #1E3A5F; color: #CCD6F6; }
+  html[data-dark="true"] ::placeholder { color: #4A6080; }
+  html[data-dark="true"] .card { background: #112240 !important; border-color: #1E3A5F !important; box-shadow: 0 2px 12px rgba(0,0,0,0.3) !important; }
+  html[data-dark="true"] .card-hover:hover { border-color: #0E7FA8 !important; box-shadow: 0 6px 24px rgba(0,0,0,0.4) !important; }
+  html[data-dark="true"] .btn { background: #112240; border-color: #1E3A5F; color: #CCD6F6; }
+  html[data-dark="true"] .btn:hover { background: #0A3060; border-color: #0E7FA8; color: #0E9FCC; }
+  html[data-dark="true"] .btn-primary { background: #0E7FA8 !important; color: #fff !important; border-color: #0E7FA8 !important; }
+  html[data-dark="true"] .btn-primary:hover { background: #0A6588 !important; }
+  html[data-dark="true"] .btn-green { background: #0A2A1A; color: #34D399; border-color: #065F46; }
+  html[data-dark="true"] .btn-red { background: #2A0A0A; color: #F87171; border-color: #7F1D1D; }
+  html[data-dark="true"] .btn-amber { background: #2A1A00; color: #FCD34D; border-color: #78350F; }
+  html[data-dark="true"] .badge-want { background: #0A3060; color: #0E9FCC; }
+  html[data-dark="true"] .badge-filled { background: #1A2840; color: #4A6080; }
+  html[data-dark="true"] .badge-accepted { background: #2A2000; color: #D97706; }
+  html[data-dark="true"] .filter-chip { background: #112240; border-color: #1E3A5F; color: #8892B0; }
+  html[data-dark="true"] .filter-chip.active { background: #0E7FA8; color: #fff; border-color: #0E7FA8; }
+  html[data-dark="true"] .filter-chip:hover { border-color: #0E7FA8; }
+  html[data-dark="true"] .divider { background: #1E3A5F; }
+  html[data-dark="true"] .skeleton { background: linear-gradient(90deg, #1A2E44 25%, #1E3A52 50%, #1A2E44 75%); background-size: 200% 100%; }
+  html[data-dark="true"] .modal { background: #112240; }
+  html[data-dark="true"] .img-upload-area { background: #0A192F; border-color: #1E3A5F; }
+  html[data-dark="true"] .img-upload-area:hover { background: #0A3060; }
+  html[data-dark="true"] .msg-theirs { background: #0A3060; color: #CCD6F6; border-color: #1E3A5F; }
+  html[data-dark="true"] .toast { background: #CCD6F6; color: #0B1829; }
+  html[data-dark="true"] .pull-indicator { color: #4A6080; }
+  html[data-dark="true"] .img-gallery-full img { border-color: #1E3A5F; }
+  html[data-dark="true"] .img-thumb { border-color: #1E3A5F; }
 `
 
 function StarRating({ score, onSelect, readonly = false, size = 20 }) {
@@ -192,10 +233,13 @@ function App() {
   const [refreshing, setRefreshing] = useState(false)
   const [pullStart, setPullStart] = useState(null)
   const [pullDistance, setPullDistance] = useState(0)
+  const [dark, setDark] = useState(() => localStorage.getItem('darkMode') === 'true')
+  const [navStack, setNavStack] = useState([])
 
   const fileInputRef = useRef()
   const messagesEndRef = useRef()
   const realtimeRef = useRef(null)
+  const scrollPos = useRef({})
 
   const categories = ['Electronics', 'Sport & Outdoors', 'Vehicles', 'Furniture', 'Clothing', 'Tools', 'Music', 'Other']
   const locations = ['Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga', 'Dunedin', 'Other']
@@ -204,6 +248,18 @@ function App() {
   function showToast(msg) {
     setToast(msg)
     setTimeout(() => setToast(null), 2500)
+  }
+
+  function goBack() {
+    if (!navStack.length) { setPage(user ? 'home' : 'landing'); return }
+    const prev = navStack[navStack.length - 1]
+    setNavStack(s => s.slice(0, -1))
+    setPage(prev.page)
+    if (prev.selectedWant !== undefined) setSelectedWant(prev.selectedWant)
+    if (prev.profileEmail !== undefined) setProfileEmail(prev.profileEmail)
+    if (prev.activeThread !== undefined) setActiveThread(prev.activeThread)
+    const savedY = scrollPos.current[prev.page] || 0
+    setTimeout(() => window.scrollTo(0, savedY), 50)
   }
 
   useEffect(() => {
@@ -220,6 +276,11 @@ function App() {
     fetchWants()
     fetchAllRatings()
   }, [])
+
+  useEffect(() => {
+    localStorage.setItem('darkMode', dark)
+    document.documentElement.dataset.dark = dark ? 'true' : 'false'
+  }, [dark])
 
   useEffect(() => { if (user) fetchInbox() }, [user])
   useEffect(() => { if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: 'smooth' }) }, [messages])
@@ -280,12 +341,21 @@ function App() {
     }
   }
 
-  async function openProfile(email) {
-    setProfileEmail(email); setPage('profile')
+  async function fetchProfileData(email) {
     const { data: ws } = await supabase.from('wants').select('*').eq('user_email', email).order('created_at', { ascending: false })
     if (ws) setProfileWants(ws)
     const { data: rs } = await supabase.from('ratings').select('*').eq('rated_user_email', email).order('created_at', { ascending: false })
     if (rs) setProfileRatings(rs)
+  }
+
+  async function openProfile(email) {
+    if (page !== 'profile') {
+      scrollPos.current[page] = window.scrollY
+      setNavStack(prev => [...prev, { page, selectedWant, profileEmail, activeThread }])
+      window.scrollTo(0, 0)
+    }
+    setProfileEmail(email); setPage('profile')
+    await fetchProfileData(email)
   }
 
   async function submitRating(targetEmail) {
@@ -293,7 +363,7 @@ function App() {
     setSubmittingRating(true)
     await supabase.from('ratings').insert([{ rated_user_email: targetEmail, rater_user_id: user.id, rater_email: user.email, score: ratingScore, comment: ratingComment }])
     setRatingScore(0); setRatingComment('')
-    await fetchAllRatings(); await openProfile(targetEmail)
+    await fetchAllRatings(); await fetchProfileData(targetEmail)
     setSubmittingRating(false)
   }
 
@@ -353,7 +423,12 @@ function App() {
     if (data) setMessages(data)
   }
 
-  async function openThread(offer, want) { setActiveThread({ offer, want }); setMessages([]); await fetchMessages(offer.id); setPage('messages') }
+  async function openThread(offer, want) {
+    scrollPos.current[page] = window.scrollY
+    setNavStack(prev => [...prev, { page, selectedWant, profileEmail, activeThread }])
+    setActiveThread({ offer, want }); setMessages([]); await fetchMessages(offer.id); setPage('messages')
+    window.scrollTo(0, 0)
+  }
 
   async function sendMessage() {
     if (!newMessage.trim() || !user || !activeThread) return
@@ -435,7 +510,10 @@ function App() {
   }
 
   function openWant(want) {
+    scrollPos.current[page] = window.scrollY
+    setNavStack(prev => [...prev, { page, selectedWant, profileEmail, activeThread }])
     setSelectedWant(want); setOffers([]); fetchOffers(want.id); setPage('want')
+    window.scrollTo(0, 0)
     if (want.user_id === user?.id) {
       const updated = { ...seenOffers, [want.id]: offerCounts[want.id] || 0 }
       setSeenOffers(updated); localStorage.setItem('seenOffers', JSON.stringify(updated))
@@ -482,7 +560,16 @@ function App() {
   const myWants = wants.filter(w => w.user_id === user?.id)
   const myNewOffers = myWants.reduce((sum, w) => { const current = offerCounts[w.id] || 0; const seen = seenOffers[w.id] || 0; return sum + Math.max(0, current - seen) }, 0)
 
-  const pageStyle = { minHeight: '100vh', background: '#E8EFF5', fontFamily: "'DM Sans', sans-serif", paddingBottom: user ? '72px' : '0', overflowX: 'hidden', width: '100%' }
+  const C = dark ? {
+    bg: '#0B1829', card: '#112240', cardBorder: '#1E3A5F', text: '#CCD6F6',
+    textSub: '#8892B0', textMuted: '#4A6080', accentText: '#0E9FCC',
+    headerBg: 'rgba(10,25,47,0.95)', navBg: 'rgba(10,25,47,0.97)',
+  } : {
+    bg: '#E8EFF5', card: '#FFFFFF', cardBorder: '#D6E4EF', text: '#0F2030',
+    textSub: '#4A6278', textMuted: '#8FA5B8', accentText: '#0E7FA8',
+    headerBg: 'rgba(255,255,255,0.88)', navBg: 'rgba(255,255,255,0.92)',
+  }
+  const pageStyle = { minHeight: '100vh', background: C.bg, color: C.text, fontFamily: "'DM Sans', sans-serif", paddingBottom: user ? '72px' : '0', overflowX: 'hidden', width: '100%' }
   const inner = { maxWidth: '640px', margin: '0 auto', padding: '20px 16px', overflowX: 'hidden', width: '100%', boxSizing: 'border-box' }
 
   function RatingBadge({ email, small = false }) {
@@ -496,18 +583,24 @@ function App() {
   }
 
   const Header = ({ transparent = false }) => (
-    <div style={{ background: transparent ? 'transparent' : 'rgba(255,255,255,0.88)', backdropFilter: transparent ? 'none' : 'blur(14px)', borderBottom: transparent ? 'none' : '1px solid #D6E4EF', padding: '0 16px', position: 'sticky', top: 0, zIndex: 10, width: '100%' }}>
+    <div style={{ background: transparent ? 'transparent' : C.headerBg, backdropFilter: transparent ? 'none' : 'blur(14px)', borderBottom: transparent ? 'none' : `1px solid ${C.cardBorder}`, padding: '0 16px', position: 'sticky', top: 0, zIndex: 10, width: '100%' }}>
       <div style={{ maxWidth: '640px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span onClick={() => setPage(user ? 'home' : 'landing')} style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', cursor: 'pointer', color: transparent ? '#fff' : '#0E7FA8', letterSpacing: '-0.5px', fontStyle: 'italic' }}>Offrit</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button onClick={() => setDark(d => !d)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px', color: transparent ? 'rgba(255,255,255,0.8)' : C.textMuted, display: 'flex', alignItems: 'center' }} title={dark ? 'Light mode' : 'Dark mode'}>
+            {dark
+              ? <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              : <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            }
+          </button>
           {!user && page === 'landing' && <button className="btn btn-primary" onClick={() => setPage('login')} style={{ fontSize: '13px', padding: '8px 18px' }}>Log in</button>}
-          {user && (page === 'want' || page === 'messages' || page === 'profile') && (
-            <button className="btn" onClick={() => { if (page === 'messages') { setPage('want'); setActiveThread(null) } else { setPage('home') } }}>
+          {navStack.length > 0 && (page === 'want' || page === 'messages' || page === 'profile' || page === 'settings') && (
+            <button className="btn" onClick={goBack}>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
               Back
             </button>
           )}
-          {user && !['want','messages','profile'].includes(page) && <button className="btn" onClick={handleLogout} style={{ fontSize: '12px' }}>Log out</button>}
+          {user && !['want','messages','profile','settings'].includes(page) && <button className="btn" onClick={handleLogout} style={{ fontSize: '12px' }}>Log out</button>}
         </div>
       </div>
     </div>
@@ -516,7 +609,7 @@ function App() {
   const BottomNav = () => {
     if (!user) return null
     return (
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)', borderTop: '1px solid #D6E4EF', display: 'flex', zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: C.navBg, backdropFilter: 'blur(16px)', borderTop: `1px solid ${C.cardBorder}`, display: 'flex', zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <button className="nav-btn" onClick={() => { setPage('home'); setSelectedWant(null) }}>
           <svg width="20" height="20" fill="none" stroke={['home','want'].includes(page) ? '#0E7FA8' : '#8FA5B8'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           <span className="nav-label" style={{ color: ['home','want'].includes(page) ? '#0E7FA8' : '#8FA5B8' }}>Browse</span>
@@ -567,8 +660,8 @@ function App() {
             <RatingBadge email={want.user_email} small />
           </div>
           <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '14px' }}>
-            {want.budget && <span className="tag">💰 {want.budget}</span>}
-            {want.location && <span className="tag">📍 {want.location}</span>}
+            {want.budget && <span className="tag"><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>{want.budget}</span>}
+            {want.location && <span className="tag"><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>{want.location}</span>}
             {want.category && <span className="tag">{want.category}</span>}
           </div>
           <div className="divider" style={{ marginBottom: '12px' }} />
@@ -660,7 +753,7 @@ function App() {
   // LANDING PAGE
   if (page === 'landing') {
     return (
-      <div style={{ minHeight: '100vh', background: '#E8EFF5', fontFamily: "'DM Sans', sans-serif", overflowX: 'hidden', position: 'relative', width: '100%' }}>
+      <div style={{ minHeight: '100vh', background: C.bg, color: C.text, fontFamily: "'DM Sans', sans-serif", overflowX: 'hidden', position: 'relative', width: '100%' }}>
         <style>{styles}</style>
         <div style={{ position: 'relative', width: '100%' }}>
           <Header transparent />
@@ -673,9 +766,9 @@ function App() {
                 <button className="btn" onClick={() => setPage('browse')} style={{ padding: '13px 28px', fontSize: '15px', borderRadius: '12px', background: 'rgba(255,255,255,0.12)', border: '1.5px solid rgba(255,255,255,0.25)', color: '#fff' }}>Browse listings</button>
               </div>
               <div className="how-it-works">
-                <div className="how-step"><div className="how-step-icon">📋</div><div className="how-step-title">Post your want</div><div className="how-step-desc">Tell us what you're looking for and your budget</div></div>
-                <div className="how-step"><div className="how-step-icon">📩</div><div className="how-step-title">Receive offers</div><div className="how-step-desc">Sellers come to you with what they have</div></div>
-                <div className="how-step"><div className="how-step-icon">🤝</div><div className="how-step-title">Make a deal</div><div className="how-step-desc">Chat, negotiate and accept the best offer</div></div>
+                <div className="how-step"><div className="how-step-icon"><svg width="26" height="26" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div><div className="how-step-title">Post your want</div><div className="how-step-desc">Tell us what you're looking for and your budget</div></div>
+                <div className="how-step"><div className="how-step-icon"><svg width="26" height="26" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg></div><div className="how-step-title">Receive offers</div><div className="how-step-desc">Sellers come to you with what they have</div></div>
+                <div className="how-step"><div className="how-step-icon"><svg width="26" height="26" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div className="how-step-title">Make a deal</div><div className="how-step-desc">Chat, negotiate and accept the best offer</div></div>
               </div>
             </div>
           </div>
@@ -815,8 +908,8 @@ function App() {
                     <span className={`badge ${want.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>{want.status === 'filled' ? 'Filled' : 'Want'}</span>
                   </div>
                   <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
-                    {want.budget && <span className="tag">💰 {want.budget}</span>}
-                    {want.location && <span className="tag">📍 {want.location}</span>}
+                    {want.budget && <span className="tag"><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>{want.budget}</span>}
+                    {want.location && <span className="tag"><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>{want.location}</span>}
                   </div>
                 </div>
               ))}
@@ -946,15 +1039,15 @@ function App() {
               </div>
               {selectedWant.description && <p style={{ fontSize: '14px', color: '#4A6278', lineHeight: '1.65', marginBottom: '16px' }}>{selectedWant.description}</p>}
               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                {selectedWant.budget && <span className="tag" style={{ fontSize: '13px' }}>💰 {selectedWant.budget}</span>}
-                {selectedWant.location && <span className="tag" style={{ fontSize: '13px' }}>📍 {selectedWant.location}</span>}
-                {selectedWant.category && <span className="tag" style={{ fontSize: '13px' }}>🏷 {selectedWant.category}</span>}
+                {selectedWant.budget && <span className="tag" style={{ fontSize: '13px' }}><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>{selectedWant.budget}</span>}
+                {selectedWant.location && <span className="tag" style={{ fontSize: '13px' }}><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>{selectedWant.location}</span>}
+                {selectedWant.category && <span className="tag" style={{ fontSize: '13px' }}><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>{selectedWant.category}</span>}
               </div>
               {isOwner && (
                 <>
                   <div className="divider" style={{ margin: '20px 0 16px' }} />
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {selectedWant.status !== 'filled' && <button className="btn btn-green" onClick={() => markFilled(selectedWant.id)}>✓ Mark as filled</button>}
+                    {selectedWant.status !== 'filled' && <button className="btn btn-green" onClick={() => markFilled(selectedWant.id)}><svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Mark as filled</button>}
                     <button className="btn btn-red" onClick={() => { deleteWant(selectedWant.id); setPage('home') }}>Delete</button>
                   </div>
                 </>
@@ -964,7 +1057,7 @@ function App() {
 
           {acceptedOffer && (
             <div style={{ background: '#FFFBEB', border: '1.5px solid #FDE68A', borderRadius: '12px', padding: '14px 18px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '20px' }}>🎉</span>
+              <svg width="22" height="22" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               <div>
                 <p style={{ fontSize: '13px', fontWeight: '600', color: '#D97706' }}>Offer accepted!</p>
                 <p style={{ fontSize: '12px', color: '#92400E' }}>@{getUsername(acceptedOffer.seller_email)} {acceptedOffer.price ? `· ${acceptedOffer.price}` : ''}</p>
@@ -995,12 +1088,16 @@ function App() {
           {offers.length === 0 && <div style={{ textAlign: 'center', padding: '40px 20px', color: '#8FA5B8', fontSize: '13px' }}>No offers yet</div>}
           {offers.map((offer, i) => (
             <div key={offer.id} className={`card fade-up stagger-${Math.min(i+1,3)}`} style={{ padding: '16px 20px', marginBottom: '10px', border: offer.status === 'accepted' ? '1.5px solid #FDE68A' : undefined }}>
-              {offer.status === 'accepted' && <div style={{ marginBottom: '10px' }}><span className="badge badge-accepted">✓ Accepted</span></div>}
+              {offer.status === 'accepted' && <div style={{ marginBottom: '10px' }}><span className="badge badge-accepted"><svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><polyline points="20 6 9 17 4 12"/></svg>Accepted</span></div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => openProfile(offer.seller_email)}>
-                  <Avatar email={offer.seller_email} size={28} />
-                  <div><p style={{ fontSize: '12px', color: '#0E7FA8', fontWeight: '600' }}>@{getUsername(offer.seller_email)}</p><RatingBadge email={offer.seller_email} small /></div>
-                </div>
+                {isOwner ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => openProfile(offer.seller_email)}>
+                    <Avatar email={offer.seller_email} size={28} />
+                    <div><p style={{ fontSize: '12px', color: '#0E7FA8', fontWeight: '600' }}>@{getUsername(offer.seller_email)}</p><RatingBadge email={offer.seller_email} small /></div>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: '12px', color: C.textMuted, fontWeight: '500' }}>Offer</span>
+                )}
                 {offer.price && <span style={{ fontSize: '16px', fontWeight: '700', color: '#0E7FA8' }}>{offer.price}</span>}
               </div>
               <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.55', marginBottom: '12px' }}>{offer.message}</p>
@@ -1008,7 +1105,7 @@ function App() {
                 <span style={{ fontSize: '11px', color: '#8FA5B8' }}>{new Date(offer.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {isOwner && selectedWant.status !== 'filled' && offer.status !== 'accepted' && (
-                    <button className="btn btn-amber" style={{ fontSize: '12px', padding: '6px 12px' }} onClick={() => acceptOffer(offer.id, selectedWant.id)}>✓ Accept</button>
+                    <button className="btn btn-amber" style={{ fontSize: '12px', padding: '6px 12px' }} onClick={() => acceptOffer(offer.id, selectedWant.id)}><svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Accept</button>
                   )}
                   {user && (isOwner || offer.seller_email === user.email) && (
                     <button className="btn" style={{ fontSize: '12px', padding: '6px 12px' }} onClick={() => openThread(offer, selectedWant)}>
@@ -1090,8 +1187,8 @@ function App() {
               </div>
               {want.description && <p style={{ fontSize: '13px', color: '#4A6278', marginBottom: '10px', lineHeight: '1.5' }}>{want.description}</p>}
               <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '14px' }}>
-                {want.budget && <span className="tag">💰 {want.budget}</span>}
-                {want.location && <span className="tag">📍 {want.location}</span>}
+                {want.budget && <span className="tag"><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>{want.budget}</span>}
+                {want.location && <span className="tag"><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>{want.location}</span>}
                 {want.category && <span className="tag">{want.category}</span>}
               </div>
               {want.images && want.images.length > 0 && (
@@ -1103,7 +1200,7 @@ function App() {
               <div className="divider" style={{ marginBottom: '14px' }} />
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button className="btn" onClick={() => openWant(want)} style={{ fontSize: '12px' }}>View offers →</button>
-                {want.status !== 'filled' && <button className="btn btn-green" onClick={() => markFilled(want.id)} style={{ fontSize: '12px' }}>✓ Mark filled</button>}
+                {want.status !== 'filled' && <button className="btn btn-green" onClick={() => markFilled(want.id)} style={{ fontSize: '12px' }}><svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Mark filled</button>}
                 <button className="btn btn-red" onClick={() => deleteWant(want.id)} style={{ fontSize: '12px' }}>Delete</button>
               </div>
             </div>
