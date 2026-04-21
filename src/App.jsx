@@ -244,6 +244,7 @@ function App() {
   const messagesEndRef = useRef()
   const realtimeRef = useRef(null)
   const scrollPos = useRef({})
+  const sessionRef = useRef(null)
 
   const categories = ['Electronics', 'Sport & Outdoors', 'Vehicles', 'Furniture', 'Clothing', 'Tools', 'Music', 'Other']
   const conditions = ['Any', 'New', 'Like New', 'Good', 'Fair']
@@ -287,11 +288,13 @@ function App() {
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      sessionRef.current = session
       const u = session?.user ?? null
       setUser(u)
       if (u) { setPage('home'); await fetchMyProfile(u) }
     })
     supabase.auth.onAuthStateChange(async (_e, session) => {
+      sessionRef.current = session
       const u = session?.user ?? null
       setUser(u)
       if (u) { if (page === 'landing') setPage('home'); await fetchMyProfile(u) }
@@ -510,7 +513,12 @@ function App() {
   async function postWant() {
     if (!title || !user) return
     setPosting(true)
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    const authHeaders = { apikey: supabaseKey, Authorization: `Bearer ${token}` }
     try {
+      console.log('[postWant] start', { title, images: images.length, hasToken: !!token })
       let imageUrls = []
       if (images.length > 0) {
         setUploadingImages(true)
@@ -518,19 +526,37 @@ function App() {
         for (const file of images) {
           const ext = file.name.split('.').pop()
           const path = tempId + '/' + Date.now() + '-' + Math.random().toString(36).slice(2) + '.' + ext
-          const { error } = await supabase.storage.from('listing-images').upload(path, file)
-          if (!error) { const { data: urlData } = supabase.storage.from('listing-images').getPublicUrl(path); imageUrls.push(urlData.publicUrl) }
+          console.log('[postWant] uploading image', path)
+          const res = await fetch(`${supabaseUrl}/storage/v1/object/listing-images/${path}`, {
+            method: 'POST',
+            headers: { ...authHeaders, 'Content-Type': file.type || 'application/octet-stream' },
+            body: file
+          })
+          if (res.ok) {
+            imageUrls.push(`${supabaseUrl}/storage/v1/object/public/listing-images/${path}`)
+            console.log('[postWant] image uploaded ok')
+          } else {
+            console.error('[postWant] image upload failed', res.status, await res.text())
+          }
         }
         setUploadingImages(false)
       }
-      const { data, error } = await supabase.from('wants').insert([{ title, description, budget, location, category, condition: condition || null, negotiable, user_id: user.id, user_email: user.email, images: imageUrls }]).select()
-      if (error) throw error
-      if (data && data[0]) { setWants([{ ...data[0], images: imageUrls }, ...wants]); setOfferCounts({ ...offerCounts, [data[0].id]: 0 }) }
+      console.log('[postWant] inserting want...', { imageUrls })
+      const res = await fetch(`${supabaseUrl}/rest/v1/wants`, {
+        method: 'POST',
+        headers: { ...authHeaders, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+        body: JSON.stringify({ title, description, budget, location, category, condition: condition || null, negotiable, user_id: user.id, user_email: user.email, images: imageUrls })
+      })
+      console.log('[postWant] insert response', res.status)
+      if (!res.ok) throw new Error(`Insert failed: ${res.status} ${await res.text()}`)
+      const data = await res.json()
+      const inserted = Array.isArray(data) ? data[0] : data
+      if (inserted) { setWants([{ ...inserted, images: imageUrls }, ...wants]); setOfferCounts({ ...offerCounts, [inserted.id]: 0 }) }
       setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory(''); setCondition(''); setNegotiable(false); setImages([]); setImagePreviews([])
       setPage('home')
       showToast('Listing posted!')
     } catch (e) {
-      console.error('postWant error:', e)
+      console.error('[postWant] error:', e)
       showToast('Failed to post — please try again')
     } finally {
       setPosting(false)
