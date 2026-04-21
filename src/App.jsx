@@ -231,7 +231,7 @@ function App() {
   const [submittingReport, setSubmittingReport] = useState(false)
   const [toast, setToast] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
-  const [pullStart, setPullStart] = useState(null)
+  const pullStartRef = useRef(null)
   const [pullDistance, setPullDistance] = useState(0)
   const [dark, setDark] = useState(() => localStorage.getItem('darkMode') === 'true')
   const [navStack, setNavStack] = useState([])
@@ -419,8 +419,15 @@ function App() {
   }
 
   async function fetchOfferCounts() {
-    const { data } = await supabase.from('offers').select('want_id')
-    if (data) { const counts = {}; data.forEach(o => { counts[o.want_id] = (counts[o.want_id] || 0) + 1 }); setOfferCounts(counts) }
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const res = await fetch(`${supabaseUrl}/rest/v1/offers?select=want_id`, { headers: { apikey: supabaseKey } })
+    if (res.ok) {
+      const data = await res.json()
+      const counts = {}
+      data.forEach(o => { counts[o.want_id] = (counts[o.want_id] || 0) + 1 })
+      setOfferCounts(counts)
+    }
   }
 
   async function fetchOffers(wantId) {
@@ -580,16 +587,20 @@ function App() {
     showToast('Refreshed!')
   }
 
-  // Pull to refresh handlers
-  function onTouchStart(e) { setPullStart(e.touches[0].clientY) }
+  // Pull to refresh handlers — pullStartRef is a ref (not state) so setting it
+  // does not trigger a re-render and won't disrupt iOS Safari touch tracking.
+  function onTouchStart(e) {
+    if (window.scrollY === 0) pullStartRef.current = e.touches[0].clientY
+  }
   function onTouchMove(e) {
-    if (!pullStart) return
-    const dist = e.touches[0].clientY - pullStart
-    if (dist > 0 && window.scrollY === 0) setPullDistance(Math.min(dist, 80))
+    if (!pullStartRef.current) return
+    const dist = e.touches[0].clientY - pullStartRef.current
+    if (dist > 0) setPullDistance(Math.min(dist, 80))
   }
   function onTouchEnd() {
     if (pullDistance > 60) pullToRefresh()
-    setPullStart(null); setPullDistance(0)
+    pullStartRef.current = null
+    setPullDistance(0)
   }
 
   function getUsername(email) { return profiles[email] || email?.split('@')[0] || 'unknown' }
@@ -613,6 +624,7 @@ function App() {
   const myNewOffers = myWants.reduce((sum, w) => { const current = offerCounts[w.id] || 0; const seen = seenOffers[w.id] || 0; return sum + Math.max(0, current - seen) }, 0)
   const unreadMessages = myInbox.filter(t => !seenThreads.has(t.offer_id)).length
   const featuredWants = [...wants].filter(w => (offerCounts[w.id] || 0) >= 1 && w.status !== 'filled').sort((a, b) => (offerCounts[b.id] || 0) - (offerCounts[a.id] || 0)).slice(0, 10)
+  console.log('[FeaturedSection] wants:', wants.length, 'offerCounts keys:', Object.keys(offerCounts).length, 'featuredWants:', featuredWants.length, featuredWants.map(w => w.title))
 
   const C = dark ? {
     bg: '#0B1829', card: '#112240', cardBorder: '#1E3A5F', text: '#CCD6F6',
