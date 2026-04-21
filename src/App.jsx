@@ -268,6 +268,7 @@ function App() {
   }
 
   function goBack() {
+    setReportModal(null); setReportReason('')
     if (!navStack.length) { setPage(user ? 'home' : 'landing'); return }
     const prev = navStack[navStack.length - 1]
     setNavStack(s => s.slice(0, -1))
@@ -497,7 +498,7 @@ function App() {
     setAuthLoading(false)
   }
 
-  async function handleLogout() { await supabase.auth.signOut(); setPage('landing') }
+  function handleLogout() { setUser(null); setPage('landing'); supabase.auth.signOut() }
 
   async function postWant() {
     if (!title || !user) return
@@ -1365,7 +1366,7 @@ function App() {
       <style>{styles}</style>
       <Header />
       {toast && <div className="toast">{toast}</div>}
-      <ReportModal />
+      {reportModal && <ReportModal />}
       {pullDistance > 20 && (
         <div className="pull-indicator" style={{ opacity: pullDistance / 80 }}>
           {pullDistance > 60 ? '↓ Release to refresh' : '↓ Pull to refresh'}
