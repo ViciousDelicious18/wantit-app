@@ -235,6 +235,8 @@ function App() {
   const [pullDistance, setPullDistance] = useState(0)
   const [dark, setDark] = useState(() => localStorage.getItem('darkMode') === 'true')
   const [navStack, setNavStack] = useState([])
+  const [condition, setCondition] = useState('')
+  const [negotiable, setNegotiable] = useState(false)
 
   const fileInputRef = useRef()
   const messagesEndRef = useRef()
@@ -242,6 +244,8 @@ function App() {
   const scrollPos = useRef({})
 
   const categories = ['Electronics', 'Sport & Outdoors', 'Vehicles', 'Furniture', 'Clothing', 'Tools', 'Music', 'Other']
+  const conditions = ['Any', 'New', 'Like New', 'Good', 'Fair']
+  const conditionColour = { 'New': '#0E9A6E', 'Like New': '#0E7FA8', 'Good': '#D97706', 'Fair': '#DC2626' }
   const locations = ['Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga', 'Dunedin', 'Other']
   const reportReasons = ['Spam or scam', 'Inappropriate content', 'Wrong category', 'Already sold', 'Other']
 
@@ -480,9 +484,9 @@ function App() {
       }
       setUploadingImages(false)
     }
-    const { data } = await supabase.from('wants').insert([{ title, description, budget, location, category, user_id: user.id, user_email: user.email, images: imageUrls }]).select()
+    const { data } = await supabase.from('wants').insert([{ title, description, budget, location, category, condition: condition || null, negotiable, user_id: user.id, user_email: user.email, images: imageUrls }]).select()
     if (data && data[0]) { setWants([{ ...data[0], images: imageUrls }, ...wants]); setOfferCounts({ ...offerCounts, [data[0].id]: 0 }) }
-    setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory(''); setImages([]); setImagePreviews([])
+    setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory(''); setCondition(''); setNegotiable(false); setImages([]); setImagePreviews([])
     setPosting(false); setPage('home')
     showToast('Listing posted!')
   }
@@ -512,7 +516,14 @@ function App() {
   function openWant(want) {
     scrollPos.current[page] = window.scrollY
     setNavStack(prev => [...prev, { page, selectedWant, profileEmail, activeThread }])
-    setSelectedWant(want); setOffers([]); fetchOffers(want.id); setPage('want')
+    let wantToShow = want
+    if (want.user_id !== user?.id) {
+      const newViews = (want.views || 0) + 1
+      supabase.from('wants').update({ views: newViews }).eq('id', want.id)
+      wantToShow = { ...want, views: newViews }
+      setWants(ws => ws.map(w => w.id === want.id ? wantToShow : w))
+    }
+    setSelectedWant(wantToShow); setOffers([]); fetchOffers(want.id); setPage('want')
     window.scrollTo(0, 0)
     if (want.user_id === user?.id) {
       const updated = { ...seenOffers, [want.id]: offerCounts[want.id] || 0 }
@@ -559,6 +570,7 @@ function App() {
 
   const myWants = wants.filter(w => w.user_id === user?.id)
   const myNewOffers = myWants.reduce((sum, w) => { const current = offerCounts[w.id] || 0; const seen = seenOffers[w.id] || 0; return sum + Math.max(0, current - seen) }, 0)
+  const featuredWants = [...wants].filter(w => (offerCounts[w.id] || 0) >= 1 && w.status !== 'filled').sort((a, b) => (offerCounts[b.id] || 0) - (offerCounts[a.id] || 0)).slice(0, 10)
 
   const C = dark ? {
     bg: '#0B1829', card: '#112240', cardBorder: '#1E3A5F', text: '#CCD6F6',
@@ -659,10 +671,12 @@ function App() {
             <span style={{ fontSize: '12px', color: '#0E7FA8', fontWeight: '500', cursor: 'pointer' }} onClick={e => { e.stopPropagation(); openProfile(want.user_email) }}>@{username}</span>
             <RatingBadge email={want.user_email} small />
           </div>
-          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px', alignItems: 'center' }}>
             {want.budget && <span className="tag"><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>{want.budget}</span>}
             {want.location && <span className="tag"><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>{want.location}</span>}
             {want.category && <span className="tag">{want.category}</span>}
+            {want.condition && want.condition !== 'Any' && <span style={{ fontSize: '11px', fontWeight: '600', color: conditionColour[want.condition] || '#8FA5B8', background: 'transparent', border: `1px solid ${conditionColour[want.condition] || '#C8DCE8'}`, borderRadius: '20px', padding: '2px 7px' }}>{want.condition}</span>}
+            {want.negotiable && <span style={{ fontSize: '11px', fontWeight: '600', color: '#0E9A6E', background: 'transparent', border: '1px solid #A7EDD4', borderRadius: '20px', padding: '2px 7px' }}>Flexible</span>}
           </div>
           <div className="divider" style={{ marginBottom: '12px' }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -675,6 +689,31 @@ function App() {
       </div>
     )
   }
+
+  const FeaturedCard = ({ want }) => (
+    <div onClick={() => openWant(want)} style={{ flexShrink: 0, width: '160px', background: C.card, border: `1.5px solid ${C.cardBorder}`, borderRadius: '14px', overflow: 'hidden', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s', boxShadow: '0 2px 8px rgba(14,127,168,0.07)' }}>
+      {want.images?.[0]
+        ? <img src={want.images[0]} alt="" style={{ width: '100%', height: '96px', objectFit: 'cover', display: 'block' }} />
+        : <div style={{ width: '100%', height: '96px', background: dark ? '#1E3A5F' : '#EBF6FB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width="24" height="24" fill="none" stroke="#0E7FA8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+      }
+      <div style={{ padding: '8px 10px' }}>
+        <p style={{ fontSize: '12px', fontWeight: '600', color: C.text, lineHeight: '1.3', marginBottom: '4px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{want.title}</p>
+        <p style={{ fontSize: '11px', color: '#0E9A6E', fontWeight: '600' }}>{offerCounts[want.id]} offer{offerCounts[want.id] !== 1 ? 's' : ''}</p>
+      </div>
+    </div>
+  )
+
+  const FeaturedSection = () => featuredWants.length === 0 ? null : (
+    <div style={{ marginBottom: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <span style={{ fontSize: '13px', fontWeight: '700', color: C.text }}>Most wanted</span>
+        <span style={{ fontSize: '11px', color: C.textMuted }}>top {featuredWants.length}</span>
+      </div>
+      <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', marginLeft: '-2px' }}>
+        {featuredWants.map(w => <FeaturedCard key={w.id} want={w} />)}
+      </div>
+    </div>
+  )
 
   const SearchFilters = () => (
     <div style={{ marginBottom: '16px' }} className="fade-up">
@@ -774,6 +813,7 @@ function App() {
           </div>
         </div>
         <div style={{ maxWidth: '640px', margin: '0 auto', padding: '24px 16px', width: '100%', boxSizing: 'border-box' }}>
+          <FeaturedSection />
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }}>
             <span style={{ fontSize: '15px', fontWeight: '600', color: '#0F2030' }}>Recent listings</span>
             {wants.length > 0 && <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{wants.length} listings</span>}
@@ -1038,10 +1078,13 @@ function App() {
                 </div>
               </div>
               {selectedWant.description && <p style={{ fontSize: '14px', color: '#4A6278', lineHeight: '1.65', marginBottom: '16px' }}>{selectedWant.description}</p>}
-              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
                 {selectedWant.budget && <span className="tag" style={{ fontSize: '13px' }}><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>{selectedWant.budget}</span>}
                 {selectedWant.location && <span className="tag" style={{ fontSize: '13px' }}><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>{selectedWant.location}</span>}
                 {selectedWant.category && <span className="tag" style={{ fontSize: '13px' }}><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>{selectedWant.category}</span>}
+                {selectedWant.condition && selectedWant.condition !== 'Any' && <span style={{ fontSize: '12px', fontWeight: '600', color: conditionColour[selectedWant.condition] || '#8FA5B8', border: `1px solid ${conditionColour[selectedWant.condition] || '#C8DCE8'}`, borderRadius: '20px', padding: '2px 8px' }}>{selectedWant.condition}</span>}
+                {selectedWant.negotiable && <span style={{ fontSize: '12px', fontWeight: '600', color: '#0E9A6E', border: '1px solid #A7EDD4', borderRadius: '20px', padding: '2px 8px' }}>Flexible budget</span>}
+                {selectedWant.views > 0 && <span style={{ fontSize: '12px', color: C.textMuted, display: 'inline-flex', alignItems: 'center', gap: '3px' }}><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>{selectedWant.views} view{selectedWant.views !== 1 ? 's' : ''}</span>}
               </div>
               {isOwner && (
                 <>
@@ -1147,6 +1190,16 @@ function App() {
                   {categories.map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <select value={condition} onChange={e => setCondition(e.target.value)} style={{ flex: 1 }}>
+                  <option value="">Condition</option>
+                  {conditions.map(c => <option key={c}>{c}</option>)}
+                </select>
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', color: C.text }}>
+                <input type="checkbox" checked={negotiable} onChange={e => setNegotiable(e.target.checked)} style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#0E7FA8' }} />
+                Flexible budget (willing to negotiate)
+              </label>
               <ImageUploader />
               <button className="btn btn-primary" onClick={postWant} disabled={!title || posting} style={{ padding: '14px', fontSize: '15px', marginTop: '6px' }}>
                 {uploadingImages ? 'Uploading images…' : posting ? 'Posting…' : 'Post listing'}
@@ -1226,11 +1279,12 @@ function App() {
       {refreshing && <div className="pull-indicator">Refreshing…</div>}
       <div style={inner}>
         <SearchFilters />
+        <FeaturedSection />
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>Listings</span>
-          <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{filteredWants.length} result{filteredWants.length !== 1 ? 's' : ''}</span>
+          <span style={{ fontSize: '13px', fontWeight: '600', color: C.text }}>Listings</span>
+          <span style={{ fontSize: '12px', color: C.textMuted }}>{filteredWants.length} result{filteredWants.length !== 1 ? 's' : ''}</span>
         </div>
-        {loading ? [1,2,3].map(i => <SkeletonCard key={i} />) : filteredWants.length === 0 ? <p style={{ color: '#8FA5B8', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No listings found</p> : filteredWants.map((want, i) => <WantCard key={want.id} want={want} index={i} />)}
+        {loading ? [1,2,3].map(i => <SkeletonCard key={i} />) : filteredWants.length === 0 ? <p style={{ color: C.textMuted, fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No listings found</p> : filteredWants.map((want, i) => <WantCard key={want.id} want={want} index={i} />)}
       </div>
       <BottomNav />
     </div>
