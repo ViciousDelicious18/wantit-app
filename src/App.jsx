@@ -99,7 +99,8 @@ const styles = `
   .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #0F2030; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 200; white-space: nowrap; animation: fadeUp 0.2s ease; }
 
   @keyframes fadeUp { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-  .fade-up { animation: fadeUp 0.3s ease forwards; width: 100%; }
+  @keyframes contentFadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-up { animation: contentFadeUp 0.3s ease forwards; width: 100%; }
   .fade-up.stagger-1 { animation-delay: 0.05s; opacity: 0; }
   .fade-up.stagger-2 { animation-delay: 0.1s; opacity: 0; }
   .fade-up.stagger-3 { animation-delay: 0.15s; opacity: 0; }
@@ -253,13 +254,19 @@ function App() {
   }
 
   async function fetchWants() {
-    const { data } = await supabase.from('wants').select('*').order('created_at', { ascending: false })
-    if (data) {
-      setWants(data)
-      fetchOfferCounts()
-      fetchAllProfiles([...new Set(data.map(w => w.user_email).filter(Boolean))])
+    try {
+      const { data, error } = await supabase.from('wants').select('*').order('created_at', { ascending: false })
+      if (error) console.error('fetchWants:', error)
+      if (data) {
+        setWants(data)
+        fetchOfferCounts()
+        fetchAllProfiles([...new Set(data.map(w => w.user_email).filter(Boolean))])
+      }
+    } catch (e) {
+      console.error('fetchWants exception:', e)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   async function fetchAllRatings() {
