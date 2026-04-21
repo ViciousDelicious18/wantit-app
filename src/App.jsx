@@ -280,7 +280,6 @@ function App() {
   }
 
   useEffect(() => {
-    console.log('useEffect mounted — calling fetchWants')
     fetchWants()
     fetchAllRatings()
   }, [])
@@ -302,6 +301,12 @@ function App() {
     localStorage.setItem('darkMode', dark)
     document.documentElement.dataset.dark = dark ? 'true' : 'false'
   }, [dark])
+
+  useEffect(() => {
+    const handlePopState = () => { goBack() }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [navStack, page, selectedWant, profileEmail, activeThread, user])
 
   useEffect(() => { if (user) fetchInbox() }, [user])
   useEffect(() => { if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: 'smooth' }) }, [messages])
@@ -336,24 +341,15 @@ function App() {
   }
 
   async function fetchWants() {
-    console.log('fetchWants called')
     try {
-      // Use plain fetch to bypass supabase-js auth lock (_getAccessToken calls
-      // getSession internally, which can block indefinitely on lock contention).
-      // The wants table allows anon select so no auth token is needed.
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
       const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
-      console.log('supabaseUrl:', supabaseUrl ? supabaseUrl.slice(0, 30) : 'MISSING')
       const res = await fetch(
         `${supabaseUrl}/rest/v1/wants?order=created_at.desc&select=*`,
         { headers: { 'apikey': supabaseKey, 'Content-Type': 'application/json' } }
       )
-      console.log('fetchWants response status:', res.status)
-      if (!res.ok) {
-        console.error('fetchWants HTTP error:', res.status, await res.text())
-      } else {
+      if (res.ok) {
         const data = await res.json()
-        console.log('fetchWants got', data.length, 'rows')
         setWants(data)
         fetchOfferCounts()
         fetchAllProfiles([...new Set(data.map(w => w.user_email).filter(Boolean))])
@@ -549,6 +545,7 @@ function App() {
 
   function openWant(want) {
     scrollPos.current[page] = window.scrollY
+    window.history.pushState({ page: 'want' }, '')
     setNavStack(prev => [...prev, { page, selectedWant, profileEmail, activeThread }])
     let wantToShow = want
     if (want.user_id !== user?.id) {
