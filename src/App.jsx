@@ -237,6 +237,8 @@ function App() {
   const [navStack, setNavStack] = useState([])
   const [condition, setCondition] = useState('')
   const [negotiable, setNegotiable] = useState(false)
+  const [seenThreads, setSeenThreads] = useState(() => new Set(JSON.parse(localStorage.getItem('seenThreads') || '[]')))
+  const [settingsUsername, setSettingsUsername] = useState('')
 
   const fileInputRef = useRef()
   const messagesEndRef = useRef()
@@ -248,6 +250,17 @@ function App() {
   const conditionColour = { 'New': '#0E9A6E', 'Like New': '#0E7FA8', 'Good': '#D97706', 'Fair': '#DC2626' }
   const locations = ['Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga', 'Dunedin', 'Other']
   const reportReasons = ['Spam or scam', 'Inappropriate content', 'Wrong category', 'Already sold', 'Other']
+
+  function timeAgo(dateStr) {
+    const d = new Date(dateStr), now = new Date()
+    const s = Math.floor((now - d) / 1000)
+    if (s < 60) return 'just now'
+    if (s < 3600) return `${Math.floor(s / 60)}m ago`
+    if (s < 86400) return `${Math.floor(s / 3600)}h ago`
+    if (s < 604800) return d.toLocaleDateString('en-NZ', { weekday: 'short' })
+    if (now.getFullYear() === d.getFullYear()) return d.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })
+    return d.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
+  }
 
   function showToast(msg) {
     setToast(msg)
@@ -430,6 +443,9 @@ function App() {
   async function openThread(offer, want) {
     scrollPos.current[page] = window.scrollY
     setNavStack(prev => [...prev, { page, selectedWant, profileEmail, activeThread }])
+    const updatedSeen = new Set([...seenThreads, offer.id])
+    setSeenThreads(updatedSeen)
+    localStorage.setItem('seenThreads', JSON.stringify([...updatedSeen]))
     setActiveThread({ offer, want }); setMessages([]); await fetchMessages(offer.id); setPage('messages')
     window.scrollTo(0, 0)
   }
@@ -570,6 +586,7 @@ function App() {
 
   const myWants = wants.filter(w => w.user_id === user?.id)
   const myNewOffers = myWants.reduce((sum, w) => { const current = offerCounts[w.id] || 0; const seen = seenOffers[w.id] || 0; return sum + Math.max(0, current - seen) }, 0)
+  const unreadMessages = myInbox.filter(t => !seenThreads.has(t.offer_id)).length
   const featuredWants = [...wants].filter(w => (offerCounts[w.id] || 0) >= 1 && w.status !== 'filled').sort((a, b) => (offerCounts[b.id] || 0) - (offerCounts[a.id] || 0)).slice(0, 10)
 
   const C = dark ? {
@@ -637,8 +654,9 @@ function App() {
           {myNewOffers > 0 && <span style={{ position: 'absolute', top: '8px', right: 'calc(50% - 20px)', background: '#DC2626', color: '#fff', fontSize: '9px', fontWeight: '700', minWidth: '16px', height: '16px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{myNewOffers}</span>}
           <span className="nav-label" style={{ color: page === 'mylistings' ? '#0E7FA8' : '#8FA5B8' }}>Mine</span>
         </button>
-        <button className="nav-btn" onClick={() => setPage('inbox')}>
+        <button className="nav-btn" onClick={() => setPage('inbox')} style={{ position: 'relative' }}>
           <svg width="20" height="20" fill="none" stroke={['inbox','messages'].includes(page) ? '#0E7FA8' : '#8FA5B8'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          {unreadMessages > 0 && <span style={{ position: 'absolute', top: '8px', right: 'calc(50% - 20px)', background: '#DC2626', color: '#fff', fontSize: '9px', fontWeight: '700', minWidth: '16px', height: '16px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{unreadMessages}</span>}
           <span className="nav-label" style={{ color: ['inbox','messages'].includes(page) ? '#0E7FA8' : '#8FA5B8' }}>Messages</span>
         </button>
       </div>
@@ -683,7 +701,7 @@ function App() {
             <span style={{ fontSize: '12px', color: offerCounts[want.id] ? '#0E9A6E' : '#8FA5B8', fontWeight: offerCounts[want.id] ? '600' : '400' }}>
               {offerCounts[want.id] ? `${offerCounts[want.id]} offer${offerCounts[want.id] !== 1 ? 's' : ''}` : 'No offers yet'}
             </span>
-            <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{new Date(want.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
+            <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{timeAgo(want.created_at)}</span>
           </div>
         </div>
       </div>
@@ -933,7 +951,7 @@ function App() {
                     <StarRating score={r.score} readonly size={14} />
                   </div>
                   {r.comment && <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.5' }}>{r.comment}</p>}
-                  <p style={{ fontSize: '11px', color: '#B0C4D4', marginTop: '6px' }}>{new Date(r.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  <p style={{ fontSize: '11px', color: '#B0C4D4', marginTop: '6px' }}>{timeAgo(r.created_at)}</p>
                 </div>
               ))}
             </div>
@@ -984,7 +1002,7 @@ function App() {
               {messages.map(m => (
                 <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: m.sender_email === user.email ? 'flex-end' : 'flex-start' }}>
                   <div className={`msg-bubble ${m.sender_email === user.email ? 'msg-mine' : 'msg-theirs'}`}>{m.message}</div>
-                  <span style={{ fontSize: '10px', color: '#B0C4D4', margin: '2px 4px 6px' }}>{new Date(m.created_at).toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span style={{ fontSize: '10px', color: '#B0C4D4', margin: '2px 4px 6px' }}>{timeAgo(m.created_at)}</span>
                 </div>
               ))}
               <div ref={messagesEndRef} />
@@ -1024,7 +1042,7 @@ function App() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
                       <p style={{ fontSize: '13px', fontWeight: '600', color: '#0F2030' }}>@{getUsername(otherEmail)}</p>
-                      <span style={{ fontSize: '11px', color: '#8FA5B8' }}>{new Date(thread.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
+                      <span style={{ fontSize: '11px', color: '#8FA5B8' }}>{timeAgo(thread.created_at)}</span>
                     </div>
                     <p style={{ fontSize: '11px', color: '#8FA5B8', marginBottom: '2px' }}>Re: {want.title}</p>
                     <p style={{ fontSize: '12px', color: '#4A6278', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{thread.message}</p>
@@ -1145,7 +1163,7 @@ function App() {
               </div>
               <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.55', marginBottom: '12px' }}>{offer.message}</p>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                <span style={{ fontSize: '11px', color: '#8FA5B8' }}>{new Date(offer.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                <span style={{ fontSize: '11px', color: '#8FA5B8' }}>{timeAgo(offer.created_at)}</span>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {isOwner && selectedWant.status !== 'filled' && offer.status !== 'accepted' && (
                     <button className="btn btn-amber" style={{ fontSize: '12px', padding: '6px 12px' }} onClick={() => acceptOffer(offer.id, selectedWant.id)}><svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Accept</button>
@@ -1219,9 +1237,14 @@ function App() {
         <style>{styles}</style>
         <Header />
         <div style={inner}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '20px' }} className="fade-up">
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', color: '#0F2030', fontStyle: 'italic' }}>My listings</h2>
-            <span style={{ fontSize: '12px', color: '#0E7FA8', cursor: 'pointer', fontWeight: '500' }} onClick={() => openProfile(user.email)}>View profile →</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }} className="fade-up">
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', color: C.text, fontStyle: 'italic' }}>My listings</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '12px', color: '#0E7FA8', cursor: 'pointer', fontWeight: '500' }} onClick={() => openProfile(user.email)}>View profile →</span>
+              <button onClick={() => { scrollPos.current[page] = window.scrollY; setNavStack(prev => [...prev, { page, selectedWant, profileEmail, activeThread }]); setSettingsUsername(myProfile?.username || getUsername(user.email)); setPage('settings'); window.scrollTo(0, 0) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}>
+                <svg width="18" height="18" fill="none" stroke={C.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              </button>
+            </div>
           </div>
           {myWants.length === 0 && (
             <div className="card fade-up" style={{ padding: '48px 24px', textAlign: 'center' }}>
@@ -1258,6 +1281,54 @@ function App() {
               </div>
             </div>
           ))}
+        </div>
+        <BottomNav />
+      </div>
+    )
+  }
+
+  if (page === 'settings') {
+    const saveUsername = async () => {
+      const newName = settingsUsername.trim()
+      if (!newName || newName === (myProfile?.username || getUsername(user.email))) return
+      const { data: existing } = await supabase.from('profiles').select('id').eq('username', newName).neq('user_id', user.id).maybeSingle()
+      if (existing) { showToast('Username already taken'); return }
+      await supabase.from('profiles').upsert({ user_id: user.id, user_email: user.email, username: newName })
+      setMyProfile(prev => ({ ...prev, username: newName }))
+      setProfiles(prev => ({ ...prev, [user.email]: newName }))
+      showToast('Username updated!')
+    }
+    return (
+      <div style={pageStyle}>
+        <style>{styles}</style>
+        <Header />
+        <div style={inner}>
+          <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', color: C.text, fontStyle: 'italic', marginBottom: '24px' }} className="fade-up">Settings</h2>
+          <div className="card fade-up" style={{ padding: '20px', marginBottom: '12px' }}>
+            <p style={{ fontSize: '12px', fontWeight: '600', color: C.textMuted, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email</p>
+            <p style={{ fontSize: '14px', color: C.textSub }}>{user.email}</p>
+          </div>
+          <div className="card fade-up stagger-1" style={{ padding: '20px', marginBottom: '12px' }}>
+            <p style={{ fontSize: '12px', fontWeight: '600', color: C.textMuted, marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Username</p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <input value={settingsUsername} onChange={e => setSettingsUsername(e.target.value)} placeholder="Choose a username" style={{ flex: 1 }} onKeyDown={e => e.key === 'Enter' && saveUsername()} />
+              <button className="btn btn-primary" onClick={saveUsername} style={{ fontSize: '13px', padding: '0 16px' }}>Save</button>
+            </div>
+          </div>
+          <div className="card fade-up stagger-2" style={{ padding: '20px', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <p style={{ fontSize: '14px', fontWeight: '600', color: C.text, marginBottom: '2px' }}>Dark mode</p>
+                <p style={{ fontSize: '12px', color: C.textMuted }}>Easy on the eyes at night</p>
+              </div>
+              <button onClick={() => setDark(d => !d)} style={{ width: '44px', height: '24px', borderRadius: '12px', background: dark ? '#0E7FA8' : C.cardBorder, border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                <span style={{ position: 'absolute', top: '3px', left: dark ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '9px', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
+              </button>
+            </div>
+          </div>
+          <div className="card fade-up stagger-3" style={{ padding: '20px' }}>
+            <button className="btn btn-red" onClick={handleLogout} style={{ width: '100%', padding: '12px' }}>Log out</button>
+          </div>
         </div>
         <BottomNav />
       </div>
