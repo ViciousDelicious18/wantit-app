@@ -161,6 +161,30 @@ function StarRating({ score, onSelect, readonly = false, size = 20 }) {
   )
 }
 
+function setupScrollDrag(el) {
+  if (!el) return
+  if (el._cleanupScroll) el._cleanupScroll()
+  let isDown = false, startX = 0, startScrollLeft = 0
+  const onWheel = e => { e.preventDefault(); el.scrollLeft += e.deltaY + e.deltaX }
+  const onMouseDown = e => { isDown = true; startX = e.pageX; startScrollLeft = el.scrollLeft; el.style.cursor = 'grabbing'; el.style.userSelect = 'none' }
+  const onMouseUp = () => { isDown = false; el.style.cursor = 'grab'; el.style.userSelect = '' }
+  const onMouseLeave = () => { isDown = false; el.style.cursor = 'grab'; el.style.userSelect = '' }
+  const onMouseMove = e => { if (!isDown) return; e.preventDefault(); el.scrollLeft = startScrollLeft - (e.pageX - startX) }
+  el.addEventListener('wheel', onWheel, { passive: false })
+  el.addEventListener('mousedown', onMouseDown)
+  el.addEventListener('mouseup', onMouseUp)
+  el.addEventListener('mouseleave', onMouseLeave)
+  el.addEventListener('mousemove', onMouseMove)
+  el.style.cursor = 'grab'
+  el._cleanupScroll = () => {
+    el.removeEventListener('wheel', onWheel)
+    el.removeEventListener('mousedown', onMouseDown)
+    el.removeEventListener('mouseup', onMouseUp)
+    el.removeEventListener('mouseleave', onMouseLeave)
+    el.removeEventListener('mousemove', onMouseMove)
+  }
+}
+
 function SkeletonCard() {
   return (
     <div className="card" style={{ padding: '18px 20px', marginBottom: '10px' }}>
@@ -790,7 +814,7 @@ function App() {
         <span style={{ fontSize: '13px', fontWeight: '700', color: C.text }}>Most wanted</span>
         <span style={{ fontSize: '11px', color: C.textMuted }}>top {featuredWants.length}</span>
       </div>
-      <div style={{ display: 'flex', gap: '10px', overflowX: 'scroll', WebkitOverflowScrolling: 'touch', paddingBottom: '6px', scrollbarWidth: 'none', msOverflowStyle: 'none', marginLeft: '-2px' }}>
+      <div ref={setupScrollDrag} style={{ display: 'flex', gap: '10px', overflowX: 'scroll', WebkitOverflowScrolling: 'touch', paddingBottom: '6px', scrollbarWidth: 'none', msOverflowStyle: 'none', marginLeft: '-2px' }}>
         {featuredWants.map(w => <FeaturedCard key={w.id} want={w} />)}
       </div>
     </div>
@@ -809,11 +833,11 @@ function App() {
           <option value="budget-low">Budget: low–high</option>
         </select>
       </div>
-      <div className="chips-row" style={{ marginBottom: '8px' }}>
+      <div ref={setupScrollDrag} className="chips-row" style={{ marginBottom: '8px' }}>
         <span className={`filter-chip ${!filterLocation ? 'active' : ''}`} onClick={() => setFilterLocation('')}>All</span>
         {locations.map(l => <span key={l} className={`filter-chip ${filterLocation === l ? 'active' : ''}`} onClick={() => setFilterLocation(filterLocation === l ? '' : l)}>{l}</span>)}
       </div>
-      <div className="chips-row">
+      <div ref={setupScrollDrag} className="chips-row">
         <span className={`filter-chip ${!filterCategory ? 'active' : ''}`} onClick={() => setFilterCategory('')}>All</span>
         {categories.map(c => <span key={c} className={`filter-chip ${filterCategory === c ? 'active' : ''}`} onClick={() => setFilterCategory(filterCategory === c ? '' : c)}>{c}</span>)}
       </div>
@@ -1272,9 +1296,9 @@ function App() {
                 </select>
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
-                <select value={condition} onChange={e => setCondition(e.target.value)} style={{ flex: 1 }}>
-                  <option value="">Condition</option>
-                  {conditions.map(c => <option key={c}>{c}</option>)}
+                <select value={condition} onChange={e => { console.log('[condition] changed to', e.target.value); setCondition(e.target.value) }} style={{ flex: 1, cursor: 'pointer' }}>
+                  <option value="">Condition (optional)</option>
+                  {conditions.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', color: C.text }}>
