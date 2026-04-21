@@ -280,18 +280,27 @@ function App() {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // getSession() holds the auth lock while it refreshes an expired token.
+    // supabase.from().select() internally calls getSession() too, so calling
+    // fetchWants() concurrently causes lock contention that can block data
+    // loading indefinitely for users with expired tokens.
+    // Fix: run fetchWants after getSession releases the lock, with a 4 s
+    // hard timeout so a failed/slow auth never leaves skeletons up forever.
+    const authReady = supabase.auth.getSession().then(async ({ data: { session } }) => {
       const u = session?.user ?? null
       setUser(u)
       if (u) { setPage('home'); await fetchMyProfile(u) }
+    })
+    const authTimeout = new Promise(resolve => setTimeout(resolve, 4000))
+    Promise.race([authReady, authTimeout]).then(() => {
+      fetchWants()
+      fetchAllRatings()
     })
     supabase.auth.onAuthStateChange(async (_e, session) => {
       const u = session?.user ?? null
       setUser(u)
       if (u) { if (page === 'landing') setPage('home'); await fetchMyProfile(u) }
     })
-    fetchWants()
-    fetchAllRatings()
   }, [])
 
   useEffect(() => {
