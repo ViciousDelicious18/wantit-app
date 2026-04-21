@@ -280,6 +280,7 @@ function App() {
   }
 
   useEffect(() => {
+    console.log('useEffect mounted — calling fetchWants')
     fetchWants()
     fetchAllRatings()
   }, [])
@@ -335,10 +336,24 @@ function App() {
   }
 
   async function fetchWants() {
+    console.log('fetchWants called')
     try {
-      const { data, error } = await supabase.from('wants').select('*').order('created_at', { ascending: false })
-      if (error) console.error('fetchWants:', error)
-      if (data) {
+      // Use plain fetch to bypass supabase-js auth lock (_getAccessToken calls
+      // getSession internally, which can block indefinitely on lock contention).
+      // The wants table allows anon select so no auth token is needed.
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+      console.log('supabaseUrl:', supabaseUrl ? supabaseUrl.slice(0, 30) : 'MISSING')
+      const res = await fetch(
+        `${supabaseUrl}/rest/v1/wants?order=created_at.desc&select=*`,
+        { headers: { 'apikey': supabaseKey, 'Content-Type': 'application/json' } }
+      )
+      console.log('fetchWants response status:', res.status)
+      if (!res.ok) {
+        console.error('fetchWants HTTP error:', res.status, await res.text())
+      } else {
+        const data = await res.json()
+        console.log('fetchWants got', data.length, 'rows')
         setWants(data)
         fetchOfferCounts()
         fetchAllProfiles([...new Set(data.map(w => w.user_email).filter(Boolean))])
