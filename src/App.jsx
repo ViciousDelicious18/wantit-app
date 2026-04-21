@@ -502,23 +502,32 @@ function App() {
   async function postWant() {
     if (!title || !user) return
     setPosting(true)
-    let imageUrls = []
-    if (images.length > 0) {
-      setUploadingImages(true)
-      const tempId = crypto.randomUUID()
-      for (const file of images) {
-        const ext = file.name.split('.').pop()
-        const path = tempId + '/' + Date.now() + '-' + Math.random().toString(36).slice(2) + '.' + ext
-        const { error } = await supabase.storage.from('listing-images').upload(path, file)
-        if (!error) { const { data: urlData } = supabase.storage.from('listing-images').getPublicUrl(path); imageUrls.push(urlData.publicUrl) }
+    try {
+      let imageUrls = []
+      if (images.length > 0) {
+        setUploadingImages(true)
+        const tempId = crypto.randomUUID()
+        for (const file of images) {
+          const ext = file.name.split('.').pop()
+          const path = tempId + '/' + Date.now() + '-' + Math.random().toString(36).slice(2) + '.' + ext
+          const { error } = await supabase.storage.from('listing-images').upload(path, file)
+          if (!error) { const { data: urlData } = supabase.storage.from('listing-images').getPublicUrl(path); imageUrls.push(urlData.publicUrl) }
+        }
+        setUploadingImages(false)
       }
+      const { data, error } = await supabase.from('wants').insert([{ title, description, budget, location, category, condition: condition || null, negotiable, user_id: user.id, user_email: user.email, images: imageUrls }]).select()
+      if (error) throw error
+      if (data && data[0]) { setWants([{ ...data[0], images: imageUrls }, ...wants]); setOfferCounts({ ...offerCounts, [data[0].id]: 0 }) }
+      setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory(''); setCondition(''); setNegotiable(false); setImages([]); setImagePreviews([])
+      setPage('home')
+      showToast('Listing posted!')
+    } catch (e) {
+      console.error('postWant error:', e)
+      showToast('Failed to post — please try again')
+    } finally {
+      setPosting(false)
       setUploadingImages(false)
     }
-    const { data } = await supabase.from('wants').insert([{ title, description, budget, location, category, condition: condition || null, negotiable, user_id: user.id, user_email: user.email, images: imageUrls }]).select()
-    if (data && data[0]) { setWants([{ ...data[0], images: imageUrls }, ...wants]); setOfferCounts({ ...offerCounts, [data[0].id]: 0 }) }
-    setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory(''); setCondition(''); setNegotiable(false); setImages([]); setImagePreviews([])
-    setPosting(false); setPage('home')
-    showToast('Listing posted!')
   }
 
   async function deleteWant(wantId) {
@@ -614,7 +623,7 @@ function App() {
     headerBg: 'rgba(255,255,255,0.88)', navBg: 'rgba(255,255,255,0.92)',
   }
   const pageStyle = { minHeight: '100vh', background: C.bg, color: C.text, fontFamily: "'DM Sans', sans-serif", paddingBottom: user ? '72px' : '0', overflowX: 'hidden', width: '100%' }
-  const inner = { maxWidth: '640px', margin: '0 auto', padding: '20px 16px', overflowX: 'hidden', width: '100%', boxSizing: 'border-box' }
+  const inner = { maxWidth: '640px', margin: '0 auto', padding: '20px 16px', width: '100%', boxSizing: 'border-box' }
 
   function RatingBadge({ email, small = false }) {
     const r = allRatings[email]; if (!r) return null
@@ -682,7 +691,7 @@ function App() {
     const hasImages = want.images && want.images.length > 0
     const username = getUsername(want.user_email)
     return (
-      <div className={noAnimate ? 'card card-hover' : `card card-hover fade-up stagger-${Math.min(index + 1, 3)}`} onClick={() => openWant(want)} style={{ marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden' }}>
+      <div className={noAnimate ? 'card card-hover' : `card card-hover fade-up stagger-${Math.min(index + 1, 3)}`} onClick={() => openWant(want)} style={{ marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden', cursor: 'pointer' }}>
         {hasImages && (
           <div style={{ display: 'flex', gap: '2px', height: '160px', overflow: 'hidden', borderRadius: '14px 14px 0 0' }}>
             <img src={want.images[0]} alt="" style={{ flex: 1, objectFit: 'cover', minWidth: 0 }} />
@@ -742,7 +751,7 @@ function App() {
         <span style={{ fontSize: '13px', fontWeight: '700', color: C.text }}>Most wanted</span>
         <span style={{ fontSize: '11px', color: C.textMuted }}>top {featuredWants.length}</span>
       </div>
-      <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', marginLeft: '-2px' }}>
+      <div style={{ display: 'flex', gap: '10px', overflowX: 'scroll', WebkitOverflowScrolling: 'touch', paddingBottom: '6px', scrollbarWidth: 'none', msOverflowStyle: 'none', marginLeft: '-2px' }}>
         {featuredWants.map(w => <FeaturedCard key={w.id} want={w} />)}
       </div>
     </div>
