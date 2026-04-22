@@ -92,7 +92,8 @@ const styles = `
   .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 50%, rgba(14,127,168,0.3) 0%, transparent 70%); }
   .hero-content { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; }
   .hero-logo { font-family: 'DM Serif Display', serif; font-size: 58px; color: #ffffff; font-style: italic; letter-spacing: -2px; margin-bottom: 12px; text-shadow: 0 2px 20px rgba(0,0,0,0.3); }
-  .hero-tag { font-size: 18px; color: rgba(255,255,255,0.75); margin-bottom: 32px; font-weight: 300; }
+  .hero-tag { font-size: 18px; color: rgba(255,255,255,0.75); margin-bottom: 10px; font-weight: 300; }
+  .hero-subtag { font-size: 13px; color: rgba(255,255,255,0.45); margin: 0 0 28px; font-weight: 300; }
   .how-it-works { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 32px 0; }
   .how-step { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 18px 14px; text-align: center; }
   .how-step-icon { font-size: 26px; margin-bottom: 8px; }
@@ -328,6 +329,8 @@ function App() {
   const realtimeRef = useRef(null)
   const scrollPos = useRef({})
   const sessionRef = useRef(null)
+  const deepLinkRef = useRef(new URLSearchParams(window.location.search).get('listing'))
+  const filterEffectInitRef = useRef(false)
 
   const categories = ['Electronics', 'Sport & Outdoors', 'Vehicles', 'Furniture', 'Clothing', 'Tools', 'Music', 'Other']
   const serviceCategories = ['Lawn & Garden', 'Cleaning', 'Removals & Moving', 'Handyman & Repairs', 'IT & Tech', 'Tutoring & Lessons', 'Pet Care', 'Deliveries', 'Painting', 'Event Help', 'Odd Jobs', 'Other']
@@ -375,7 +378,14 @@ function App() {
       sessionRef.current = session
       const u = session?.user ?? null
       setUser(u)
-      if (u) { setPage('home'); await fetchMyProfile(u) }
+      if (u) {
+        setPage('home')
+        await fetchMyProfile(u)
+      }
+      if (deepLinkRef.current) {
+        fetchAndOpenListing(deepLinkRef.current)
+        deepLinkRef.current = null
+      }
     })
     supabase.auth.onAuthStateChange(async (_e, session) => {
       sessionRef.current = session
@@ -402,6 +412,11 @@ function App() {
   useEffect(() => { if (page !== 'profile') setViewedProfile(null) }, [page])
   useEffect(() => { if (user && page === 'mylistings') { fetchMyOffers(); fetchSavedWants() } }, [page, user])
   useEffect(() => { if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: 'smooth' }) }, [messages])
+
+  useEffect(() => {
+    if (!filterEffectInitRef.current) { filterEffectInitRef.current = true; return }
+    fetchWants(0, false, buildServerFilters())
+  }, [filterLocation, filterCategory, filterType, nearMe, userCity])
 
   // Realtime messages subscription
   useEffect(() => {
@@ -432,22 +447,23 @@ function App() {
     }
   }
 
-  async function fetchWants(offset = 0, append = false) {
-    const limit = 20
+  async function fetchWants(offset = 0, append = false, serverFilters = {}) {
+    const limit = serverFilters.active ? 200 : 20
     try {
       if (!append) setLoading(true)
       else setLoadingMore(true)
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
       const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
-      const res = await fetch(
-        `${supabaseUrl}/rest/v1/wants?order=created_at.desc&select=*&limit=${limit}&offset=${offset}`,
-        { headers: { 'apikey': supabaseKey, 'Content-Type': 'application/json' } }
-      )
+      let url = `${supabaseUrl}/rest/v1/wants?order=created_at.desc&select=*&limit=${limit}&offset=${offset}`
+      if (serverFilters.location) url += `&location=eq.${encodeURIComponent(serverFilters.location)}`
+      if (serverFilters.category) url += `&category=eq.${encodeURIComponent(serverFilters.category)}`
+      if (serverFilters.listing_type) url += `&listing_type=eq.${encodeURIComponent(serverFilters.listing_type)}`
+      const res = await fetch(url, { headers: { 'apikey': supabaseKey, 'Content-Type': 'application/json' } })
       if (res.ok) {
         const data = await res.json()
         if (append) setWants(prev => [...prev, ...data])
         else setWants(data)
-        setHasMoreWants(data.length === limit)
+        setHasMoreWants(!serverFilters.active && data.length === limit)
         fetchAllProfiles([...new Set(data.map(w => w.user_email).filter(Boolean))])
         if (!append) fetchOfferCounts()
       }
@@ -457,6 +473,24 @@ function App() {
       setLoading(false)
       setLoadingMore(false)
     }
+  }
+
+  async function fetchAndOpenListing(id) {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    try {
+      const res = await fetch(`${supabaseUrl}/rest/v1/wants?id=eq.${id}&select=*`,
+        { headers: { 'apikey': supabaseKey } })
+      if (res.ok) {
+        const data = await res.json()
+        if (data && data[0]) {
+          setSelectedWant(data[0])
+          setNavStack([{ page: 'home' }])
+          setPage('want')
+          window.history.replaceState({}, '', window.location.pathname)
+        }
+      }
+    } catch (e) { console.error('fetchAndOpenListing:', e) }
   }
 
   async function fetchAllRatings() {
@@ -531,16 +565,24 @@ function App() {
   }
 
   async function fetchOffers(wantId) {
-    const { data } = await supabase.from('offers').select('*').eq('want_id', wantId).order('created_at', { ascending: false })
-    if (data) {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const res = await fetch(`${supabaseUrl}/rest/v1/offers?want_id=eq.${wantId}&order=created_at.desc`,
+      { headers: { apikey: supabaseKey } })
+    if (res.ok) {
+      const data = await res.json()
       setOffers(data)
       fetchAllProfiles([...new Set(data.map(o => o.seller_email).filter(Boolean))])
     }
   }
 
   async function acceptOffer(offerId, wantId) {
-    await supabase.from('offers').update({ status: 'accepted' }).eq('id', offerId)
-    await supabase.from('wants').update({ status: 'filled' }).eq('id', wantId)
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    const patchHeaders = { apikey: supabaseKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }
+    await fetch(`${supabaseUrl}/rest/v1/offers?id=eq.${offerId}`, { method: 'PATCH', headers: patchHeaders, body: JSON.stringify({ status: 'accepted' }) })
+    await fetch(`${supabaseUrl}/rest/v1/wants?id=eq.${wantId}`, { method: 'PATCH', headers: patchHeaders, body: JSON.stringify({ status: 'filled' }) })
     const acceptedOff = offers.find(o => o.id === offerId)
     if (acceptedOff?.seller_email) {
       const { data: sp } = await supabase.from('profiles').select('id, total_deals').eq('email', acceptedOff.seller_email).single()
@@ -550,6 +592,14 @@ function App() {
     setWants(wants.map(w => w.id === wantId ? { ...w, status: 'filled' } : w))
     if (selectedWant?.id === wantId) setSelectedWant({ ...selectedWant, status: 'filled' })
     showToast('Offer accepted!')
+    const want = wants.find(w => w.id === wantId)
+    if (acceptedOff?.seller_email && want) {
+      sendEmailNotification(
+        acceptedOff.seller_email,
+        `Your offer was accepted on: ${want.title}`,
+        `<p>Hi,</p><p>Great news — the buyer accepted your offer on <strong>${want.title}</strong>.</p><p>Log in to message them and sort out the details.</p><p>— The Offrit team</p>`
+      )
+    }
   }
 
   async function declineOffer(offerId) {
@@ -776,7 +826,11 @@ function App() {
   // ── Feature 3: Counter-offer ─────────────────────────
   async function submitCounter(offerId) {
     setSubmittingCounter(true)
-    await supabase.from('offers').update({ counter_price: counterPrice, counter_message: counterNote, counter_status: 'pending' }).eq('id', offerId)
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    const headers = { apikey: supabaseKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }
+    await fetch(`${supabaseUrl}/rest/v1/offers?id=eq.${offerId}`, { method: 'PATCH', headers, body: JSON.stringify({ counter_price: counterPrice, counter_message: counterNote, counter_status: 'pending' }) })
     setCounterModal(null); setCounterPrice(''); setCounterNote('')
     await fetchOffers(selectedWant.id)
     setSubmittingCounter(false)
@@ -784,7 +838,11 @@ function App() {
   }
 
   async function respondToCounter(offerId, accept) {
-    await supabase.from('offers').update({ counter_status: accept ? 'accepted' : 'declined' }).eq('id', offerId)
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    const headers = { apikey: supabaseKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }
+    await fetch(`${supabaseUrl}/rest/v1/offers?id=eq.${offerId}`, { method: 'PATCH', headers, body: JSON.stringify({ counter_status: accept ? 'accepted' : 'declined' }) })
     await fetchOffers(selectedWant.id)
     showToast(accept ? 'Counter accepted' : 'Counter declined')
   }
@@ -981,6 +1039,18 @@ function App() {
     if (selectedWant?.id === wantId) setSelectedWant({ ...selectedWant, status: 'filled' })
   }
 
+  async function sendEmailNotification(to, subject, html) {
+    const token = sessionRef.current?.access_token
+    if (!token || !to) return
+    try {
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, subject, html })
+      })
+    } catch (_) { /* silent — edge function may not be deployed yet */ }
+  }
+
   async function submitOffer() {
     if (!offerMessage || !user) return
     setSubmittingOffer(true)
@@ -1003,6 +1073,11 @@ function App() {
       fetchOffers(selectedWant.id)
       setOfferCounts({ ...offerCounts, [selectedWant.id]: (offerCounts[selectedWant.id] || 0) + 1 })
       showToast('Offer submitted!')
+      sendEmailNotification(
+        selectedWant.user_email,
+        `New offer on your listing: ${selectedWant.title}`,
+        `<p>Hi,</p><p>Someone made an offer on your Offrit listing <strong>${selectedWant.title}</strong>.</p>${offerPrice ? `<p>Offered price: <strong>$${offerPrice}</strong></p>` : ''}<p>Log in to view and respond.</p><p>— The Offrit team</p>`
+      )
     } catch (err) {
       console.error('[submitOffer]', err)
       showToast('Failed to submit offer')
@@ -1033,9 +1108,19 @@ function App() {
     }
   }
 
+  function buildServerFilters() {
+    if (!filterLocation && !filterCategory && !filterType && !nearMe) return {}
+    const sf = { active: true }
+    if (nearMe && userCity) sf.location = userCity
+    else if (filterLocation) sf.location = filterLocation
+    if (filterCategory) sf.category = filterCategory
+    if (filterType) sf.listing_type = filterType
+    return sf
+  }
+
   async function pullToRefresh() {
     setRefreshing(true)
-    await fetchWants(0, false)
+    await fetchWants(0, false, buildServerFilters())
     await fetchAllRatings()
     setRefreshing(false)
     showToast('Refreshed!')
@@ -1439,7 +1524,8 @@ function App() {
           <div className="hero" style={{ width: '100%', boxSizing: 'border-box' }}>
             <div className="hero-content">
               <div className="hero-logo">Offrit</div>
-              <p className="hero-tag">Post what you want. Get offers from sellers.</p>
+              <p className="hero-tag">Post what you want. Get offers.</p>
+              <p className="hero-subtag">Items, cashies &amp; services — free, for New Zealand.</p>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button className="btn-primary btn" onClick={() => setPage('signup')} style={{ padding: '13px 28px', fontSize: '15px', borderRadius: '12px' }}>Get started free</button>
                 <button className="btn" onClick={() => setPage('browse')} style={{ padding: '13px 28px', fontSize: '15px', borderRadius: '12px', background: 'rgba(255,255,255,0.12)', border: '1.5px solid rgba(255,255,255,0.25)', color: '#fff' }}>Browse listings</button>
@@ -1454,6 +1540,14 @@ function App() {
         </div>
         <div style={{ maxWidth: '640px', margin: '0 auto', padding: '24px 16px', width: '100%', boxSizing: 'border-box' }}>
           <FeaturedSection />
+          <div onClick={() => { setFilterType('service'); setPage('browse') }} style={{ background: 'linear-gradient(135deg, #4C1D95, #7C3AED)', borderRadius: '16px', padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', cursor: 'pointer' }}>
+            <div>
+              <div style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '5px' }}>New on Offrit</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '5px' }}>Cashies &amp; Services</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', lineHeight: '1.45' }}>Lawn mowing, cleaning, removals &amp; more. Post a job, get offers from locals.</div>
+            </div>
+            <div style={{ flexShrink: 0, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '10px', padding: '10px 14px', color: '#fff', fontSize: '13px', fontWeight: '600', whiteSpace: 'nowrap' }}>Browse →</div>
+          </div>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }}>
             <span style={{ fontSize: '15px', fontWeight: '600', color: '#0F2030' }}>Recent listings</span>
             {wants.length > 0 && <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{wants.length} listings</span>}
@@ -2180,7 +2274,7 @@ function App() {
           <span style={{ fontSize: '12px', color: C.textMuted }}>{filteredWants.length} result{filteredWants.length !== 1 ? 's' : ''}</span>
         </div>
         {loading ? [1,2,3].map(i => <SkeletonCard key={i} />) : filteredWants.length === 0 ? <p style={{ color: C.textMuted, fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No listings found</p> : filteredWants.map((want, i) => <WantCard key={want.id} want={want} index={i} />)}
-        {!loading && hasMoreWants && !search && !filterLocation && !filterCategory && !filterMaxBudget && (
+        {!loading && hasMoreWants && !search && !filterLocation && !filterCategory && !filterMaxBudget && !filterType && !nearMe && (
           <button className="btn" onClick={() => fetchWants(wants.length, true)} disabled={loadingMore} style={{ width: '100%', padding: '13px', marginTop: '4px', fontSize: '14px' }}>
             {loadingMore ? 'Loading…' : 'Load more listings'}
           </button>

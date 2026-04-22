@@ -1,0 +1,14 @@
+{
+  "name": "Offrit",
+  "short_name": "Offrit",
+  "description": "Post what you want. Get offers.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B1829",
+  "theme_color": "#863bff",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
