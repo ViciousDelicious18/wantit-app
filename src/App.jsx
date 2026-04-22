@@ -1048,14 +1048,19 @@ function App() {
 
   async function sendEmailNotification(to, subject, html) {
     const token = sessionRef.current?.access_token
-    if (!token || !to) return
+    console.log('[email] to:', to, 'hasToken:', !!token)
+    if (!token || !to) { console.log('[email] bailed — missing token or to'); return }
     try {
-      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`, {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`
+      console.log('[email] calling', url)
+      const res = await fetch(url, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: { apikey: import.meta.env.VITE_SUPABASE_KEY, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ to, subject, html })
       })
-    } catch (_) { /* silent — edge function may not be deployed yet */ }
+      const body = await res.json().catch(() => null)
+      console.log('[email] response', res.status, body)
+    } catch (e) { console.error('[email] fetch error:', e) }
   }
 
   async function submitOffer() {
