@@ -9,6 +9,10 @@
  *
  * -- Feature: flexible/negotiable budget
  * ALTER TABLE wants ADD COLUMN IF NOT EXISTS negotiable boolean DEFAULT false;
+ *
+ * -- Feature: service listings
+ * ALTER TABLE wants ADD COLUMN IF NOT EXISTS listing_type text DEFAULT 'item';
+ * ALTER TABLE wants ADD COLUMN IF NOT EXISTS estimated_hours text;
  */
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from './supabase'
@@ -56,6 +60,7 @@ const styles = `
 
   .badge { display: inline-flex; align-items: center; flex-shrink: 0; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.03em; }
   .badge-want { background: #EBF6FB; color: #0E7FA8; }
+  .badge-service { background: #F5F3FF; color: #7C3AED; }
   .badge-filled { background: #EDF2F7; color: #8FA5B8; }
   .badge-accepted { background: #FFFBEB; color: #D97706; }
 
@@ -131,6 +136,7 @@ const styles = `
   html[data-dark="true"] .btn-red { background: #2A0A0A; color: #F87171; border-color: #7F1D1D; }
   html[data-dark="true"] .btn-amber { background: #2A1A00; color: #FCD34D; border-color: #78350F; }
   html[data-dark="true"] .badge-want { background: #0A3060; color: #0E9FCC; }
+  html[data-dark="true"] .badge-service { background: #2D1B69; color: #A78BFA; }
   html[data-dark="true"] .badge-filled { background: #1A2840; color: #4A6080; }
   html[data-dark="true"] .badge-accepted { background: #2A2000; color: #D97706; }
   html[data-dark="true"] .filter-chip { background: #112240; border-color: #1E3A5F; color: #8892B0; }
@@ -232,6 +238,7 @@ function App() {
   const [filterCategory, setFilterCategory] = useState('')
   const [filterSort, setFilterSort] = useState('newest')
   const [filterMaxBudget, setFilterMaxBudget] = useState('')
+  const [filterType, setFilterType] = useState('')
   const [offerCounts, setOfferCounts] = useState({})
   const [page, setPage] = useState('landing')
   const [search, setSearch] = useState('')
@@ -262,6 +269,8 @@ function App() {
   const [navStack, setNavStack] = useState([])
   const [condition, setCondition] = useState('')
   const [negotiable, setNegotiable] = useState(false)
+  const [listingType, setListingType] = useState('item')
+  const [estimatedHours, setEstimatedHours] = useState('')
   const [seenThreads, setSeenThreads] = useState(() => new Set(JSON.parse(localStorage.getItem('seenThreads') || '[]')))
   const [settingsUsername, setSettingsUsername] = useState('')
   // Feature 1: Wishlist
@@ -303,6 +312,8 @@ function App() {
   const [editCategory, setEditCategory] = useState('')
   const [editCondition, setEditCondition] = useState('')
   const [editNegotiable, setEditNegotiable] = useState(false)
+  const [editListingType, setEditListingType] = useState('item')
+  const [editEstimatedHours, setEditEstimatedHours] = useState('')
   const [savingEdit, setSavingEdit] = useState(false)
   // Password reset
   const [resetSent, setResetSent] = useState(false)
@@ -319,6 +330,7 @@ function App() {
   const sessionRef = useRef(null)
 
   const categories = ['Electronics', 'Sport & Outdoors', 'Vehicles', 'Furniture', 'Clothing', 'Tools', 'Music', 'Other']
+  const serviceCategories = ['Lawn & Garden', 'Cleaning', 'Removals & Moving', 'Handyman & Repairs', 'IT & Tech', 'Tutoring & Lessons', 'Pet Care', 'Deliveries', 'Painting', 'Event Help', 'Odd Jobs', 'Other']
   const conditions = ['Any', 'New', 'Like New', 'Good', 'Fair']
   const conditionColour = { 'New': '#0E9A6E', 'Like New': '#0E7FA8', 'Good': '#D97706', 'Fair': '#DC2626' }
   const locations = ['Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga', 'Dunedin', 'Napier', 'Palmerston North', 'Rotorua', 'Nelson', 'New Plymouth', 'Other']
@@ -579,10 +591,10 @@ function App() {
       const res = await fetch(`${supabaseUrl}/rest/v1/wants?id=eq.${editModal.id}`, {
         method: 'PATCH',
         headers: { apikey: supabaseKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-        body: JSON.stringify({ title: editTitle.trim(), description: editDescription, budget: editBudget, location: editLocation, category: editCategory, condition: editCondition || null, negotiable: editNegotiable })
+        body: JSON.stringify({ title: editTitle.trim(), description: editDescription, budget: editBudget, location: editLocation, category: editCategory, condition: editListingType === 'item' ? editCondition || null : null, negotiable: editNegotiable, listing_type: editListingType, estimated_hours: editListingType === 'service' ? editEstimatedHours || null : null })
       })
       if (!res.ok) throw new Error(res.status)
-      const updated = { ...editModal, title: editTitle.trim(), description: editDescription, budget: editBudget, location: editLocation, category: editCategory, condition: editCondition || null, negotiable: editNegotiable }
+      const updated = { ...editModal, title: editTitle.trim(), description: editDescription, budget: editBudget, location: editLocation, category: editCategory, condition: editListingType === 'item' ? editCondition || null : null, negotiable: editNegotiable, listing_type: editListingType, estimated_hours: editListingType === 'service' ? editEstimatedHours || null : null }
       setWants(wants.map(w => w.id === editModal.id ? updated : w))
       if (selectedWant?.id === editModal.id) setSelectedWant(updated)
       setEditModal(null)
@@ -604,6 +616,8 @@ function App() {
     setEditCategory(want.category || '')
     setEditCondition(want.condition || '')
     setEditNegotiable(want.negotiable || false)
+    setEditListingType(want.listing_type || 'item')
+    setEditEstimatedHours(want.estimated_hours || '')
   }
 
   async function sendPasswordReset() {
@@ -707,14 +721,14 @@ function App() {
       const res = await fetch(`${supabaseUrl}/rest/v1/wants`, {
         method: 'POST',
         headers: { ...authHeaders, 'Content-Type': 'application/json', Prefer: 'return=representation' },
-        body: JSON.stringify({ title, description, budget, location, category, condition: condition || null, negotiable, user_id: user.id, user_email: user.email, images: imageUrls })
+        body: JSON.stringify({ title, description, budget, location, category, condition: listingType === 'item' ? condition || null : null, negotiable, listing_type: listingType, estimated_hours: listingType === 'service' ? estimatedHours || null : null, user_id: user.id, user_email: user.email, images: imageUrls })
       })
       console.log('[postWant] insert response', res.status)
       if (!res.ok) throw new Error(`Insert failed: ${res.status} ${await res.text()}`)
       const data = await res.json()
       const inserted = Array.isArray(data) ? data[0] : data
       if (inserted) { setWants([{ ...inserted, images: imageUrls }, ...wants]); setOfferCounts({ ...offerCounts, [inserted.id]: 0 }) }
-      setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory(''); setCondition(''); setNegotiable(false); setImages([]); setImagePreviews([])
+      setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory(''); setCondition(''); setNegotiable(false); setListingType('item'); setEstimatedHours(''); setImages([]); setImagePreviews([])
       setPage('home')
       showToast('Listing posted!')
     } catch (e) {
@@ -1050,7 +1064,8 @@ function App() {
     const catMatch = !filterCategory || w.category === filterCategory
     const searchMatch = !search || w.title.toLowerCase().includes(search.toLowerCase()) || (w.description || '').toLowerCase().includes(search.toLowerCase())
     const budgetMatch = !filterMaxBudget || (() => { const num = parseFloat((w.budget || '').replace(/[^0-9.]/g, '')); return !num || num <= parseFloat(filterMaxBudget) })()
-    return locMatch && catMatch && searchMatch && budgetMatch
+    const typeMatch = !filterType || (w.listing_type || 'item') === filterType
+    return locMatch && catMatch && searchMatch && budgetMatch && typeMatch
   }).sort((a, b) => {
     if (filterSort === 'newest') return new Date(b.created_at) - new Date(a.created_at)
     if (filterSort === 'oldest') return new Date(a.created_at) - new Date(b.created_at)
@@ -1197,7 +1212,7 @@ function App() {
               <button onClick={e => toggleWishlist(e, want.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', lineHeight: 1 }}>
                 <svg width="16" height="16" fill={wishlists.includes(want.id) ? '#DC2626' : 'none'} stroke={wishlists.includes(want.id) ? '#DC2626' : '#B0C4D4'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
               </button>
-              <span className={`badge ${want.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>{want.status === 'filled' ? 'Filled' : 'Want'}</span>
+              <span className={`badge ${want.status === 'filled' ? 'badge-filled' : want.listing_type === 'service' ? 'badge-service' : 'badge-want'}`}>{want.status === 'filled' ? 'Filled' : want.listing_type === 'service' ? 'Service' : 'Want'}</span>
             </div>
           </div>
           {want.description && <p style={{ fontSize: '13px', color: '#4A6278', lineHeight: '1.55', marginBottom: '8px', textAlign: 'left' }}>{want.description}</p>}
@@ -1209,7 +1224,8 @@ function App() {
             {want.budget && <span className="tag"><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>{want.budget}</span>}
             {want.location && <span className="tag"><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>{want.location}</span>}
             {want.category && <span className="tag">{want.category}</span>}
-            {want.condition && want.condition !== 'Any' && <span style={{ fontSize: '11px', fontWeight: '600', color: conditionColour[want.condition] || '#8FA5B8', background: 'transparent', border: `1px solid ${conditionColour[want.condition] || '#C8DCE8'}`, borderRadius: '20px', padding: '2px 7px' }}>{want.condition}</span>}
+            {want.listing_type !== 'service' && want.condition && want.condition !== 'Any' && <span style={{ fontSize: '11px', fontWeight: '600', color: conditionColour[want.condition] || '#8FA5B8', background: 'transparent', border: `1px solid ${conditionColour[want.condition] || '#C8DCE8'}`, borderRadius: '20px', padding: '2px 7px' }}>{want.condition}</span>}
+            {want.listing_type === 'service' && want.estimated_hours && <span style={{ fontSize: '11px', fontWeight: '600', color: '#7C3AED', background: 'transparent', border: '1px solid #C4B5FD', borderRadius: '20px', padding: '2px 7px' }}>⏱ {want.estimated_hours}</span>}
             {want.negotiable && <span style={{ fontSize: '11px', fontWeight: '600', color: '#0E9A6E', background: 'transparent', border: '1px solid #A7EDD4', borderRadius: '20px', padding: '2px 7px' }}>Flexible</span>}
           </div>
           <div className="divider" style={{ marginBottom: '12px' }} />
@@ -1251,8 +1267,13 @@ function App() {
 
   const SearchFilters = () => (
     <div style={{ marginBottom: '16px' }} className="fade-up">
+      <div style={{ display: 'flex', gap: '0', marginBottom: '12px', border: `1.5px solid ${C.cardBorder}`, borderRadius: '12px', overflow: 'hidden' }}>
+        <button onClick={() => { setFilterType(''); setFilterCategory('') }} style={{ flex: 1, padding: '9px', background: !filterType ? '#0E7FA8' : C.card, color: !filterType ? '#fff' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500', fontFamily: "'DM Sans', sans-serif" }}>All</button>
+        <button onClick={() => { setFilterType('item'); setFilterCategory('') }} style={{ flex: 1, padding: '9px', background: filterType === 'item' ? '#0E7FA8' : C.card, color: filterType === 'item' ? '#fff' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500', fontFamily: "'DM Sans', sans-serif", borderLeft: `1px solid ${C.cardBorder}`, borderRight: `1px solid ${C.cardBorder}` }}>Items</button>
+        <button onClick={() => { setFilterType('service'); setFilterCategory('') }} style={{ flex: 1, padding: '9px', background: filterType === 'service' ? '#7C3AED' : C.card, color: filterType === 'service' ? '#fff' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500', fontFamily: "'DM Sans', sans-serif" }}>Services</button>
+      </div>
       <input
-        placeholder="Search listings…"
+        placeholder={filterType === 'service' ? 'Search jobs…' : 'Search listings…'}
         value={search}
         onChange={e => setSearch(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter' && search.trim()) saveSearch(search.trim()) }}
@@ -1288,7 +1309,7 @@ function App() {
       </div>
       <div ref={setupScrollDrag} className="chips-row">
         <span className={`filter-chip ${!filterCategory ? 'active' : ''}`} onClick={() => setFilterCategory('')}>All</span>
-        {categories.map(c => <span key={c} className={`filter-chip ${filterCategory === c ? 'active' : ''}`} onClick={() => setFilterCategory(filterCategory === c ? '' : c)}>{c}</span>)}
+        {(filterType === 'service' ? serviceCategories : categories).map(c => <span key={c} className={`filter-chip ${filterCategory === c ? 'active' : ''}`} onClick={() => setFilterCategory(filterCategory === c ? '' : c)}>{c}</span>)}
       </div>
     </div>
   )
@@ -1367,23 +1388,31 @@ function App() {
       <div className="modal-overlay" onClick={() => setEditModal(null)}>
         <div className="modal" style={{ background: C.card, maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
           <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px', color: C.text }}>Edit listing</h3>
-          <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '16px' }}>Update your listing details</p>
+          <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '12px' }}>Update your listing details</p>
+          <div style={{ display: 'flex', gap: '0', marginBottom: '14px', border: `1.5px solid ${C.cardBorder}`, borderRadius: '12px', overflow: 'hidden' }}>
+            <button onClick={() => setEditListingType('item')} style={{ flex: 1, padding: '9px', background: editListingType === 'item' ? '#0E7FA8' : C.card, color: editListingType === 'item' ? '#fff' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '500', fontFamily: "'DM Sans', sans-serif" }}>Item</button>
+            <button onClick={() => setEditListingType('service')} style={{ flex: 1, padding: '9px', background: editListingType === 'service' ? '#7C3AED' : C.card, color: editListingType === 'service' ? '#fff' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '500', fontFamily: "'DM Sans', sans-serif", borderLeft: `1px solid ${C.cardBorder}` }}>Service</button>
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
             <input placeholder="Title" value={editTitle} onChange={e => setEditTitle(e.target.value)} />
             <textarea placeholder="Description (optional)" value={editDescription} onChange={e => setEditDescription(e.target.value)} rows={2} style={{ resize: 'none' }} />
-            <input placeholder="Max budget — e.g. $300" value={editBudget} onChange={e => setEditBudget(e.target.value)} />
+            <input placeholder={editListingType === 'service' ? 'Budget — e.g. $50 cash' : 'Max budget — e.g. $300'} value={editBudget} onChange={e => setEditBudget(e.target.value)} />
             <select value={editLocation} onChange={e => setEditLocation(e.target.value)}>
               <option value="">Location</option>
               {locations.map(l => <option key={l}>{l}</option>)}
             </select>
             <select value={editCategory} onChange={e => setEditCategory(e.target.value)}>
               <option value="">Category</option>
-              {categories.map(c => <option key={c}>{c}</option>)}
+              {(editListingType === 'service' ? serviceCategories : categories).map(c => <option key={c}>{c}</option>)}
             </select>
-            <select value={editCondition} onChange={e => setEditCondition(e.target.value)}>
-              <option value="">Condition (optional)</option>
-              {conditions.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            {editListingType === 'service' ? (
+              <input placeholder="Estimated time — e.g. 2 hours, half day" value={editEstimatedHours} onChange={e => setEditEstimatedHours(e.target.value)} />
+            ) : (
+              <select value={editCondition} onChange={e => setEditCondition(e.target.value)}>
+                <option value="">Condition (optional)</option>
+                {conditions.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            )}
             <div onClick={() => setEditNegotiable(n => !n)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', color: C.text }}>
               <div style={{ width: '20px', height: '20px', flexShrink: 0, borderRadius: '5px', border: `2px solid ${editNegotiable ? '#0E7FA8' : '#C8DCE8'}`, background: editNegotiable ? '#0E7FA8' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s ease' }}>
                 {editNegotiable && <svg width="11" height="11" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>}
@@ -1515,7 +1544,7 @@ function App() {
       <div key={want.id} className={`card card-hover fade-up stagger-${Math.min(i+1,3)}`} onClick={() => openWant(want)} style={{ padding: '14px 18px', marginBottom: '8px', opacity: want.status === 'filled' ? 0.6 : 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontSize: '14px', fontWeight: '600', color: C.text }}>{want.title}</p>
-          <span className={`badge ${want.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>{want.status === 'filled' ? 'Filled' : 'Want'}</span>
+          <span className={`badge ${want.status === 'filled' ? 'badge-filled' : want.listing_type === 'service' ? 'badge-service' : 'badge-want'}`}>{want.status === 'filled' ? 'Filled' : want.listing_type === 'service' ? 'Service' : 'Want'}</span>
         </div>
         <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
           {want.budget && <span className="tag" style={{ color: C.textSub }}><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>{want.budget}</span>}
@@ -1705,7 +1734,7 @@ function App() {
             <div style={{ padding: '20px 24px 24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#0F2030', flex: 1, paddingRight: '14px', lineHeight: '1.3', fontFamily: "'DM Serif Display', serif", textAlign: 'left' }}>{selectedWant.title}</h2>
-                <span className={`badge ${selectedWant.status === 'filled' ? 'badge-filled' : 'badge-want'}`}>{selectedWant.status === 'filled' ? 'Filled' : 'Want'}</span>
+                <span className={`badge ${selectedWant.status === 'filled' ? 'badge-filled' : selectedWant.listing_type === 'service' ? 'badge-service' : 'badge-want'}`}>{selectedWant.status === 'filled' ? 'Filled' : selectedWant.listing_type === 'service' ? 'Service' : 'Want'}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => openProfile(selectedWant.user_email)}>
@@ -1733,7 +1762,8 @@ function App() {
                 {selectedWant.budget && <span className="tag" style={{ fontSize: '13px' }}><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>{selectedWant.budget}</span>}
                 {selectedWant.location && <span className="tag" style={{ fontSize: '13px' }}><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>{selectedWant.location}</span>}
                 {selectedWant.category && <span className="tag" style={{ fontSize: '13px' }}><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>{selectedWant.category}</span>}
-                {selectedWant.condition && selectedWant.condition !== 'Any' && <span style={{ fontSize: '12px', fontWeight: '600', color: conditionColour[selectedWant.condition] || '#8FA5B8', border: `1px solid ${conditionColour[selectedWant.condition] || '#C8DCE8'}`, borderRadius: '20px', padding: '2px 8px' }}>{selectedWant.condition}</span>}
+                {selectedWant.listing_type !== 'service' && selectedWant.condition && selectedWant.condition !== 'Any' && <span style={{ fontSize: '12px', fontWeight: '600', color: conditionColour[selectedWant.condition] || '#8FA5B8', border: `1px solid ${conditionColour[selectedWant.condition] || '#C8DCE8'}`, borderRadius: '20px', padding: '2px 8px' }}>{selectedWant.condition}</span>}
+                {selectedWant.listing_type === 'service' && selectedWant.estimated_hours && <span style={{ fontSize: '12px', fontWeight: '600', color: '#7C3AED', border: '1px solid #C4B5FD', borderRadius: '20px', padding: '2px 8px' }}>⏱ {selectedWant.estimated_hours}</span>}
                 {selectedWant.negotiable && <span style={{ fontSize: '12px', fontWeight: '600', color: '#0E9A6E', border: '1px solid #A7EDD4', borderRadius: '20px', padding: '2px 8px' }}>Flexible budget</span>}
                 {selectedWant.views > 0 && <span style={{ fontSize: '12px', color: C.textMuted, display: 'inline-flex', alignItems: 'center', gap: '3px' }}><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>{selectedWant.views} view{selectedWant.views !== 1 ? 's' : ''}</span>}
               </div>
@@ -1767,7 +1797,7 @@ function App() {
             <div className="card fade-up" style={{ padding: '24px', marginBottom: '14px' }}>
               <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', color: '#0F2030' }}>Make an offer</h3>
               <input placeholder="Your price — e.g. $250" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} style={{ marginBottom: '10px' }} />
-              <textarea placeholder="Describe what you have — condition, photos, pickup…" value={offerMessage} onChange={e => setOfferMessage(e.target.value)} rows={3} style={{ marginBottom: '14px', resize: 'vertical' }} />
+              <textarea placeholder={selectedWant.listing_type === 'service' ? 'Describe your experience, availability, tools…' : 'Describe what you have — condition, photos, pickup…'} value={offerMessage} onChange={e => setOfferMessage(e.target.value)} rows={3} style={{ marginBottom: '14px', resize: 'vertical' }} />
               <button className="btn btn-primary" onClick={submitOffer} disabled={!offerMessage || submittingOffer} style={{ width: '100%', padding: '13px', fontSize: '14px' }}>
                 {submittingOffer ? 'Submitting…' : 'Submit offer'}
               </button>
@@ -1867,12 +1897,16 @@ function App() {
         <Header />
         <div style={inner}>
           <div className="card fade-up" style={{ padding: '28px' }}>
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', marginBottom: '6px', color: '#0F2030', fontStyle: 'italic' }}>What are you after?</h2>
-            <p style={{ fontSize: '13px', color: '#8FA5B8', marginBottom: '24px' }}>Post your listing and let sellers come to you.</p>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', marginBottom: '6px', color: '#0F2030', fontStyle: 'italic' }}>{listingType === 'service' ? 'What do you need done?' : 'What are you after?'}</h2>
+            <p style={{ fontSize: '13px', color: '#8FA5B8', marginBottom: '18px' }}>{listingType === 'service' ? 'Post your job and let workers come to you.' : 'Post your listing and let sellers come to you.'}</p>
+            <div style={{ display: 'flex', gap: '0', marginBottom: '18px', border: `1.5px solid ${C.cardBorder}`, borderRadius: '12px', overflow: 'hidden' }}>
+              <button onClick={() => { setListingType('item'); setCategory(''); setEstimatedHours('') }} style={{ flex: 1, padding: '10px', background: listingType === 'item' ? '#0E7FA8' : C.card, color: listingType === 'item' ? '#fff' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500', fontFamily: "'DM Sans', sans-serif" }}>I want to buy something</button>
+              <button onClick={() => { setListingType('service'); setCategory(''); setCondition('') }} style={{ flex: 1, padding: '10px', background: listingType === 'service' ? '#7C3AED' : C.card, color: listingType === 'service' ? '#fff' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500', fontFamily: "'DM Sans', sans-serif", borderLeft: `1px solid ${C.cardBorder}` }}>I need work done</button>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <input placeholder="Title — e.g. Road bike under $300" value={title} onChange={e => setTitle(e.target.value)} />
-              <textarea placeholder="More details (optional)" value={description} onChange={e => setDescription(e.target.value)} rows={3} style={{ resize: 'vertical' }} />
-              <input placeholder="Max budget — e.g. $300" value={budget} onChange={e => setBudget(e.target.value)} />
+              <input placeholder={listingType === 'service' ? 'e.g. Lawns mowed — small section' : 'e.g. Road bike under $300'} value={title} onChange={e => setTitle(e.target.value)} />
+              <textarea placeholder={listingType === 'service' ? 'Describe the job — location, access, tools needed…' : 'More details (optional)'} value={description} onChange={e => setDescription(e.target.value)} rows={3} style={{ resize: 'vertical' }} />
+              <input placeholder={listingType === 'service' ? 'Budget — e.g. $50 cash' : 'Max budget — e.g. $300'} value={budget} onChange={e => setBudget(e.target.value)} />
               <div style={{ display: 'flex', gap: '10px' }}>
                 <select value={location} onChange={e => setLocation(e.target.value)} style={{ flex: 1 }}>
                   <option value="">Location</option>
@@ -1880,25 +1914,29 @@ function App() {
                 </select>
                 <select value={category} onChange={e => setCategory(e.target.value)} style={{ flex: 1 }}>
                   <option value="">Category</option>
-                  {categories.map(c => <option key={c}>{c}</option>)}
+                  {(listingType === 'service' ? serviceCategories : categories).map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
-              <div style={{ position: 'relative' }}>
-                <select value={condition} onChange={e => setCondition(e.target.value)} style={{ paddingRight: '36px', cursor: 'pointer' }}>
-                  <option value="">Condition (optional)</option>
-                  {conditions.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-                <svg style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#8FA5B8' }} width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-              </div>
+              {listingType === 'service' ? (
+                <input placeholder="Estimated time — e.g. 2 hours, half day" value={estimatedHours} onChange={e => setEstimatedHours(e.target.value)} />
+              ) : (
+                <div style={{ position: 'relative' }}>
+                  <select value={condition} onChange={e => setCondition(e.target.value)} style={{ paddingRight: '36px', cursor: 'pointer' }}>
+                    <option value="">Condition (optional)</option>
+                    {conditions.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <svg style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#8FA5B8' }} width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              )}
               <div onClick={() => setNegotiable(n => !n)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', color: C.text }}>
                 <div style={{ width: '20px', height: '20px', flexShrink: 0, borderRadius: '5px', border: `2px solid ${negotiable ? '#0E7FA8' : '#C8DCE8'}`, background: negotiable ? '#0E7FA8' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s ease' }}>
                   {negotiable && <svg width="11" height="11" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>}
                 </div>
                 Flexible budget (willing to negotiate)
               </div>
-              <ImageUploader />
-              <button className="btn btn-primary" onClick={postWant} disabled={!title || posting} style={{ padding: '14px', fontSize: '15px', marginTop: '6px' }}>
-                {uploadingImages ? 'Uploading images…' : posting ? 'Posting…' : 'Post listing'}
+              {ImageUploader()}
+              <button className="btn btn-primary" onClick={postWant} disabled={!title || posting} style={{ padding: '14px', fontSize: '15px', marginTop: '6px', background: listingType === 'service' ? '#7C3AED' : undefined, borderColor: listingType === 'service' ? '#7C3AED' : undefined }}>
+                {uploadingImages ? 'Uploading images…' : posting ? 'Posting…' : listingType === 'service' ? 'Post job' : 'Post listing'}
               </button>
             </div>
           </div>
