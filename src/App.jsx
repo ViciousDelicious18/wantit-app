@@ -585,8 +585,15 @@ function App() {
     await fetch(`${supabaseUrl}/rest/v1/wants?id=eq.${wantId}`, { method: 'PATCH', headers: patchHeaders, body: JSON.stringify({ status: 'filled' }) })
     const acceptedOff = offers.find(o => o.id === offerId)
     if (acceptedOff?.seller_email) {
-      const { data: sp } = await supabase.from('profiles').select('id, total_deals').eq('email', acceptedOff.seller_email).single()
-      if (sp) await supabase.from('profiles').update({ total_deals: (sp.total_deals || 0) + 1 }).eq('id', sp.id)
+      const pr = await fetch(`${supabaseUrl}/rest/v1/profiles?email=eq.${encodeURIComponent(acceptedOff.seller_email)}&select=id,total_deals`,
+        { headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` } })
+      if (pr.ok) {
+        const [sp] = await pr.json()
+        if (sp) await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${sp.id}`, {
+          method: 'PATCH', headers: patchHeaders,
+          body: JSON.stringify({ total_deals: (sp.total_deals || 0) + 1 })
+        })
+      }
     }
     setOffers(offers.map(o => o.id === offerId ? { ...o, status: 'accepted' } : o))
     setWants(wants.map(w => w.id === wantId ? { ...w, status: 'filled' } : w))
