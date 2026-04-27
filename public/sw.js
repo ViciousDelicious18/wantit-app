@@ -1,4 +1,4 @@
-const CACHE = 'offrit-v2'
+const CACHE = 'offrit-v3'
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/', '/index.html'])))
@@ -40,5 +40,31 @@ self.addEventListener('fetch', e => {
         return cached || fresh
       })
     )
+  )
+})
+
+self.addEventListener('push', e => {
+  const data = e.data?.json() ?? {}
+  e.waitUntil(
+    self.registration.showNotification(data.title || 'Offrit', {
+      body: data.body || 'You have a new notification',
+      icon: '/favicon.svg',
+      badge: '/favicon.svg',
+      tag: data.tag || 'offrit-notification',
+      data: { url: data.url || '/' },
+      vibrate: [100, 50, 100],
+    })
+  )
+})
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close()
+  const url = e.notification.data?.url || '/'
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      const existing = list.find(c => c.url.includes(self.location.origin))
+      if (existing) { existing.focus(); existing.navigate(url) }
+      else clients.openWindow(url)
+    })
   )
 })
