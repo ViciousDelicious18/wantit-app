@@ -415,6 +415,7 @@ function App() {
   const [similarWants, setSimilarWants] = useState([])
   const [pushEnabled, setPushEnabled] = useState(false)
   const [referralCount, setReferralCount] = useState(0)
+  const [myListings, setMyListings] = useState([])
 
   const fileInputRef = useRef()
   const messagesEndRef = useRef()
@@ -533,7 +534,7 @@ function App() {
   useEffect(() => { pageRef.current = page }, [page])
   useEffect(() => { const t = setInterval(() => { if (['want', 'mylistings'].includes(pageRef.current)) setNow(Date.now()) }, 10000); return () => clearInterval(t) }, [])
   useEffect(() => { if (page !== 'profile') { setViewedProfile(null); setProfileResponseRate(null) } }, [page])
-  useEffect(() => { if (user && page === 'mylistings') { fetchMyOffers(); fetchSavedWants() } }, [page, user])
+  useEffect(() => { if (user && page === 'mylistings') { fetchMyListings(); fetchMyOffers(); fetchSavedWants() } }, [page, user])
   useEffect(() => { if (selectedWant) fetchSimilarWants(selectedWant) }, [selectedWant])
   useEffect(() => {
     const urlRef = new URLSearchParams(window.location.search).get('ref')
@@ -1168,6 +1169,28 @@ function App() {
     } catch (err) { console.error('[fetchKeywords]', err) }
   }
 
+  async function fetchMyListings() {
+    if (!user) return
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    try {
+      const res = await fetch(
+        `${supabaseUrl}/rest/v1/wants?user_id=eq.${user.id}&order=created_at.desc&select=*`,
+        { headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` } }
+      )
+      if (res.ok) {
+        const data = await res.json()
+        setMyListings(data)
+        setWants(prev => {
+          const ids = new Set(prev.map(w => w.id))
+          const newOnes = data.filter(w => !ids.has(w.id))
+          return newOnes.length ? [...prev, ...newOnes] : prev
+        })
+      }
+    } catch (err) { console.error('[fetchMyListings]', err) }
+  }
+
   async function fetchMyOffers() {
     if (!user) return
     setLoadingMyOffers(true)
@@ -1482,7 +1505,7 @@ function App() {
     return 0
   }), [wants, nearMe, userCity, filterLocation, filterCategory, search, filterMaxBudget, filterType, filterSort, offerCounts])
 
-  const myWants = useMemo(() => wants.filter(w => w.user_id === user?.id), [wants, user])
+  const myWants = useMemo(() => myListings.length ? myListings : wants.filter(w => w.user_id === user?.id), [myListings, wants, user])
   const myNewOffers = useMemo(() => myWants.reduce((sum, w) => { const current = offerCounts[w.id] || 0; const seen = seenOffers[w.id] || 0; return sum + Math.max(0, current - seen) }, 0), [myWants, offerCounts, seenOffers])
   const unreadMessages = useMemo(() => myInbox.filter(t => !seenThreads.has(t.offer_id)).length, [myInbox, seenThreads])
   const featuredWants = useMemo(() => [...wants].filter(w => (offerCounts[w.id] || 0) >= 1 && w.status !== 'filled').sort((a, b) => (offerCounts[b.id] || 0) - (offerCounts[a.id] || 0)).slice(0, 10), [wants, offerCounts])
