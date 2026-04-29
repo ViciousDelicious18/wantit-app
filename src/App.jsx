@@ -33,6 +33,9 @@
  */
 import { useState, useEffect, useRef, useCallback, Fragment, useMemo } from 'react'
 import { supabase } from './supabase'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+gsap.registerPlugin(ScrollTrigger)
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap');
@@ -111,20 +114,23 @@ const styles = `
   .star { font-size: 22px; cursor: pointer; transition: transform 0.1s ease; line-height: 1; }
   .star:hover { transform: scale(1.2); }
 
-  .hero { background: linear-gradient(150deg, #071523 0%, #0C3554 45%, #0E5F85 75%, #0E7FA8 100%); padding: 72px 24px 0; text-align: center; position: relative; overflow: hidden; width: 100%; box-sizing: border-box; }
-  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 75% 40%, rgba(14,127,168,0.38) 0%, transparent 65%), radial-gradient(ellipse 50% 40% at 20% 80%, rgba(14,94,133,0.25) 0%, transparent 60%); }
-  .hero::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle at center, rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none; z-index: 0; }
+  .hero { background: radial-gradient(ellipse 70% 55% at 50% 0%, rgba(14,127,168,0.2) 0%, transparent 65%), linear-gradient(to bottom, rgba(4,14,28,0.74) 0%, rgba(6,22,42,0.54) 45%, rgba(4,14,28,0.72) 100%); padding: 80px 24px 0; text-align: center; position: relative; overflow: hidden; width: 100%; box-sizing: border-box; isolation: isolate; }
+  .hero::before { content: ''; position: absolute; inset: -10px; z-index: -1; background: url('/mountain.jpg') center 30% / cover no-repeat; filter: blur(2px); }
+  .hero::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle at center, rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none; z-index: 0; }
   .hero-content { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding-bottom: 0; }
-  .hero-headline { font-family: 'DM Serif Display', serif; font-size: clamp(38px, 6vw, 54px); color: #ffffff; font-style: italic; letter-spacing: -1px; margin-bottom: 18px; text-shadow: 0 4px 32px rgba(0,0,0,0.35); line-height: 1.12; }
-  .hero-sub { font-size: 16px; color: rgba(255,255,255,0.6); margin: 0 0 32px; font-weight: 300; line-height: 1.6; max-width: 400px; margin-left: auto; margin-right: auto; }
+  .hero-headline { font-family: 'DM Serif Display', serif; font-size: clamp(40px, 6.5vw, 60px); color: #ffffff; font-style: italic; letter-spacing: -1.5px; margin-bottom: 18px; text-shadow: 0 2px 24px rgba(0,0,0,0.55), 0 8px 48px rgba(0,0,0,0.3); line-height: 1.1; }
+  .hero-sub { font-size: 16px; color: rgba(255,255,255,0.72); margin: 0 0 32px; font-weight: 300; line-height: 1.6; max-width: 420px; margin-left: auto; margin-right: auto; text-shadow: 0 1px 12px rgba(0,0,0,0.4); }
   @keyframes heroCtaGlow { 0%,100% { box-shadow: 0 4px 20px rgba(14,127,168,0.45), 0 0 0 0 rgba(14,127,168,0); } 50% { box-shadow: 0 4px 28px rgba(14,127,168,0.65), 0 0 50px rgba(14,127,168,0.18); } }
   .btn-hero { animation: heroCtaGlow 2.8s ease-in-out infinite; }
   @keyframes ambientDrift0 { 0%,100% { transform: translateY(0) rotate(-3deg); opacity: 0.7; } 50% { transform: translateY(-14px) rotate(-3deg); opacity: 1; } }
   @keyframes ambientDrift1 { 0%,100% { transform: translateY(0) rotate(2deg); opacity: 0.5; } 50% { transform: translateY(-10px) rotate(2deg); opacity: 0.85; } }
   @keyframes ambientDrift2 { 0%,100% { transform: translateY(0) rotate(-1deg); opacity: 0.6; } 50% { transform: translateY(-18px) rotate(-1deg); opacity: 1; } }
   .stats-strip { display: grid; grid-template-columns: repeat(3, 1fr); }
-  .stat-tile { padding: 18px 12px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .stat-tile { padding: 22px 12px; text-align: center; display: flex; flex-direction: column; align-items: center; transition: background 0.15s ease; }
+  .stat-tile:hover { background: rgba(14,127,168,0.04); }
   .stat-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-num { font-family: 'DM Serif Display', serif; font-style: italic; font-size: 26px; font-weight: 400; color: #0E7FA8; line-height: 1; margin-bottom: 3px; }
+  html[data-dark="true"] .stat-num { color: #0E9FCC; }
   .how-section { padding: 28px 16px 8px; max-width: 640px; margin: 0 auto; }
   .how-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; text-align: center; }
   .how-it-works { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -172,7 +178,14 @@ const styles = `
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; z-index: 50; padding: 0; animation: overlayIn 0.18s ease; }
   .modal { background: #fff; border-radius: 20px 20px 0 0; padding: 24px; width: 100%; max-width: 640px; animation: modalUp 0.3s cubic-bezier(0.22,1,0.36,1); }
 
-  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #0F2030; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 200; white-space: nowrap; animation: fadeUp 0.2s ease; }
+  @keyframes ripple { from { transform: scale(0); opacity: 1; } to { transform: scale(1); opacity: 0; } }
+  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); min-width: 220px; max-width: 340px; padding: 11px 16px 11px 14px; border-radius: 14px; font-size: 13px; font-weight: 500; z-index: 200; animation: fadeUp 0.22s ease; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.22); border-left: 3.5px solid transparent; white-space: nowrap; }
+  .toast-default { background: #0F2030; color: #fff; border-left-color: #4A6278; }
+  .toast-success { background: #0A2A1A; color: #34D399; border-left-color: #0E9A6E; }
+  .toast-error { background: #2A0A0A; color: #F87171; border-left-color: #DC2626; }
+  .toast-warning { background: #2A1A00; color: #FCD34D; border-left-color: #D97706; }
+  .toast-info { background: #061828; color: #7DD3FC; border-left-color: #0E7FA8; }
+  .toast-close { margin-left: auto; opacity: 0.5; cursor: pointer; background: none; border: none; color: inherit; font-size: 16px; line-height: 1; padding: 0 0 0 6px; flex-shrink: 0; }
 
   @keyframes fadeUp { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
   @keyframes contentFadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -185,7 +198,8 @@ const styles = `
   @keyframes modalUp { from { transform: translateY(48px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   @keyframes notifReveal { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
   .notification-panel { animation: notifReveal 0.18s cubic-bezier(0.22,1,0.36,1); }
-  .btn:active:not([disabled]) { transform: scale(0.97) !important; transition-duration: 0.1s !important; }
+  .btn:active:not([disabled]) { transform: scale(0.97) !important; transition-duration: 0.1s !important; box-shadow: inset 0 2px 5px rgba(0,0,0,0.18) !important; }
+  .btn-primary:active:not([disabled]) { box-shadow: inset 0 2px 5px rgba(0,0,0,0.25), 0 1px 4px rgba(14,127,168,0.2) !important; }
 
   .app-header { transition: box-shadow 0.35s ease, border-color 0.35s ease; }
   html[data-scrolled="true"] .app-header { box-shadow: 0 2px 32px rgba(14,127,168,0.24) !important; border-bottom-color: rgba(14,127,168,0.14) !important; }
@@ -201,7 +215,11 @@ const styles = `
 
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } .hero-content { animation: none !important; } }
 
+  .gsap-h0, .gsap-h1, .gsap-h2, .gsap-h3, .gsap-h4, .gsap-reveal { opacity: 0; }
+
   html[data-dark="true"] { background-color: #0B1829; }
+  html[data-dark="true"] .hero { background: linear-gradient(150deg, #071523 0%, #0C3554 45%, #0E5F85 75%, #0E7FA8 100%) !important; }
+  html[data-dark="true"] .hero::before { display: none !important; }
   html[data-dark="true"] body { background: transparent !important; color: #CCD6F6; }
   html[data-dark="true"] input, html[data-dark="true"] textarea, html[data-dark="true"] select { background: #0A192F; border-color: #1E3A5F; color: #CCD6F6; }
   html[data-dark="true"] input:focus, html[data-dark="true"] textarea:focus, html[data-dark="true"] select:focus { border-color: #0E9FCC; box-shadow: 0 0 0 3px rgba(14,159,204,0.15); }
@@ -228,7 +246,7 @@ const styles = `
   html[data-dark="true"] .img-upload-area { background: #0A192F; border-color: #1E3A5F; }
   html[data-dark="true"] .img-upload-area:hover { background: #0A3060; }
   html[data-dark="true"] .msg-theirs { background: #0A3060; color: #CCD6F6; border-color: #1E3A5F; }
-  html[data-dark="true"] .toast { background: #CCD6F6; color: #0B1829; }
+  html[data-dark="true"] .toast-default { background: #CCD6F6; color: #0B1829; border-left-color: #8892B0; }
   html[data-dark="true"] .pull-indicator { color: #4A6080; }
   html[data-dark="true"] .img-gallery-full img { border-color: #1E3A5F; }
   html[data-dark="true"] .img-thumb { border-color: #1E3A5F; }
@@ -272,19 +290,29 @@ function setupScrollDrag(el) {
   }
 }
 
-function SkeletonCard() {
+function SkeletonCard({ hasImage = false }) {
   return (
-    <div className="card" style={{ padding: '18px 20px', marginBottom: '10px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <div className="skeleton" style={{ height: '18px', width: '60%' }} />
-        <div className="skeleton" style={{ height: '18px', width: '50px', borderRadius: '20px' }} />
-      </div>
-      <div className="skeleton" style={{ height: '13px', width: '80%', marginBottom: '8px' }} />
-      <div className="skeleton" style={{ height: '13px', width: '40%', marginBottom: '14px' }} />
-      <div style={{ height: '1px', background: '#E4EFF7', marginBottom: '12px' }} />
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <div className="skeleton" style={{ height: '12px', width: '80px' }} />
-        <div className="skeleton" style={{ height: '12px', width: '50px' }} />
+    <div className="card" style={{ marginBottom: '10px', overflow: 'hidden' }}>
+      {hasImage
+        ? <div className="skeleton" style={{ height: '185px', borderRadius: '14px 14px 0 0', flexShrink: 0 }} />
+        : <div style={{ height: '4px', background: 'linear-gradient(160deg, #C8DCE8, #D6E4EF)' }} />}
+      <div style={{ padding: '16px 18px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+          <div className="skeleton" style={{ height: '18px', width: '58%' }} />
+          <div className="skeleton" style={{ height: '18px', width: '46px', borderRadius: '20px' }} />
+        </div>
+        <div className="skeleton" style={{ height: '13px', width: '85%', marginBottom: '7px' }} />
+        <div className="skeleton" style={{ height: '13px', width: '55%', marginBottom: '14px' }} />
+        <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
+          <div className="skeleton" style={{ height: '24px', width: '52px', borderRadius: '8px' }} />
+          <div className="skeleton" style={{ height: '24px', width: '72px', borderRadius: '20px' }} />
+          <div className="skeleton" style={{ height: '24px', width: '60px', borderRadius: '20px' }} />
+        </div>
+        <div style={{ height: '1px', background: '#E4EFF7', marginBottom: '12px' }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div className="skeleton" style={{ height: '12px', width: '72px', borderRadius: '20px' }} />
+          <div className="skeleton" style={{ height: '12px', width: '48px' }} />
+        </div>
       </div>
     </div>
   )
@@ -425,6 +453,7 @@ function App() {
   const lastSubmitRef = useRef({})
   const deepLinkRef = useRef(new URLSearchParams(window.location.search).get('listing'))
   const filterEffectInitRef = useRef(false)
+  const toastTimerRef = useRef(null)
 
   const VAPID_PUBLIC_KEY = 'BLtl0nwDhatiZlu01rE9cUMkW2eMGKalSNxzSKO1n3a8eGnHvmcm6slYLLQaPgU4zbokYdrK47irxPv0KLsb9Cs'
 
@@ -464,9 +493,11 @@ function App() {
     return d.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
   }
 
-  function showToast(msg) {
-    setToast(msg)
-    setTimeout(() => setToast(null), 2500)
+  function showToast(msg, type = 'default') {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    setToast({ msg, type })
+    const delay = type === 'error' ? 6000 : type === 'warning' ? 4000 : 2800
+    toastTimerRef.current = setTimeout(() => setToast(null), delay)
   }
 
   function goBack() {
@@ -562,6 +593,38 @@ function App() {
     }, 50)
     return () => { clearTimeout(timer); io?.disconnect() }
   }, [page, wants.length])
+
+  useEffect(() => {
+    const addRipple = e => {
+      const btn = e.target.closest('.btn-primary')
+      if (!btn) return
+      const rect = btn.getBoundingClientRect()
+      const size = Math.max(rect.width, rect.height) * 2.2
+      const span = document.createElement('span')
+      span.style.cssText = `position:absolute;border-radius:50%;width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px;background:rgba(255,255,255,0.28);animation:ripple 0.55s ease-out forwards;pointer-events:none;`
+      btn.style.overflow = 'hidden'
+      btn.appendChild(span)
+      span.addEventListener('animationend', () => span.remove())
+    }
+    document.addEventListener('click', addRipple)
+    return () => document.removeEventListener('click', addRipple)
+  }, [])
+
+  useEffect(() => {
+    if (page !== 'landing') return
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+    tl.fromTo('.gsap-h0', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 })
+      .fromTo('.gsap-h1', { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.65 }, '-=0.3')
+      .fromTo('.gsap-h2', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.35')
+      .fromTo('.gsap-h3', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45 }, '-=0.25')
+      .fromTo('.gsap-h4', { opacity: 0, y: 30, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.65 }, '-=0.2')
+    ScrollTrigger.batch('.gsap-reveal', {
+      onEnter: batch => gsap.fromTo(batch, { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.55, stagger: 0.09, ease: 'power2.out' }),
+      once: true,
+      start: 'top 90%'
+    })
+    return () => { tl.kill(); ScrollTrigger.getAll().forEach(t => t.kill()) }
+  }, [page])
 
   useEffect(() => {
     const handler = () => {
@@ -678,7 +741,7 @@ function App() {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) { showToast('Push not supported on this browser'); return }
     try {
       const permission = await Notification.requestPermission()
-      if (permission !== 'granted') { showToast('Notifications blocked — check browser settings'); return }
+      if (permission !== 'granted') { showToast('Notifications blocked — check browser settings', 'warning'); return }
       const reg = await navigator.serviceWorker.ready
       const existing = await reg.pushManager.getSubscription()
       const sub = existing || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) })
@@ -689,8 +752,8 @@ function App() {
         body: JSON.stringify({ user_email: user.email, subscription: sub.toJSON() })
       })
       setPushEnabled(true)
-      showToast('Push notifications enabled!')
-    } catch (e) { showToast('Could not enable notifications') }
+      showToast('Push notifications enabled!', 'success')
+    } catch (e) { showToast('Could not enable notifications', 'error') }
   }
 
   async function sendPushNotification(toEmail, title, body, url = '/') {
@@ -750,7 +813,7 @@ function App() {
     await supabase.from('ratings').insert([{ rated_user_email: dealRatingModal.email, rater_user_id: user.id, rater_email: user.email, score: dealRatingScore, comment: '' }])
     await fetchAllRatings()
     setDealRatingScore(0); setDealRatingModal(null); setSubmittingDealRating(false)
-    showToast('Rating submitted — thanks!')
+    showToast('Rating submitted — thanks!', 'success')
   }
 
   async function submitReport() {
@@ -832,7 +895,7 @@ function App() {
     setWants(wants.map(w => w.id === wantId ? { ...w, status: 'filled' } : w))
     if (selectedWant?.id === wantId) setSelectedWant({ ...selectedWant, status: 'filled' })
     setGlobalDeals(prev => prev + 1)
-    showToast('Offer accepted!')
+    showToast('Offer accepted!', 'success')
     const want = wants.find(w => w.id === wantId)
     if (acceptedOff?.seller_email && want) {
       sendEmailNotification(
@@ -858,7 +921,7 @@ function App() {
     })
     if (res.ok) {
       setOffers(offers.map(o => o.id === offerId ? { ...o, status: 'declined' } : o))
-      showToast('Offer declined')
+      showToast('Offer declined', 'warning')
     }
   }
 
@@ -893,10 +956,10 @@ function App() {
       setWants(wants.map(w => w.id === editModal.id ? updated : w))
       if (selectedWant?.id === editModal.id) setSelectedWant(updated)
       setEditModal(null)
-      showToast('Listing updated!')
+      showToast('Listing updated!', 'success')
     } catch (err) {
       console.error('[saveEditWant]', err)
-      showToast('Failed to update listing')
+      showToast('Failed to update listing', 'error')
     } finally {
       setSavingEdit(false)
     }
@@ -1009,7 +1072,7 @@ function App() {
 
   async function postWant() {
     if (!title || !user) return
-    if (rateLimited('postWant', 15000)) { showToast('Please wait a moment before posting again'); return }
+    if (rateLimited('postWant', 15000)) { showToast('Please wait a moment before posting again', 'warning'); return }
     if (title.length > 120) { showToast('Title must be under 120 characters'); return }
     const _combined = (title + ' ' + description).toLowerCase()
     if (PROHIBITED_KEYWORDS.some(kw => _combined.includes(kw))) { showToast('This listing may contain prohibited content — please review our Terms of Service'); return }
@@ -1048,10 +1111,10 @@ function App() {
       if (inserted) { setWants([{ ...inserted, images: imageUrls }, ...wants]); setOfferCounts({ ...offerCounts, [inserted.id]: 0 }) }
       setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory(''); setCondition(''); setNegotiable(false); setListingType('item'); setEstimatedHours(''); setImages([]); setImagePreviews([])
       setPage('home')
-      showToast('Listing posted!')
+      showToast('Listing posted!', 'success')
     } catch (e) {
       console.error('[postWant] error:', e)
-      showToast('Failed to post — please try again')
+      showToast('Failed to post — please try again', 'error')
     } finally {
       setPosting(false)
       setUploadingImages(false)
@@ -1102,7 +1165,7 @@ function App() {
     setCounterModal(null); setCounterPrice(''); setCounterNote('')
     await fetchOffers(selectedWant.id)
     setSubmittingCounter(false)
-    showToast('Counter sent!')
+    showToast('Counter sent!', 'success')
   }
 
   async function respondToCounter(offerId, accept) {
@@ -1146,7 +1209,7 @@ function App() {
       setViewedProfile(prev => ({ ...prev, bio: bioText }))
       setMyProfile(prev => ({ ...prev, bio: bioText }))
       setEditingBio(false)
-      showToast('Bio saved!')
+      showToast('Bio saved!', 'success')
     } catch (err) {
       console.error('[saveBio]', err)
       showToast('Failed to save bio')
@@ -1359,9 +1422,9 @@ function App() {
     if (res.ok) {
       localStorage.setItem(key, Date.now())
       setWants(prev => prev.map(w => w.id === wantId ? { ...w, bumped_at: bumpedAt } : w))
-      showToast('Listing bumped to top!')
+      showToast('Listing bumped to top!', 'success')
     } else {
-      showToast('Failed to bump — please try again')
+      showToast('Failed to bump — please try again', 'error')
     }
   }
 
@@ -1400,7 +1463,7 @@ function App() {
       setOfferPrice(''); setOfferMessage('')
       fetchOffers(selectedWant.id)
       setOfferCounts({ ...offerCounts, [selectedWant.id]: (offerCounts[selectedWant.id] || 0) + 1 })
-      showToast('Offer submitted!')
+      showToast('Offer submitted!', 'success')
       sendEmailNotification(
         selectedWant.user_email,
         `New offer on your listing: ${selectedWant.title}`,
@@ -1409,7 +1472,7 @@ function App() {
       sendPushNotification(selectedWant.user_email, 'New offer received', `${getUsername(user.email)} made an offer on: ${selectedWant.title}`)
     } catch (err) {
       console.error('[submitOffer]', err)
-      showToast('Failed to submit offer')
+      showToast('Failed to submit offer', 'error')
     } finally {
       setSubmittingOffer(false)
     }
@@ -1875,13 +1938,18 @@ function App() {
             {want.negotiable && <span style={{ fontSize: '11px', fontWeight: '600', color: '#0E9A6E', background: 'transparent', border: '1px solid #A7EDD4', borderRadius: '20px', padding: '2px 7px' }}>Flexible</span>}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${C.cardBorder}`, paddingTop: '12px', marginTop: '4px' }}>
-            {offerCounts[want.id] ? (
-              <span style={{ fontSize: '11px', fontWeight: '700', color: '#fff', background: '#0E9A6E', padding: '3px 10px', borderRadius: '20px' }}>
-                {offerCounts[want.id]} offer{offerCounts[want.id] !== 1 ? 's' : ''}
-              </span>
-            ) : (
-              <span style={{ fontSize: '12px', color: C.textMuted }}>No offers yet</span>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {offerCounts[want.id] ? (
+                <span style={{ fontSize: '11px', fontWeight: '700', color: '#fff', background: '#0E9A6E', padding: '3px 10px', borderRadius: '20px' }}>
+                  {offerCounts[want.id]} offer{offerCounts[want.id] !== 1 ? 's' : ''}
+                </span>
+              ) : (
+                <span style={{ fontSize: '12px', color: C.textMuted }}>No offers yet</span>
+              )}
+              {offerCounts[want.id] >= 3 && want.status !== 'filled' && (
+                <span style={{ fontSize: '10px', fontWeight: '700', color: '#fff', background: 'linear-gradient(135deg, #f97316, #ef4444)', padding: '2px 7px', borderRadius: '20px', letterSpacing: '0.02em' }}>🔥 Hot</span>
+              )}
+            </div>
             <span style={{ fontSize: '12px', color: '#8FA5B8' }}>{timeAgo(want.created_at)}</span>
           </div>
         </div>
@@ -2237,18 +2305,18 @@ function App() {
               <div key={label} style={{ position: 'absolute', ...style, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '20px', padding: '5px 13px', fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: '500', pointerEvents: 'none', zIndex: 0, animationTimingFunction: 'ease-in-out', animationIterationCount: 'infinite' }} />
             ))}
             <div className="hero-content">
-              <div className="hero-badge">
+              <div className="hero-badge gsap-h0">
                 <svg width="7" height="7" viewBox="0 0 7 7"><circle cx="3.5" cy="3.5" r="3.5" fill="#34D399"/></svg>
                 Free for New Zealand
               </div>
-              <div className="hero-headline">Tell sellers what<br />you want.</div>
-              <p className="hero-sub">Post what you're after. Sellers in your area send offers. You pick the best one.</p>
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '40px' }}>
+              <div className="hero-headline gsap-h1">Tell sellers what<br />you want.</div>
+              <p className="hero-sub gsap-h2">Post what you're after. Sellers in your area send offers. You pick the best one.</p>
+              <div className="gsap-h3" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '40px' }}>
                 <button className="btn-primary btn btn-hero" onClick={() => setPage('signup')} style={{ padding: '14px 32px', fontSize: '15px', borderRadius: '12px', fontWeight: '600' }}>Get started free</button>
                 <button className="btn" onClick={() => setPage('browse')} style={{ padding: '14px 28px', fontSize: '15px', borderRadius: '12px', background: 'rgba(255,255,255,0.09)', border: '1.5px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)' }}>Browse listings</button>
               </div>
               {/* Rich mock card */}
-              <div style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: '18px', padding: '18px 20px', maxWidth: '300px', margin: '0 auto', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', animation: 'heroFloat 4.5s ease-in-out infinite', textAlign: 'left' }}>
+              <div className="gsap-h4" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: '18px', padding: '18px 20px', maxWidth: '300px', margin: '0 auto', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', animation: 'heroFloat 4.5s ease-in-out infinite', textAlign: 'left' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                     <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: 'linear-gradient(135deg, #0E7FA8, #0E9A6E)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '700', color: '#fff' }}>S</div>
@@ -2281,20 +2349,20 @@ function App() {
         </div>
 
         <div className="stats-strip" style={{ background: C.card, borderBottom: `1px solid ${C.cardBorder}` }}>
-          <div className="stat-tile" style={{ borderRight: `1px solid ${C.cardBorder}` }}>
-            <svg width="18" height="18" fill="none" stroke="#8FA5B8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '6px' }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <div className="stat-label" style={{ color: C.text, fontWeight: '600', fontSize: '12px', marginBottom: '2px', textTransform: 'none', letterSpacing: 0 }}>NZ only</div>
+          <div className="stat-tile gsap-reveal" style={{ borderRight: `1px solid ${C.cardBorder}` }}>
+            <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px', opacity: 0.7 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontSize: '20px', color: C.text, fontWeight: '400', lineHeight: 1, marginBottom: '4px' }}>NZ only</div>
             <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.3 }}>Every city, every island</div>
           </div>
-          <div className="stat-tile" style={{ borderRight: `1px solid ${C.cardBorder}` }}>
-            <svg width="18" height="18" fill="none" stroke="#8FA5B8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '6px' }}><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
-            <div className="stat-label" style={{ color: C.text, fontWeight: '600', fontSize: '12px', marginBottom: '2px', textTransform: 'none', letterSpacing: 0 }}>Completely free</div>
+          <div className="stat-tile gsap-reveal" style={{ borderRight: `1px solid ${C.cardBorder}` }}>
+            <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px', opacity: 0.7 }}><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontSize: '20px', color: C.text, fontWeight: '400', lineHeight: 1, marginBottom: '4px' }}>Always free</div>
             <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.3 }}>No fees, no commissions</div>
           </div>
-          <div className="stat-tile">
-            <svg width="18" height="18" fill="none" stroke="#0E9A6E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '6px' }}><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-            <div className="stat-label" style={{ color: C.text, fontWeight: '700', fontSize: '16px', marginBottom: '2px', textTransform: 'none', letterSpacing: 0 }}>{globalDeals > 0 ? globalDeals.toLocaleString() : '—'}</div>
-            <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.3 }}>deals completed</div>
+          <div className="stat-tile gsap-reveal">
+            <svg width="20" height="20" fill="none" stroke="#0E9A6E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px' }}><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            <div className="stat-num">{globalDeals > 0 ? globalDeals.toLocaleString() : '—'}</div>
+            <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.3 }}>deals done</div>
           </div>
         </div>
 
@@ -2306,40 +2374,42 @@ function App() {
           </div>
         </div>
 
-        <div style={{ padding: '32px 16px 8px', maxWidth: '640px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '24px' }} className="reveal">
-            <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: C.textMuted, marginBottom: '6px' }}>Simple by design</div>
-            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', fontStyle: 'italic', color: C.text, lineHeight: 1.25 }}>Three steps to a deal</div>
+        <div style={{ padding: '36px 16px 8px', maxWidth: '640px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '28px' }} className="reveal">
+            <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.2px', color: C.textMuted, marginBottom: '8px' }}>Simple by design</div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '28px', fontStyle: 'italic', color: C.text, lineHeight: 1.2 }}>Three steps to a deal</div>
           </div>
           {[
             {
               num: '01',
-              icon: <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>,
+              icon: <svg width="22" height="22" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>,
               title: 'Post your want',
               desc: 'Describe what you need and your budget. Done in under a minute.',
               delay: 'delay-1'
             },
             {
               num: '02',
-              icon: <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>,
+              icon: <svg width="22" height="22" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>,
               title: 'Offers come in',
               desc: 'Sellers who have what you want reach out directly. No searching.',
               delay: 'delay-2'
             },
             {
               num: '03',
-              icon: <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+              icon: <svg width="22" height="22" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
               title: 'Pick and deal',
               desc: 'Compare offers, message the seller, and close on your terms.',
               delay: 'delay-3'
             }
           ].map(({ num, icon, title, desc, delay }) => (
-            <div key={num} className={`reveal ${delay}`} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', padding: '18px 20px', background: C.card, border: `1.5px solid ${C.cardBorder}`, borderRadius: '16px', marginBottom: '10px', boxShadow: '0 1px 3px rgba(15,32,48,0.06), 0 4px 18px rgba(14,127,168,0.07)' }}>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '26px', fontStyle: 'italic', color: '#0E7FA8', opacity: 0.22, lineHeight: 1, flexShrink: 0, width: '28px', paddingTop: '1px' }}>{num}</div>
-              <div style={{ flexShrink: 0, marginTop: '1px' }}>{icon}</div>
-              <div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: C.text, marginBottom: '3px' }}>{title}</div>
-                <div style={{ fontSize: '13px', color: C.textMuted, lineHeight: 1.5 }}>{desc}</div>
+            <div key={num} className={`gsap-reveal`} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', padding: '20px 22px', background: C.card, border: `1.5px solid ${C.cardBorder}`, borderRadius: '16px', marginBottom: '10px', boxShadow: '0 1px 3px rgba(15,32,48,0.06), 0 4px 20px rgba(14,127,168,0.09)' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, rgba(14,127,168,0.12), rgba(14,127,168,0.06))', border: '1px solid rgba(14,127,168,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{icon}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: C.text }}>{title}</div>
+                  <div style={{ fontSize: '10px', fontWeight: '700', color: '#0E7FA8', background: 'rgba(14,127,168,0.1)', borderRadius: '6px', padding: '2px 6px', letterSpacing: '0.5px' }}>{num}</div>
+                </div>
+                <div style={{ fontSize: '13px', color: C.textMuted, lineHeight: 1.55 }}>{desc}</div>
               </div>
             </div>
           ))}
@@ -2347,7 +2417,7 @@ function App() {
 
         <div style={{ maxWidth: '640px', margin: '0 auto', padding: '16px 16px 24px', width: '100%', boxSizing: 'border-box' }}>
           {FeaturedSection()}
-          <div onClick={() => { setFilterType('service'); setPage('browse') }} style={{ background: 'linear-gradient(135deg, #4C1D95, #7C3AED)', borderRadius: '16px', padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', cursor: 'pointer' }}>
+          <div className="gsap-reveal" onClick={() => { setFilterType('service'); setPage('browse') }} style={{ background: 'linear-gradient(135deg, #4C1D95, #7C3AED)', borderRadius: '16px', padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', cursor: 'pointer' }}>
             <div>
               <div style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '5px' }}>New on Offrit</div>
               <div style={{ fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '5px' }}>Cashies &amp; Services</div>
@@ -2359,7 +2429,7 @@ function App() {
             <span style={{ fontSize: '15px', fontWeight: '600', color: C.text }}>Recent listings</span>
             {wants.length > 0 && <span style={{ fontSize: '12px', color: C.textMuted }}>{wants.length} live</span>}
           </div>
-          {loading ? [1,2,3].map(i => <SkeletonCard key={i} />) : wants.slice(0, 6).map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i, noAnimate: true })}</Fragment>)}
+          {loading ? [1,2,3].map(i => <SkeletonCard key={i} hasImage={i !== 2} />) : wants.slice(0, 6).map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i, noAnimate: true })}</Fragment>)}
           {wants.length > 6 && <button className="btn" onClick={() => setPage('browse')} style={{ width: '100%', padding: '13px', marginTop: '4px', fontSize: '14px' }}>View all {wants.length} listings →</button>}
         </div>
         <div style={{ borderTop: `1px solid ${C.cardBorder}`, padding: '20px 16px', display: 'flex', justifyContent: 'center', gap: '20px', background: C.card }}>
@@ -2447,7 +2517,7 @@ function App() {
             <span style={{ fontSize: '13px', fontWeight: '600', color: C.text }}>Listings</span>
             <span style={{ fontSize: '12px', color: C.textMuted }}>{filteredWants.length} result{filteredWants.length !== 1 ? 's' : ''}</span>
           </div>
-          {loading ? [1,2,3].map(i => <SkeletonCard key={i} />) : filteredWants.length === 0 ? (
+          {loading ? [1,2,3].map(i => <SkeletonCard key={i} hasImage={i !== 2} />) : filteredWants.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '56px 20px 40px' }}>
               <svg width="40" height="40" fill="none" stroke={C.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '14px', opacity: 0.6 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <p style={{ fontSize: '15px', fontWeight: '600', color: C.text, marginBottom: '6px' }}>Nothing here yet</p>
@@ -2715,7 +2785,7 @@ function App() {
         {CounterModal()}
         {EditModal()}
         {DealRatingModal()}
-        {toast && <div className="toast">{toast}</div>}
+        {toast && <div className={`toast toast-${toast.type || 'default'}`}><span>{toast.msg}</span><button className="toast-close" onClick={() => setToast(null)}>✕</button></div>}
         <div style={inner}>
           <div className="card fade-up" style={{ marginBottom: '14px', overflow: 'hidden' }}>
             {hasImages
@@ -2783,10 +2853,22 @@ function App() {
 
           {user && selectedWant.status !== 'filled' && !isOwner ? (
             <div className="card fade-up" style={{ padding: '22px', marginBottom: '14px', borderTop: `3px solid ${accentColor}` }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <svg width="16" height="16" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
-                <h3 style={{ fontSize: '15px', fontWeight: '600', color: C.text }}>Make an offer</h3>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: offerCounts[selectedWant.id] > 0 ? '10px' : '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="16" height="16" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+                  <h3 style={{ fontSize: '15px', fontWeight: '600', color: C.text }}>Make an offer</h3>
+                </div>
+                {offerCounts[selectedWant.id] > 0 && (
+                  <span style={{ fontSize: '11px', fontWeight: '600', color: '#D97706', background: dark ? '#2A1A00' : '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '20px', padding: '3px 9px' }}>
+                    ⚡ {offerCounts[selectedWant.id]} offer{offerCounts[selectedWant.id] !== 1 ? 's' : ''} in
+                  </span>
+                )}
               </div>
+              {offerCounts[selectedWant.id] >= 2 && (
+                <div style={{ fontSize: '12px', color: C.textMuted, marginBottom: '14px', paddingBottom: '14px', borderBottom: `1px solid ${C.cardBorder}` }}>
+                  {offerCounts[selectedWant.id]} sellers have already offered — make yours stand out.
+                </div>
+              )}
               <input placeholder={isService ? 'Your price — e.g. $80/hr or $150 flat' : 'Your price — e.g. $250'} value={offerPrice} onChange={e => setOfferPrice(e.target.value)} style={{ marginBottom: '10px' }} />
               <textarea placeholder={isService ? 'Your experience, availability, tools or equipment…' : 'Describe what you have — condition, photos, pickup…'} value={offerMessage} onChange={e => setOfferMessage(e.target.value)} rows={3} style={{ marginBottom: '14px', resize: 'vertical' }} maxLength={2000} />
               <button className="btn btn-primary" onClick={submitOffer} disabled={!offerMessage || submittingOffer} style={{ width: '100%', padding: '13px', fontSize: '14px', background: isService ? 'linear-gradient(160deg, #7C3AED, #5B21B6)' : undefined, borderColor: isService ? '#5B21B6' : undefined }}>
@@ -2815,13 +2897,29 @@ function App() {
             </div>
           )}
 
-          {offers.map((offer, i) => {
+          {(() => {
+            const parsePrice = p => parseFloat((p || '').replace(/[^0-9.]/g, '')) || Infinity
+            const activeOffers = offers.filter(o => !isOfferExpired(o) && !['declined'].includes(o.status))
+            const sortedOffers = [...offers].sort((a, b) => {
+              const aActive = activeOffers.includes(a), bActive = activeOffers.includes(b)
+              if (aActive !== bActive) return aActive ? -1 : 1
+              return parsePrice(a.price) - parsePrice(b.price)
+            })
+            const bestOfferId = isOwner && activeOffers.length >= 2 && activeOffers[0]?.price ? activeOffers.sort((a,b) => parsePrice(a.price) - parsePrice(b.price))[0].id : null
+            return sortedOffers.map((offer, i) => {
             const expired = isOfferExpired(offer)
             const timeLeft = offerTimeLeft(offer)
             const isAccepted = offer.status === 'accepted'
             const isDeclined = offer.status === 'declined'
+            const isBest = offer.id === bestOfferId
             return (
-              <div key={offer.id} className={`card reveal delay-${(i % 3) + 1}`} style={{ marginBottom: '10px', overflow: 'hidden', opacity: expired ? 0.65 : 1, border: isAccepted ? '1.5px solid #A7EDD4' : undefined }}>
+              <div key={offer.id} className={`card reveal delay-${(i % 3) + 1}`} style={{ marginBottom: '10px', overflow: 'hidden', opacity: expired ? 0.65 : 1, border: isBest ? '1.5px solid #A7EDD4' : isAccepted ? '1.5px solid #A7EDD4' : undefined }}>
+                {isBest && !isAccepted && !isDeclined && (
+                  <div style={{ padding: '5px 16px', background: dark ? '#0A2A1A' : '#EDFAF4', borderBottom: '1px solid #A7EDD4', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <svg width="11" height="11" fill="#0E9A6E" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: '#0E9A6E' }}>Best price</span>
+                  </div>
+                )}
                 {(isAccepted || isDeclined || (timeLeft && !expired) || expired) && (
                   <div style={{ padding: '6px 16px', background: isAccepted ? (dark ? '#0A2A1A' : '#EDFAF4') : isDeclined ? (dark ? '#1A0A0A' : '#FEF2F2') : expired ? (dark ? '#1A1A2A' : '#EDF2F7') : (dark ? '#1A1200' : '#FFFBEB'), borderBottom: `1px solid ${isAccepted ? '#A7EDD4' : isDeclined ? '#FECACA' : expired ? C.cardBorder : '#FDE68A'}`, display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {isAccepted && <><svg width="11" height="11" fill="none" stroke="#0E9A6E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span style={{ fontSize: '11px', fontWeight: '700', color: '#0E9A6E' }}>Accepted</span></>}
@@ -2879,7 +2977,8 @@ function App() {
                 </div>
               </div>
             )
-          })}
+          })
+          })()}
         </div>
 
         {similarWants.length > 0 && (
@@ -3083,7 +3182,7 @@ function App() {
 
           {mineTab === 'offers' && (
             <div>
-              {loadingMyOffers && [1,2,3].map(i => <SkeletonCard key={i} />)}
+              {loadingMyOffers && [1,2,3].map(i => <SkeletonCard key={i} hasImage={i !== 2} />)}
               {!loadingMyOffers && myOffers.length === 0 && (
                 <div className="card fade-up" style={{ padding: '48px 24px', textAlign: 'center' }}>
                   <p style={{ fontSize: '15px', color: C.textSub, marginBottom: '6px' }}>No offers made yet</p>
@@ -3144,7 +3243,7 @@ function App() {
         headers: { apikey: supabaseKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
         body: JSON.stringify({ ird_number: val })
       })
-      if (res.ok) showToast('IRD number saved')
+      if (res.ok) showToast('IRD number saved', 'success')
       else showToast('Failed to save — please try again')
     }
 
@@ -3166,7 +3265,7 @@ function App() {
         if (!res.ok) throw new Error(res.status)
         setMyProfile(prev => ({ ...prev, username: newName }))
         setProfiles(prev => ({ ...prev, [user.email]: newName }))
-        showToast('Username updated!')
+        showToast('Username updated!', 'success')
       } catch (err) {
         console.error('[saveUsername]', err)
         showToast('Failed to update username')
@@ -3286,7 +3385,7 @@ function App() {
     <div style={pageStyle} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
       <style>{styles}</style>
       {Header()}
-      {toast && <div className="toast">{toast}</div>}
+      {toast && <div className={`toast toast-${toast.type || 'default'}`}><span>{toast.msg}</span><button className="toast-close" onClick={() => setToast(null)}>✕</button></div>}
       {DealRatingModal()}
       {reportModal && ReportModal()}
       {showLocationPicker && LocationPicker()}
@@ -3389,7 +3488,7 @@ function App() {
           <span style={{ fontSize: '13px', fontWeight: '600', color: C.text }}>Listings</span>
           <span style={{ fontSize: '12px', color: C.textMuted }}>{filteredWants.length} result{filteredWants.length !== 1 ? 's' : ''}</span>
         </div>
-        {loading ? [1,2,3].map(i => <SkeletonCard key={i} />) : filteredWants.length === 0 ? (
+        {loading ? [1,2,3].map(i => <SkeletonCard key={i} hasImage={i !== 2} />) : filteredWants.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '56px 20px 40px' }}>
             <svg width="40" height="40" fill="none" stroke={C.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '14px', opacity: 0.6 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <p style={{ fontSize: '15px', fontWeight: '600', color: C.text, marginBottom: '6px' }}>Nothing here yet</p>
