@@ -218,7 +218,7 @@ const styles = `
   .gsap-h0, .gsap-h1, .gsap-h2, .gsap-h3, .gsap-h4, .gsap-reveal { opacity: 0; }
 
   html[data-dark="true"] { background-color: #0B1829; }
-  html[data-dark="true"] .hero { background: linear-gradient(to bottom, rgba(4,14,28,0.68) 0%, rgba(6,22,42,0.42) 45%, rgba(4,14,28,0.65) 100%), url('/skytower.jpg') center 42% / cover no-repeat !important; }
+  html[data-dark="true"] .hero { background: linear-gradient(to bottom, rgba(4,14,28,0.68) 0%, rgba(6,22,42,0.42) 45%, rgba(4,14,28,0.65) 100%), url('/skytower.jpg') center 35% / cover no-repeat !important; }
   html[data-dark="true"] body { background: transparent !important; color: #CCD6F6; }
   html[data-dark="true"] input, html[data-dark="true"] textarea, html[data-dark="true"] select { background: #0A192F; border-color: #1E3A5F; color: #CCD6F6; }
   html[data-dark="true"] input:focus, html[data-dark="true"] textarea:focus, html[data-dark="true"] select:focus { border-color: #0E9FCC; box-shadow: 0 0 0 3px rgba(14,159,204,0.15); }
