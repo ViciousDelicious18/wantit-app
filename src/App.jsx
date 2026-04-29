@@ -218,7 +218,7 @@ const styles = `
   .gsap-h0, .gsap-h1, .gsap-h2, .gsap-h3, .gsap-h4, .gsap-reveal { opacity: 0; }
 
   html[data-dark="true"] { background-color: #0B1829; }
-  html[data-dark="true"] .hero { background: linear-gradient(150deg, #071523 0%, #0C3554 45%, #0E5F85 75%, #0E7FA8 100%) !important; }
+  html[data-dark="true"] .hero { background: linear-gradient(to bottom, rgba(4,14,28,0.68) 0%, rgba(6,22,42,0.42) 45%, rgba(4,14,28,0.65) 100%), url('/skytower.jpg') center 50% / cover no-repeat !important; }
   html[data-dark="true"] body { background: transparent !important; color: #CCD6F6; }
   html[data-dark="true"] input, html[data-dark="true"] textarea, html[data-dark="true"] select { background: #0A192F; border-color: #1E3A5F; color: #CCD6F6; }
   html[data-dark="true"] input:focus, html[data-dark="true"] textarea:focus, html[data-dark="true"] select:focus { border-color: #0E9FCC; box-shadow: 0 0 0 3px rgba(14,159,204,0.15); }
@@ -1619,83 +1619,7 @@ function App() {
               <ellipse cx="195" cy="498" rx="140" ry="16" fill="rgba(175,218,242,0.07)"/>
             </svg>
           ) : (
-            /* YMin: SVG top anchored to viewport top.
-               At 1366×768, visible y = 0 to 635. Moon at y=151–237 is fully visible. */
-            <svg viewBox="0 0 300 900" preserveAspectRatio="xMaxYMin slice" style={{ width: '100%', height: '100%' }}>
-              {/* Moon glow halos — outer circle center (200,210) r=60 */}
-              <circle cx="200" cy="210" r="120" fill="rgba(255,248,195,0.008)"/>
-              <circle cx="200" cy="210" r="90" fill="rgba(255,248,195,0.018)"/>
-              <circle cx="200" cy="210" r="68" fill="rgba(255,248,195,0.038)"/>
-              {/* Crescent moon: outer circle (200,210) r=60, shadow circle (235,185) r=55.
-                  Intersection points ≈ (192,151) and (254,237).
-                  Large clockwise arc of lit face, small CCW arc cutting shadow edge. */}
-              <path d="M 192,151 A 60,60 0 1,1 254,237 A 55,55 0 0,0 192,151 Z" fill={moon}/>
-              {/* Bright star — upper right */}
-              <circle cx="272" cy="86" r="9" fill="rgba(220,234,255,0.05)"/>
-              <circle cx="272" cy="86" r="4.5" fill="rgba(220,234,255,0.10)"/>
-              <circle cx="272" cy="86" r="2.8" fill="rgba(218,232,255,0.90)">
-                <animate attributeName="opacity" values="0.90;0.18;0.90" dur="2.5s" repeatCount="indefinite" begin="0s"/>
-              </circle>
-              <circle cx="272" cy="86" r="1.1" fill="white">
-                <animate attributeName="opacity" values="1;0.3;1" dur="2.5s" repeatCount="indefinite" begin="0s"/>
-              </circle>
-              {/* Bright star — upper left */}
-              <circle cx="142" cy="56" r="6" fill="rgba(220,234,255,0.06)"/>
-              <circle cx="142" cy="56" r="2.2" fill="rgba(218,232,255,0.84)">
-                <animate attributeName="opacity" values="0.84;0.16;0.84" dur="3.7s" repeatCount="indefinite" begin="0.5s"/>
-              </circle>
-              <circle cx="142" cy="56" r="0.9" fill="white">
-                <animate attributeName="opacity" values="0.95;0.25;0.95" dur="3.7s" repeatCount="indefinite" begin="0.5s"/>
-              </circle>
-              {/* Bright star — mid panel */}
-              <circle cx="248" cy="316" r="7" fill="rgba(220,234,255,0.05)"/>
-              <circle cx="248" cy="316" r="2.5" fill="rgba(218,232,255,0.86)">
-                <animate attributeName="opacity" values="0.86;0.20;0.86" dur="3.0s" repeatCount="indefinite" begin="0.9s"/>
-              </circle>
-              <circle cx="248" cy="316" r="1.0" fill="white">
-                <animate attributeName="opacity" values="0.96;0.32;0.96" dur="3.0s" repeatCount="indefinite" begin="0.9s"/>
-              </circle>
-              {/* Medium stars */}
-              <circle cx="78" cy="138" r="1.6" fill="rgba(214,230,255,0.70)">
-                <animate attributeName="opacity" values="0.70;0.12;0.70" dur="4.3s" repeatCount="indefinite" begin="1.3s"/>
-              </circle>
-              <circle cx="54" cy="264" r="1.7" fill="rgba(214,230,255,0.72)">
-                <animate attributeName="opacity" values="0.72;0.14;0.72" dur="5.1s" repeatCount="indefinite" begin="2.2s"/>
-              </circle>
-              <circle cx="42" cy="390" r="1.9" fill="rgba(214,230,255,0.76)">
-                <animate attributeName="opacity" values="0.76;0.16;0.76" dur="3.5s" repeatCount="indefinite" begin="0.6s"/>
-              </circle>
-              <circle cx="178" cy="362" r="1.3" fill="rgba(214,230,255,0.60)">
-                <animate attributeName="opacity" values="0.60;0.10;0.60" dur="4.6s" repeatCount="indefinite" begin="1.7s"/>
-              </circle>
-              <circle cx="288" cy="432" r="1.1" fill="rgba(214,230,255,0.52)">
-                <animate attributeName="opacity" values="0.52;0.08;0.52" dur="6.0s" repeatCount="indefinite" begin="3.1s"/>
-              </circle>
-              {/* Small stars */}
-              <circle cx="114" cy="462" r="0.9" fill="rgba(210,228,255,0.46)">
-                <animate attributeName="opacity" values="0.46;0.06;0.46" dur="7.2s" repeatCount="indefinite" begin="1.9s"/>
-              </circle>
-              <circle cx="212" cy="508" r="0.8" fill="rgba(210,228,255,0.38)">
-                <animate attributeName="opacity" values="0.38;0.05;0.38" dur="5.9s" repeatCount="indefinite" begin="4.3s"/>
-              </circle>
-              <circle cx="158" cy="558" r="1.1" fill="rgba(210,228,255,0.48)">
-                <animate attributeName="opacity" values="0.48;0.08;0.48" dur="4.7s" repeatCount="indefinite" begin="2.6s"/>
-              </circle>
-              <circle cx="28" cy="478" r="1.0" fill="rgba(210,228,255,0.46)">
-                <animate attributeName="opacity" values="0.46;0.07;0.46" dur="5.4s" repeatCount="indefinite" begin="0.3s"/>
-              </circle>
-              <circle cx="184" cy="142" r="0.9" fill="rgba(210,228,255,0.42)">
-                <animate attributeName="opacity" values="0.42;0.06;0.42" dur="6.9s" repeatCount="indefinite" begin="3.5s"/>
-              </circle>
-              <circle cx="126" cy="226" r="1.0" fill="rgba(210,228,255,0.46)">
-                <animate attributeName="opacity" values="0.46;0.08;0.46" dur="5.3s" repeatCount="indefinite" begin="1.1s"/>
-              </circle>
-              <circle cx="64" cy="316" r="0.8" fill="rgba(210,228,255,0.38)">
-                <animate attributeName="opacity" values="0.38;0.05;0.38" dur="6.2s" repeatCount="indefinite" begin="2.8s"/>
-              </circle>
-              {/* Milky Way band */}
-              <path d="M 0,380 Q 150,322 300,372 Q 150,402 0,414 Z" fill="rgba(175,198,255,0.018)"/>
-            </svg>
+            <svg viewBox="0 0 300 900" style={{ width: '100%', height: '100%' }}/>
           )}
         </div>
         <div className="side-decor side-decor-right">
@@ -1714,79 +1638,7 @@ function App() {
               <ellipse cx="105" cy="498" rx="140" ry="16" fill="rgba(175,218,242,0.07)"/>
             </svg>
           ) : (
-            <svg viewBox="0 0 300 900" preserveAspectRatio="xMinYMin slice" style={{ width: '100%', height: '100%' }}>
-              {/* Moon glow halos — center (100,210), mirrored from left panel */}
-              <circle cx="100" cy="210" r="120" fill="rgba(255,248,195,0.008)"/>
-              <circle cx="100" cy="210" r="90" fill="rgba(255,248,195,0.018)"/>
-              <circle cx="100" cy="210" r="68" fill="rgba(255,248,195,0.038)"/>
-              {/* Crescent moon — mirrored: sweep flags flipped, x coords mirrored (300-x) */}
-              <path d="M 108,151 A 60,60 0 1,0 46,237 A 55,55 0 0,1 108,151 Z" fill={moon}/>
-              {/* Bright star — upper left */}
-              <circle cx="28" cy="86" r="9" fill="rgba(220,234,255,0.05)"/>
-              <circle cx="28" cy="86" r="4.5" fill="rgba(220,234,255,0.10)"/>
-              <circle cx="28" cy="86" r="2.8" fill="rgba(218,232,255,0.90)">
-                <animate attributeName="opacity" values="0.90;0.18;0.90" dur="2.5s" repeatCount="indefinite" begin="0.3s"/>
-              </circle>
-              <circle cx="28" cy="86" r="1.1" fill="white">
-                <animate attributeName="opacity" values="1;0.3;1" dur="2.5s" repeatCount="indefinite" begin="0.3s"/>
-              </circle>
-              {/* Bright star — upper right */}
-              <circle cx="158" cy="56" r="6" fill="rgba(220,234,255,0.06)"/>
-              <circle cx="158" cy="56" r="2.2" fill="rgba(218,232,255,0.84)">
-                <animate attributeName="opacity" values="0.84;0.16;0.84" dur="3.7s" repeatCount="indefinite" begin="0.8s"/>
-              </circle>
-              <circle cx="158" cy="56" r="0.9" fill="white">
-                <animate attributeName="opacity" values="0.95;0.25;0.95" dur="3.7s" repeatCount="indefinite" begin="0.8s"/>
-              </circle>
-              {/* Bright star — mid panel */}
-              <circle cx="52" cy="316" r="7" fill="rgba(220,234,255,0.05)"/>
-              <circle cx="52" cy="316" r="2.5" fill="rgba(218,232,255,0.86)">
-                <animate attributeName="opacity" values="0.86;0.20;0.86" dur="3.0s" repeatCount="indefinite" begin="1.2s"/>
-              </circle>
-              <circle cx="52" cy="316" r="1.0" fill="white">
-                <animate attributeName="opacity" values="0.96;0.32;0.96" dur="3.0s" repeatCount="indefinite" begin="1.2s"/>
-              </circle>
-              {/* Medium stars */}
-              <circle cx="222" cy="138" r="1.6" fill="rgba(214,230,255,0.70)">
-                <animate attributeName="opacity" values="0.70;0.12;0.70" dur="4.3s" repeatCount="indefinite" begin="1.6s"/>
-              </circle>
-              <circle cx="246" cy="264" r="1.7" fill="rgba(214,230,255,0.72)">
-                <animate attributeName="opacity" values="0.72;0.14;0.72" dur="5.1s" repeatCount="indefinite" begin="2.5s"/>
-              </circle>
-              <circle cx="258" cy="390" r="1.9" fill="rgba(214,230,255,0.76)">
-                <animate attributeName="opacity" values="0.76;0.16;0.76" dur="3.5s" repeatCount="indefinite" begin="0.9s"/>
-              </circle>
-              <circle cx="122" cy="362" r="1.3" fill="rgba(214,230,255,0.60)">
-                <animate attributeName="opacity" values="0.60;0.10;0.60" dur="4.6s" repeatCount="indefinite" begin="2.0s"/>
-              </circle>
-              <circle cx="12" cy="432" r="1.1" fill="rgba(214,230,255,0.52)">
-                <animate attributeName="opacity" values="0.52;0.08;0.52" dur="6.0s" repeatCount="indefinite" begin="3.4s"/>
-              </circle>
-              {/* Small stars */}
-              <circle cx="186" cy="462" r="0.9" fill="rgba(210,228,255,0.46)">
-                <animate attributeName="opacity" values="0.46;0.06;0.46" dur="7.2s" repeatCount="indefinite" begin="2.2s"/>
-              </circle>
-              <circle cx="88" cy="508" r="0.8" fill="rgba(210,228,255,0.38)">
-                <animate attributeName="opacity" values="0.38;0.05;0.38" dur="5.9s" repeatCount="indefinite" begin="4.6s"/>
-              </circle>
-              <circle cx="142" cy="558" r="1.1" fill="rgba(210,228,255,0.48)">
-                <animate attributeName="opacity" values="0.48;0.08;0.48" dur="4.7s" repeatCount="indefinite" begin="2.9s"/>
-              </circle>
-              <circle cx="272" cy="478" r="1.0" fill="rgba(210,228,255,0.46)">
-                <animate attributeName="opacity" values="0.46;0.07;0.46" dur="5.4s" repeatCount="indefinite" begin="0.6s"/>
-              </circle>
-              <circle cx="116" cy="142" r="0.9" fill="rgba(210,228,255,0.42)">
-                <animate attributeName="opacity" values="0.42;0.06;0.42" dur="6.9s" repeatCount="indefinite" begin="3.8s"/>
-              </circle>
-              <circle cx="174" cy="226" r="1.0" fill="rgba(210,228,255,0.46)">
-                <animate attributeName="opacity" values="0.46;0.08;0.46" dur="5.3s" repeatCount="indefinite" begin="1.4s"/>
-              </circle>
-              <circle cx="236" cy="316" r="0.8" fill="rgba(210,228,255,0.38)">
-                <animate attributeName="opacity" values="0.38;0.05;0.38" dur="6.2s" repeatCount="indefinite" begin="2.8s"/>
-              </circle>
-              {/* Milky Way band */}
-              <path d="M 300,380 Q 150,322 0,372 Q 150,402 300,414 Z" fill="rgba(175,198,255,0.018)"/>
-            </svg>
+            <svg viewBox="0 0 300 900" style={{ width: '100%', height: '100%' }}/>
           )}
         </div>
       </>
