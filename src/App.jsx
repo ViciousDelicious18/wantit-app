@@ -114,8 +114,8 @@ const styles = `
   .star { font-size: 22px; cursor: pointer; transition: transform 0.1s ease; line-height: 1; }
   .star:hover { transform: scale(1.2); }
 
-  .hero { background: radial-gradient(ellipse 70% 55% at 50% 0%, rgba(14,127,168,0.2) 0%, transparent 65%), linear-gradient(to bottom, rgba(4,14,28,0.74) 0%, rgba(6,22,42,0.54) 45%, rgba(4,14,28,0.72) 100%); padding: 80px 24px 0; text-align: center; position: relative; overflow: hidden; width: 100%; box-sizing: border-box; isolation: isolate; }
-  .hero::before { content: ''; position: absolute; inset: -10px; z-index: -1; background: url('/mountain.jpg') center 30% / cover no-repeat; filter: blur(2px); }
+  .hero { background: radial-gradient(ellipse 70% 55% at 50% 0%, rgba(14,127,168,0.18) 0%, transparent 65%), linear-gradient(to bottom, rgba(4,14,28,0.72) 0%, rgba(6,22,42,0.5) 45%, rgba(4,14,28,0.70) 100%), url('/mountain.jpg') center 40% / cover no-repeat; padding: 80px 24px 0; text-align: center; position: relative; overflow: hidden; width: 100%; box-sizing: border-box; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: none; }
   .hero::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle at center, rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none; z-index: 0; }
   .hero-content { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding-bottom: 0; }
   .hero-headline { font-family: 'DM Serif Display', serif; font-size: clamp(40px, 6.5vw, 60px); color: #ffffff; font-style: italic; letter-spacing: -1.5px; margin-bottom: 18px; text-shadow: 0 2px 24px rgba(0,0,0,0.55), 0 8px 48px rgba(0,0,0,0.3); line-height: 1.1; }
@@ -219,7 +219,6 @@ const styles = `
 
   html[data-dark="true"] { background-color: #0B1829; }
   html[data-dark="true"] .hero { background: linear-gradient(150deg, #071523 0%, #0C3554 45%, #0E5F85 75%, #0E7FA8 100%) !important; }
-  html[data-dark="true"] .hero::before { display: none !important; }
   html[data-dark="true"] body { background: transparent !important; color: #CCD6F6; }
   html[data-dark="true"] input, html[data-dark="true"] textarea, html[data-dark="true"] select { background: #0A192F; border-color: #1E3A5F; color: #CCD6F6; }
   html[data-dark="true"] input:focus, html[data-dark="true"] textarea:focus, html[data-dark="true"] select:focus { border-color: #0E9FCC; box-shadow: 0 0 0 3px rgba(14,159,204,0.15); }
