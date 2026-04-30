@@ -45,8 +45,9 @@ const styles = `
   html { background-color: #F0F4F8; }
   body { background: transparent; font-family: 'DM Sans', sans-serif; color: #0F2030; }
   .side-decor { position: fixed; top: 0; bottom: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-  .side-decor-left { left: 0; width: calc(50vw - 320px); }
-  .side-decor-right { right: 0; width: calc(50vw - 320px); }
+  .side-decor-left { left: 0; width: calc(50vw - 320px); background: url('/mountains-bg.jpg') right center / cover no-repeat; }
+  .side-decor-right { right: 0; width: calc(50vw - 320px); background: url('/mountains-bg.jpg') left center / cover no-repeat; }
+  html[data-dark="true"] .side-decor-left, html[data-dark="true"] .side-decor-right { background: none; }
   @media (max-width: 720px) { .side-decor { display: none !important; } }
   ::placeholder { color: #8FA5B8; }
 
@@ -1607,52 +1608,8 @@ function App() {
     const moon = 'rgba(255,248,210,0.92)'
     return (
       <>
-        <div className="side-decor side-decor-left">
-          {!dark ? (
-            <svg viewBox="0 0 300 900" preserveAspectRatio="xMaxYMid slice" style={{ width: '100%', height: '100%' }}>
-              {/* Ghost range — very distant, barely visible */}
-              <path d="M 0,900 L 0,680 L 20,658 L 38,636 L 54,614 L 68,592 L 80,570 L 90,550 L 98,532 L 104,516 L 108,502 L 111,490 L 113,478 L 114,468 L 116,456 L 118,466 L 121,480 L 126,498 L 133,518 L 142,538 L 153,558 L 166,576 L 180,592 L 196,606 L 213,618 L 231,628 L 250,636 L 268,642 L 284,646 L 300,648 L 300,900 Z" fill="rgba(190,218,238,0.16)"/>
-              {/* Far range — 3 distinct jagged peaks */}
-              <path d="M 0,900 L 0,630 L 12,608 L 24,586 L 34,564 L 43,544 L 51,524 L 58,506 L 64,488 L 69,472 L 73,456 L 76,442 L 78,428 L 80,414 L 81,402 L 82,390 L 84,376 L 85,364 L 86,352 L 87,342 L 88,332 L 86,342 L 84,355 L 82,370 L 81,385 L 83,374 L 86,360 L 90,344 L 95,328 L 101,314 L 108,302 L 114,292 L 119,304 L 123,318 L 127,334 L 130,322 L 133,308 L 136,294 L 138,282 L 140,270 L 141,260 L 143,270 L 145,284 L 148,300 L 152,316 L 157,304 L 161,290 L 165,278 L 168,268 L 170,280 L 173,294 L 177,310 L 182,326 L 188,342 L 195,358 L 203,372 L 212,386 L 222,398 L 233,410 L 246,420 L 260,430 L 275,438 L 290,444 L 300,448 L 300,900 Z" fill={m1}/>
-              {/* Snow caps */}
-              <path d="M 84,358 L 88,332 L 92,352 Q 88,366 84,358 Z" fill={snow}/>
-              <path d="M 137,294 L 141,260 L 145,284 L 142,300 Q 139,306 137,294 Z" fill={snow}/>
-              <path d="M 163,286 L 168,268 L 173,286 Q 168,296 163,286 Z" fill={snow}/>
-              {/* Mid range — prominent ridge with peak */}
-              <path d="M 0,900 L 0,776 L 14,762 L 28,748 L 42,734 L 55,720 L 67,708 L 77,696 L 86,685 L 94,675 L 101,665 L 107,655 L 112,646 L 116,638 L 119,630 L 121,622 L 123,630 L 126,640 L 130,652 L 135,664 L 141,678 L 148,692 L 156,706 L 165,718 L 175,730 L 186,740 L 199,750 L 213,758 L 228,764 L 244,769 L 261,773 L 278,776 L 300,778 L 300,900 Z" fill={m2}/>
-              {/* Near foothills — rolling */}
-              <path d="M 0,900 L 0,854 L 18,846 L 38,840 L 60,835 L 84,831 L 110,828 L 138,827 L 166,828 L 192,831 L 216,835 L 238,840 L 258,845 L 276,849 L 292,853 L 300,855 L 300,900 Z" fill={m3}/>
-              {/* Atmospheric haze */}
-              <ellipse cx="180" cy="520" rx="150" ry="14" fill="rgba(175,218,242,0.06)"/>
-              <ellipse cx="150" cy="660" rx="160" ry="10" fill="rgba(175,218,242,0.05)"/>
-            </svg>
-          ) : (
-            <svg viewBox="0 0 300 900" style={{ width: '100%', height: '100%' }}/>
-          )}
-        </div>
-        <div className="side-decor side-decor-right">
-          {!dark ? (
-            <svg viewBox="0 0 300 900" preserveAspectRatio="xMinYMid slice" style={{ width: '100%', height: '100%' }}>
-              {/* Ghost range — mirrored */}
-              <path d="M 300,900 L 300,680 L 280,658 L 262,636 L 246,614 L 232,592 L 220,570 L 210,550 L 202,532 L 196,516 L 192,502 L 189,490 L 187,478 L 186,468 L 184,456 L 182,466 L 179,480 L 174,498 L 167,518 L 158,538 L 147,558 L 134,576 L 120,592 L 104,606 L 87,618 L 69,628 L 50,636 L 32,642 L 16,646 L 0,648 L 0,900 Z" fill="rgba(190,218,238,0.16)"/>
-              {/* Far range — mirrored */}
-              <path d="M 300,900 L 300,630 L 288,608 L 276,586 L 266,564 L 257,544 L 249,524 L 242,506 L 236,488 L 231,472 L 227,456 L 224,442 L 222,428 L 220,414 L 219,402 L 218,390 L 216,376 L 215,364 L 214,352 L 213,342 L 212,332 L 214,342 L 216,355 L 218,370 L 219,385 L 217,374 L 214,360 L 210,344 L 205,328 L 199,314 L 192,302 L 186,292 L 181,304 L 177,318 L 173,334 L 170,322 L 167,308 L 164,294 L 162,282 L 160,270 L 159,260 L 157,270 L 155,284 L 152,300 L 148,316 L 143,304 L 139,290 L 135,278 L 132,268 L 130,280 L 127,294 L 123,310 L 118,326 L 112,342 L 105,358 L 97,372 L 88,386 L 78,398 L 67,410 L 54,420 L 40,430 L 25,438 L 10,444 L 0,448 L 0,900 Z" fill={m1}/>
-              {/* Snow caps — mirrored */}
-              <path d="M 216,358 L 212,332 L 208,352 Q 212,366 216,358 Z" fill={snow}/>
-              <path d="M 163,294 L 159,260 L 155,284 L 158,300 Q 161,306 163,294 Z" fill={snow}/>
-              <path d="M 137,286 L 132,268 L 127,286 Q 132,296 137,286 Z" fill={snow}/>
-              {/* Mid range — mirrored */}
-              <path d="M 300,900 L 300,776 L 286,762 L 272,748 L 258,734 L 245,720 L 233,708 L 223,696 L 214,685 L 206,675 L 199,665 L 193,655 L 188,646 L 184,638 L 181,630 L 179,622 L 177,630 L 174,640 L 170,652 L 165,664 L 159,678 L 152,692 L 144,706 L 135,718 L 125,730 L 114,740 L 101,750 L 87,758 L 72,764 L 56,769 L 39,773 L 22,776 L 0,778 L 0,900 Z" fill={m2}/>
-              {/* Near foothills — mirrored */}
-              <path d="M 300,900 L 300,854 L 282,846 L 262,840 L 240,835 L 216,831 L 190,828 L 162,827 L 134,828 L 108,831 L 84,835 L 62,840 L 42,845 L 24,849 L 8,853 L 0,855 L 0,900 Z" fill={m3}/>
-              {/* Atmospheric haze */}
-              <ellipse cx="120" cy="520" rx="150" ry="14" fill="rgba(175,218,242,0.06)"/>
-              <ellipse cx="150" cy="660" rx="160" ry="10" fill="rgba(175,218,242,0.05)"/>
-            </svg>
-          ) : (
-            <svg viewBox="0 0 300 900" style={{ width: '100%', height: '100%' }}/>
-          )}
-        </div>
+        <div className="side-decor side-decor-left" />
+        <div className="side-decor side-decor-right" />
       </>
     )
   }
