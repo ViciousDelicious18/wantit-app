@@ -45,8 +45,8 @@ const styles = `
   html { background-color: #F0F4F8; }
   body { background: transparent; font-family: 'DM Sans', sans-serif; color: #0F2030; }
   .side-decor { position: fixed; top: 0; bottom: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-  .side-decor-left { left: 0; width: calc(50vw - 320px); background: url('/mountains-bg.jpg') right center / cover no-repeat; }
-  .side-decor-right { right: 0; width: calc(50vw - 320px); background: url('/mountains-bg.jpg') left center / cover no-repeat; }
+  .side-decor-left { left: 0; width: calc(50vw - 320px); background: url('/mountains-bg2.jpg') right center / cover no-repeat; }
+  .side-decor-right { right: 0; width: calc(50vw - 320px); background: url('/mountains-bg2.jpg') left center / cover no-repeat; }
   html[data-dark="true"] .side-decor-left, html[data-dark="true"] .side-decor-right { background: none; }
   @media (max-width: 720px) { .side-decor { display: none !important; } }
   ::placeholder { color: #8FA5B8; }
