@@ -1732,9 +1732,32 @@ function App() {
             )}
           </div>
         )}
-        {!hasImages && (
-          <div style={{ height: '4px', background: want.listing_type === 'service' ? 'linear-gradient(160deg, #6D28D9, #9333EA)' : 'linear-gradient(160deg, #0f8bb8, #0b6a8a)' }} />
-        )}
+        {!hasImages && (() => {
+          const isService = want.listing_type === 'service'
+          const headerBg = isService
+            ? 'linear-gradient(160deg, #5B21B6 0%, #7C3AED 50%, #9333EA 100%)'
+            : 'linear-gradient(160deg, #0b6a8a 0%, #0f8bb8 50%, #0E9FCC 100%)'
+          return (
+            <div style={{ position: 'relative', height: '60px', background: headerBg, overflow: 'hidden', borderRadius: '14px 14px 0 0' }}>
+              <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.12 }} xmlns="http://www.w3.org/2000/svg">
+                <defs><pattern id={`dots-${want.id}`} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.5" fill="#fff"/></pattern></defs>
+                <rect width="100%" height="100%" fill={`url(#dots-${want.id})`}/>
+              </svg>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px' }}>
+                <span style={{ fontSize: '12px', fontWeight: '700', color: 'rgba(255,255,255,0.88)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{isService ? 'Service' : want.category || 'Want'}</span>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {isService
+                    ? <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    : <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>
+                  }
+                </div>
+              </div>
+              <span className={`badge ${want.status === 'filled' ? 'badge-filled' : isService ? 'badge-service' : 'badge-want'}`} style={{ position: 'absolute', top: '8px', right: '50px', fontSize: '10px', zIndex: 2, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
+                {want.status === 'filled' ? 'Filled' : isService ? 'Service' : 'Want'}
+              </span>
+            </div>
+          )
+        })()}
         <div style={{ padding: '16px 18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', color: C.text, flex: 1, paddingRight: '10px', lineHeight: '1.35', textAlign: 'left' }}>{want.title}</h3>
@@ -1742,7 +1765,6 @@ function App() {
               <button onClick={e => toggleWishlist(e, want.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', lineHeight: 1 }}>
                 <svg width="16" height="16" fill={wishlists.includes(want.id) ? '#DC2626' : 'none'} stroke={wishlists.includes(want.id) ? '#DC2626' : '#B0C4D4'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
               </button>
-              {!hasImages && <span className={`badge ${want.status === 'filled' ? 'badge-filled' : want.listing_type === 'service' ? 'badge-service' : 'badge-want'}`}>{want.status === 'filled' ? 'Filled' : want.listing_type === 'service' ? 'Service' : 'Want'}</span>}
             </div>
           </div>
           {want.description && <p style={{ fontSize: '13px', color: C.textSub, lineHeight: '1.55', marginBottom: '8px', textAlign: 'left', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{want.description}</p>}
@@ -1751,7 +1773,7 @@ function App() {
             {RatingBadge({ email: want.user_email, small: true })}
           </div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px', alignItems: 'center' }}>
-            {want.budget && <span style={{ fontSize: '13px', fontWeight: '700', color: '#0E7FA8', background: dark ? 'rgba(14,127,168,0.18)' : '#E0F2FE', padding: '4px 10px', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}><svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>{want.budget}</span>}
+            {want.budget && <span style={{ fontSize: '15px', fontWeight: '800', color: dark ? '#0E9FCC' : '#0b6a8a', background: dark ? 'rgba(14,127,168,0.18)' : '#ddf0f9', padding: '4px 12px', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '4px', letterSpacing: '-0.3px' }}><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>{want.budget}</span>}
             {want.location && <span className="tag"><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>{want.location}</span>}
             {want.category && <span className="tag">{want.category}</span>}
             {want.listing_type !== 'service' && want.condition && want.condition !== 'Any' && <span style={{ fontSize: '11px', fontWeight: '600', color: conditionColour[want.condition] || '#8FA5B8', background: 'transparent', border: `1px solid ${conditionColour[want.condition] || '#C8DCE8'}`, borderRadius: '20px', padding: '2px 7px' }}>{want.condition}</span>}
@@ -1765,7 +1787,7 @@ function App() {
                   {offerCounts[want.id]} offer{offerCounts[want.id] !== 1 ? 's' : ''}
                 </span>
               ) : (
-                <span style={{ fontSize: '12px', color: C.textMuted }}>No offers yet</span>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: dark ? '#0E9FCC' : '#0E7FA8', background: dark ? 'rgba(14,127,168,0.12)' : '#EBF6FB', padding: '3px 9px', borderRadius: '20px' }}>Be first to offer →</span>
               )}
               {offerCounts[want.id] >= 3 && want.status !== 'filled' && (
                 <span style={{ fontSize: '10px', fontWeight: '700', color: '#fff', background: 'linear-gradient(135deg, #f97316, #ef4444)', padding: '2px 7px', borderRadius: '20px', letterSpacing: '0.02em' }}>🔥 Hot</span>
@@ -1802,7 +1824,7 @@ function App() {
   const FeaturedSection = () => featuredWants.length === 0 ? null : (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '10px' }}>
-        <span style={{ fontSize: '13px', fontWeight: '700', color: C.text }}>Most wanted</span>
+        <span style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontStyle: 'italic', fontSize: '18px', fontWeight: '400', color: C.text, lineHeight: 1.2 }}>Most wanted</span>
         <span style={{ fontSize: '11px', color: C.textMuted }}>top {featuredWants.length}</span>
       </div>
       <div ref={setupScrollDrag} style={{ display: 'flex', gap: '10px', overflowX: 'scroll', WebkitOverflowScrolling: 'touch', paddingBottom: '6px', scrollbarWidth: 'none', msOverflowStyle: 'none', marginLeft: '-2px' }}>
@@ -3318,7 +3340,7 @@ function App() {
         )}
 
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '600', color: C.text }}>Listings</span>
+          <span style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontStyle: 'italic', fontSize: '18px', fontWeight: '400', color: C.text, lineHeight: 1.2 }}>Listings</span>
           <span style={{ fontSize: '12px', color: C.textMuted }}>{filteredWants.length} result{filteredWants.length !== 1 ? 's' : ''}</span>
         </div>
         {loading ? [1,2,3].map(i => <SkeletonCard key={i} hasImage={i !== 2} />) : filteredWants.length === 0 ? (
