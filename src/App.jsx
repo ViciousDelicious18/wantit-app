@@ -142,7 +142,7 @@ const styles = `
   .how-step-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
   .how-step-desc { font-size: 11px; line-height: 1.4; }
 
-  @keyframes heroFloat { 0%, 100% { transform: translateY(0px) rotate(-1deg); } 50% { transform: translateY(-8px) rotate(-1deg); } }
+  @keyframes heroFloat { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
   @keyframes marqueeScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 5px 12px; font-size: 12px; color: rgba(255,255,255,0.8); font-weight: 500; margin-bottom: 18px; backdrop-filter: blur(8px); }
   .hero-mock-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 14px 16px; text-align: left; animation: heroFloat 4s ease-in-out infinite; backdrop-filter: blur(12px); max-width: 260px; margin: 28px auto 0; }
@@ -520,6 +520,12 @@ function App() {
     fetchAllRatings()
     fetchGlobalStats()
   }, [])
+
+  useEffect(() => {
+    if ((page === 'home' || page === 'browse') && wants.length === 0 && !loading) {
+      fetchWants()
+    }
+  }, [page])
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -1054,24 +1060,35 @@ function App() {
 
   async function handleAuth() {
     setAuthLoading(true); setAuthError('')
-    if (page === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) setAuthError(error.message)
-      else setPage('home')
-    } else {
-      if (!username.trim()) { setAuthError('Please choose a username'); setAuthLoading(false); return }
-      if (!agreedToTerms) { setAuthError('Please agree to the Terms of Service and Privacy Policy to create an account'); setAuthLoading(false); return }
-      const { data, error } = await supabase.auth.signUp({ email, password })
-      if (error) { setAuthError(error.message); setAuthLoading(false); return }
-      if (data.user) {
-        const refCode = generateRefCode()
-        const referredBy = localStorage.getItem('offrit_ref') || null
-        const { error: profileError } = await supabase.from('profiles').insert([{ id: data.user.id, username: username.trim().toLowerCase().replace(/\s+/g, '_'), email, referral_code: refCode, referred_by: referredBy }])
-        if (profileError) { setAuthError('Username already taken — try another'); setAuthLoading(false); return }
-        if (referredBy) localStorage.removeItem('offrit_ref')
+    const timeout = setTimeout(() => {
+      setAuthLoading(false)
+      setAuthError('Connection timed out — please try again')
+    }, 12000)
+    try {
+      if (page === 'login') {
+        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        clearTimeout(timeout)
+        if (error) setAuthError(error.message)
+        else setPage('home')
+      } else {
+        if (!username.trim()) { clearTimeout(timeout); setAuthError('Please choose a username'); setAuthLoading(false); return }
+        if (!agreedToTerms) { clearTimeout(timeout); setAuthError('Please agree to the Terms of Service and Privacy Policy to create an account'); setAuthLoading(false); return }
+        const { data, error } = await supabase.auth.signUp({ email, password })
+        clearTimeout(timeout)
+        if (error) { setAuthError(error.message); setAuthLoading(false); return }
+        if (data.user) {
+          const refCode = generateRefCode()
+          const referredBy = localStorage.getItem('offrit_ref') || null
+          const { error: profileError } = await supabase.from('profiles').insert([{ id: data.user.id, username: username.trim().toLowerCase().replace(/\s+/g, '_'), email, referral_code: refCode, referred_by: referredBy }])
+          if (profileError) { setAuthError('Username already taken — try another'); setAuthLoading(false); return }
+          if (referredBy) localStorage.removeItem('offrit_ref')
+        }
+        setAuthError('Check your email to confirm your account!')
+        setAgreedToTerms(false)
       }
-      setAuthError('Check your email to confirm your account!')
-      setAgreedToTerms(false)
+    } catch {
+      clearTimeout(timeout)
+      setAuthError('Connection error — please try again')
     }
     setAuthLoading(false)
   }
@@ -2138,17 +2155,6 @@ function App() {
         <div style={{ position: 'relative', width: '100%' }}>
           {Header()}
           <div className="hero" style={{ width: '100%', boxSizing: 'border-box' }}>
-            {/* Ambient floating category pills — light mode only */}
-            {!dark && [
-              { label: 'iPhones', style: { top: '14%', left: '6%', animationName: 'ambientDrift0', animationDuration: '8s' } },
-              { label: 'Furniture', style: { top: '28%', left: '2%', animationName: 'ambientDrift1', animationDuration: '11s', animationDelay: '1.2s' } },
-              { label: 'Cars & Vans', style: { top: '60%', left: '4%', animationName: 'ambientDrift2', animationDuration: '9.5s', animationDelay: '0.5s' } },
-              { label: 'Electronics', style: { top: '12%', right: '5%', animationName: 'ambientDrift1', animationDuration: '10s', animationDelay: '0.8s' } },
-              { label: 'Clothing', style: { top: '42%', right: '3%', animationName: 'ambientDrift0', animationDuration: '12s', animationDelay: '2s' } },
-              { label: 'Gaming', style: { top: '68%', right: '6%', animationName: 'ambientDrift2', animationDuration: '8.5s', animationDelay: '1.5s' } },
-            ].map(({ label, style }) => (
-              <div key={label} style={{ position: 'absolute', ...style, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '20px', padding: '5px 13px', fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: '500', pointerEvents: 'none', zIndex: 0, animationTimingFunction: 'ease-in-out', animationIterationCount: 'infinite' }} />
-            ))}
             <div className="hero-content">
               <div className="hero-badge gsap-h0">
                 <svg width="7" height="7" viewBox="0 0 7 7"><circle cx="3.5" cy="3.5" r="3.5" fill="#34D399"/></svg>
@@ -2214,30 +2220,16 @@ function App() {
           </div>
         </div>
 
-        <div style={{ background: C.card, borderBottom: `1px solid ${C.cardBorder}`, padding: '14px 16px', display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          {[
-            { quote: '"Got 4 offers in 30 minutes"', name: 'Sarah, Auckland' },
-            { quote: '"Way easier than Marketplace"', name: 'James, Wellington' },
-            { quote: '"Saved me hours of searching"', name: 'Priya, Christchurch' },
-          ].map(({ quote, name }) => (
-            <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: dark ? 'rgba(14,127,168,0.08)' : '#F0F8FD', borderRadius: '20px', border: `1px solid ${dark ? 'rgba(14,127,168,0.18)' : '#C8E8F5'}` }}>
-              <svg width="12" height="12" fill="#FFB800" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <span style={{ fontSize: '12px', color: C.text, fontWeight: '500' }}>{quote}</span>
-              <span style={{ fontSize: '11px', color: C.textMuted }}>— {name}</span>
-            </div>
-          ))}
-        </div>
-
         <div className="stats-strip" style={{ background: C.card, borderBottom: `1px solid ${C.cardBorder}` }}>
           <div className="stat-tile gsap-reveal" style={{ borderRight: `1px solid ${C.cardBorder}` }}>
-            <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px', opacity: 0.7 }}><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
-            <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontSize: '26px', color: '#0E7FA8', fontWeight: '400', lineHeight: 1, marginBottom: '4px' }}>Avg 3</div>
-            <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.3 }}>offers per listing</div>
+            <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px', opacity: 0.7 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontSize: '22px', color: C.text, fontWeight: '400', lineHeight: 1, marginBottom: '4px' }}>NZ only</div>
+            <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.3 }}>Every city, every island</div>
           </div>
           <div className="stat-tile gsap-reveal" style={{ borderRight: `1px solid ${C.cardBorder}` }}>
-            <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px', opacity: 0.7 }}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontSize: '26px', color: '#0E7FA8', fontWeight: '400', lineHeight: 1, marginBottom: '4px' }}>2 hrs</div>
-            <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.3 }}>avg to first offer</div>
+            <svg width="20" height="20" fill="none" stroke="#0E9A6E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px', opacity: 0.85 }}><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontSize: '22px', color: C.text, fontWeight: '400', lineHeight: 1, marginBottom: '4px' }}>Free to post</div>
+            <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.3 }}>Sellers come to you</div>
           </div>
           <div className="stat-tile gsap-reveal">
             <svg width="20" height="20" fill="none" stroke="#0E9A6E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px' }}><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
