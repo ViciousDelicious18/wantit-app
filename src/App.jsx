@@ -33,9 +33,6 @@
  */
 import { useState, useEffect, useRef, useCallback, Fragment, useMemo } from 'react'
 import { supabase } from './supabase'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-gsap.registerPlugin(ScrollTrigger)
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap');
@@ -152,7 +149,8 @@ const styles = `
   .reveal.delay-2 { transition-delay: 0.14s; }
   .reveal.delay-3 { transition-delay: 0.21s; }
   .marquee-strip { overflow: hidden; -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%); mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%); }
-  .marquee-track { display: flex; gap: 10px; width: max-content; animation: marqueeScroll 32s linear infinite; }
+  .marquee-track { display: flex; gap: 10px; width: max-content; animation: marqueeScroll 32s linear infinite; will-change: transform; }
+  @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } .hero-headline, .hero-sub, .gsap-h0, .gsap-h1, .gsap-h2, .gsap-h3, .gsap-h4 { opacity: 1 !important; transform: none !important; } }
   .marquee-strip:hover .marquee-track { animation-play-state: paused; }
   .marquee-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; white-space: nowrap; border: 1.5px solid #D6E4EF; background: #fff; color: #4A6278; flex-shrink: 0; }
 
@@ -626,18 +624,23 @@ function App() {
 
   useEffect(() => {
     if (page !== 'landing') return
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
-    tl.fromTo('.gsap-h0', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 })
-      .fromTo('.gsap-h1', { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.65 }, '-=0.3')
-      .fromTo('.gsap-h2', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.35')
-      .fromTo('.gsap-h3', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45 }, '-=0.25')
-      .fromTo('.gsap-h4', { opacity: 0, y: 30, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.65 }, '-=0.2')
-    ScrollTrigger.batch('.gsap-reveal', {
-      onEnter: batch => gsap.fromTo(batch, { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.55, stagger: 0.09, ease: 'power2.out' }),
-      once: true,
-      start: 'top 90%'
+    let cleanup = () => {}
+    Promise.all([import('gsap'), import('gsap/ScrollTrigger')]).then(([{ gsap: g }, { ScrollTrigger: ST }]) => {
+      g.registerPlugin(ST)
+      const tl = g.timeline({ defaults: { ease: 'power3.out' } })
+      tl.fromTo('.gsap-h0', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 })
+        .fromTo('.gsap-h1', { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.65 }, '-=0.3')
+        .fromTo('.gsap-h2', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.35')
+        .fromTo('.gsap-h3', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45 }, '-=0.25')
+        .fromTo('.gsap-h4', { opacity: 0, y: 30, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.65 }, '-=0.2')
+      ST.batch('.gsap-reveal', {
+        onEnter: batch => g.fromTo(batch, { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.55, stagger: 0.09, ease: 'power2.out' }),
+        once: true,
+        start: 'top 90%'
+      })
+      cleanup = () => { tl.kill(); ST.getAll().forEach(t => t.kill()) }
     })
-    return () => { tl.kill(); ScrollTrigger.getAll().forEach(t => t.kill()) }
+    return () => cleanup()
   }, [page])
 
   useEffect(() => {
@@ -1601,11 +1604,11 @@ function App() {
   const C = dark ? {
     bg: '#0B1829', card: '#112240', cardBorder: '#1E3A5F', text: '#CCD6F6',
     textSub: '#8892B0', textMuted: '#4A6080', accentText: '#0E9FCC',
-    headerBg: 'rgba(10,25,47,0.95)', navBg: 'rgba(10,25,47,0.97)',
+    headerBg: '#0A192F', navBg: '#0A192F',
   } : {
     bg: '#F0F4F8', card: '#FFFFFF', cardBorder: '#D6E4EF', text: '#0F2030',
     textSub: '#4A6278', textMuted: '#8FA5B8', accentText: '#0E7FA8',
-    headerBg: 'rgba(255,255,255,0.88)', navBg: 'rgba(255,255,255,0.92)',
+    headerBg: '#FFFFFF', navBg: '#FFFFFF',
   }
   const pageStyle = { minHeight: '100vh', background: 'transparent', color: C.text, fontFamily: "'DM Sans', sans-serif", paddingBottom: user ? '72px' : '0', overflowX: 'hidden', width: '100%' }
   const inner = { maxWidth: '640px', margin: '0 auto', padding: '20px 16px', width: '100%', boxSizing: 'border-box' }
@@ -1635,7 +1638,7 @@ function App() {
   const Header = ({ transparent = false } = {}) => (
     <>
       {SideDecor()}
-      <div className="app-header" style={{ background: transparent ? 'transparent' : C.headerBg, backdropFilter: transparent ? 'none' : 'blur(14px)', borderBottom: transparent ? 'none' : `1px solid ${C.cardBorder}`, boxShadow: transparent ? 'none' : '0 1px 12px rgba(14,127,168,0.08)', padding: '0 16px', position: 'sticky', top: 0, zIndex: 20, width: '100%' }}>
+      <div className="app-header" style={{ background: transparent ? 'transparent' : C.headerBg, borderBottom: transparent ? 'none' : `1px solid ${C.cardBorder}`, boxShadow: transparent ? 'none' : '0 1px 12px rgba(14,127,168,0.08)', padding: '0 16px', position: 'sticky', top: 0, zIndex: 20, width: '100%' }}>
         <div style={{ maxWidth: '640px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div onClick={() => setPage(user ? 'home' : 'landing')} style={{ display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer' }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: 'linear-gradient(160deg, #0f8bb8, #0b6a8a)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(14,127,168,0.35)' }}>
@@ -1700,7 +1703,7 @@ function App() {
   const BottomNav = () => {
     if (!user) return null
     return (
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: C.navBg, backdropFilter: 'blur(16px)', borderTop: `1px solid ${C.cardBorder}`, display: 'flex', zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: C.navBg, borderTop: `1px solid ${C.cardBorder}`, display: 'flex', zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <button className="nav-btn" onClick={() => { setPage('home'); setSelectedWant(null) }}>
           <svg width="20" height="20" fill="none" stroke={['home','want'].includes(page) ? '#0E7FA8' : '#8FA5B8'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           <span className="nav-label" style={{ color: ['home','want'].includes(page) ? '#0E7FA8' : '#8FA5B8' }}>Browse</span>
@@ -1737,7 +1740,7 @@ function App() {
           <div style={{ position: 'relative', height: '185px', overflow: 'hidden', borderRadius: '14px 14px 0 0' }}>
             <img src={want.images[imgIdx]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 55%, rgba(15,32,48,0.22) 100%)', pointerEvents: 'none' }} />
-            <span className={`badge ${want.status === 'filled' ? 'badge-filled' : want.listing_type === 'service' ? 'badge-service' : 'badge-want'}`} style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 2, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
+            <span className={`badge ${want.status === 'filled' ? 'badge-filled' : want.listing_type === 'service' ? 'badge-service' : 'badge-want'}`} style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 2 }}>
               {want.status === 'filled' ? 'Filled' : want.listing_type === 'service' ? 'Service' : 'Want'}
             </span>
             {want.images.length > 1 && (
@@ -1764,14 +1767,14 @@ function App() {
               </svg>
               <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px' }}>
                 <span style={{ fontSize: '12px', fontWeight: '700', color: 'rgba(255,255,255,0.88)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{isService ? 'Service' : want.category || 'Want'}</span>
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {isService
                     ? <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                     : <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>
                   }
                 </div>
               </div>
-              <span className={`badge ${want.status === 'filled' ? 'badge-filled' : isService ? 'badge-service' : 'badge-want'}`} style={{ position: 'absolute', top: '8px', right: '50px', fontSize: '10px', zIndex: 2, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
+              <span className={`badge ${want.status === 'filled' ? 'badge-filled' : isService ? 'badge-service' : 'badge-want'}`} style={{ position: 'absolute', top: '8px', right: '50px', fontSize: '10px', zIndex: 2 }}>
                 {want.status === 'filled' ? 'Filled' : isService ? 'Service' : 'Want'}
               </span>
             </div>
@@ -2185,7 +2188,7 @@ function App() {
                       <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34D399', flexShrink: 0, animation: 'livePulse 2.4s ease-in-out infinite' }} />
                       <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', letterSpacing: '0.02em' }}>Real listings · avg 3 offers per post</span>
                     </div>
-                  <div style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: '18px', padding: '20px 22px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', animation: 'heroFloat 4.5s ease-in-out infinite', textAlign: 'left', transition: 'opacity 0.4s ease' }}>
+                  <div style={{ background: 'rgba(15,32,48,0.72)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: '18px', padding: '20px 22px', animation: 'heroFloat 4.5s ease-in-out infinite', textAlign: 'left', transition: 'opacity 0.4s ease' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                         <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: `linear-gradient(135deg, ${d.g1}, ${d.g2})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '700', color: '#fff', flexShrink: 0 }}>{d.initials}</div>
