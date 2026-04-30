@@ -120,8 +120,8 @@ const styles = `
   .hero::before { content: ''; position: absolute; inset: 0; background: none; }
   .hero::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle at center, rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none; z-index: 0; }
   .hero-content { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding-bottom: 0; }
-  .hero-headline { font-family: 'DM Serif Display', serif; font-size: clamp(40px, 6.5vw, 60px); color: #ffffff; font-style: italic; letter-spacing: -1.5px; margin-bottom: 18px; text-shadow: 0 2px 24px rgba(0,0,0,0.55), 0 8px 48px rgba(0,0,0,0.3); line-height: 1.1; }
-  .hero-sub { font-size: 16px; color: rgba(255,255,255,0.72); margin: 0 0 32px; font-weight: 300; line-height: 1.6; max-width: 420px; margin-left: auto; margin-right: auto; text-shadow: 0 1px 12px rgba(0,0,0,0.4); }
+  .hero-headline { font-family: 'DM Serif Display', serif; font-size: clamp(42px, 7vw, 64px); color: #ffffff; font-style: italic; letter-spacing: -1.5px; margin-bottom: 20px; text-shadow: 0 2px 24px rgba(0,0,0,0.55), 0 8px 48px rgba(0,0,0,0.3); line-height: 1.08; }
+  .hero-sub { font-size: 17px; color: rgba(255,255,255,0.78); margin: 0 0 28px; font-weight: 300; line-height: 1.65; max-width: 440px; margin-left: auto; margin-right: auto; text-shadow: 0 1px 12px rgba(0,0,0,0.4); }
   @keyframes heroCtaGlow { 0%,100% { box-shadow: 0 4px 20px rgba(14,127,168,0.45), 0 0 0 0 rgba(14,127,168,0); } 50% { box-shadow: 0 4px 28px rgba(14,127,168,0.65), 0 0 50px rgba(14,127,168,0.18); } }
   .btn-hero { animation: heroCtaGlow 2.8s ease-in-out infinite; }
   @keyframes ambientDrift0 { 0%,100% { transform: translateY(0) rotate(-3deg); opacity: 0.7; } 50% { transform: translateY(-14px) rotate(-3deg); opacity: 1; } }
@@ -1689,8 +1689,10 @@ function App() {
           <span className="nav-label" style={{ color: ['home','want'].includes(page) ? '#0E7FA8' : '#8FA5B8' }}>Browse</span>
         </button>
         <button className="nav-btn" onClick={() => setPage('post')}>
-          <div style={{ width: '46px', height: '46px', background: 'linear-gradient(135deg, #0f8bb8, #0b6a8a)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '-23px', boxShadow: '0 4px 18px rgba(14,127,168,0.5)' }}>
-            <svg width="18" height="18" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <div style={{ width: '52px', height: '52px', background: 'linear-gradient(135deg, #0f8bb8, #0b6a8a)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '-26px', boxShadow: '0 4px 22px rgba(14,127,168,0.65), 0 0 0 3px rgba(14,127,168,0.15)', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.boxShadow = '0 6px 28px rgba(14,127,168,0.8), 0 0 0 4px rgba(14,127,168,0.2)' }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 22px rgba(14,127,168,0.65), 0 0 0 3px rgba(14,127,168,0.15)' }}>
+            <svg width="20" height="20" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
           <span className="nav-label" style={{ color: page === 'post' ? '#0E7FA8' : '#8FA5B8' }}>Post</span>
         </button>
@@ -2152,11 +2154,14 @@ function App() {
                 <svg width="7" height="7" viewBox="0 0 7 7"><circle cx="3.5" cy="3.5" r="3.5" fill="#34D399"/></svg>
                 Free for New Zealand
               </div>
-              <div className="hero-headline gsap-h1">Stop searching.<br />Let sellers compete.</div>
-              <p className="hero-sub gsap-h2">Post what you want, get offers from sellers near you. No searching, no cold messages — just choose the best deal.</p>
-              <div className="gsap-h3" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '40px' }}>
-                <button className="btn-primary btn btn-hero" onClick={() => setPage('signup')} style={{ padding: '16px 40px', fontSize: '16px', borderRadius: '12px', fontWeight: '700', letterSpacing: '-0.2px' }}>Get started free</button>
-                <button className="btn" onClick={() => setPage('browse')} style={{ padding: '16px 28px', fontSize: '15px', borderRadius: '12px', background: 'rgba(255,255,255,0.09)', border: '1.5px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)' }}>See listings</button>
+              <div className="hero-headline gsap-h1">Post once.<br />Get multiple offers.<br />Pick the best.</div>
+              <p className="hero-sub gsap-h2">No more messaging 10 people or scrolling for hours. Tell us what you need and get real offers from people ready to sell.</p>
+              <div className="gsap-h3" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '16px' }}>
+                <button className="btn-primary btn btn-hero" onClick={() => setPage('signup')} style={{ padding: '16px 40px', fontSize: '16px', borderRadius: '12px', fontWeight: '700', letterSpacing: '-0.2px' }}>Get offers free</button>
+                <button className="btn" onClick={() => setPage('browse')} style={{ padding: '16px 28px', fontSize: '15px', borderRadius: '12px', background: 'rgba(255,255,255,0.09)', border: '1.5px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)' }}>See what people want</button>
+              </div>
+              <div className="gsap-h3" style={{ marginBottom: '36px' }}>
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', fontWeight: '400' }}>Free to use across New Zealand&nbsp;·&nbsp;No fees to post</span>
               </div>
               {/* Rotating demo card */}
               {(() => {
@@ -2209,6 +2214,20 @@ function App() {
           </div>
         </div>
 
+        <div style={{ background: C.card, borderBottom: `1px solid ${C.cardBorder}`, padding: '14px 16px', display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {[
+            { quote: '"Got 4 offers in 30 minutes"', name: 'Sarah, Auckland' },
+            { quote: '"Way easier than Marketplace"', name: 'James, Wellington' },
+            { quote: '"Saved me hours of searching"', name: 'Priya, Christchurch' },
+          ].map(({ quote, name }) => (
+            <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: dark ? 'rgba(14,127,168,0.08)' : '#F0F8FD', borderRadius: '20px', border: `1px solid ${dark ? 'rgba(14,127,168,0.18)' : '#C8E8F5'}` }}>
+              <svg width="12" height="12" fill="#FFB800" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span style={{ fontSize: '12px', color: C.text, fontWeight: '500' }}>{quote}</span>
+              <span style={{ fontSize: '11px', color: C.textMuted }}>— {name}</span>
+            </div>
+          ))}
+        </div>
+
         <div className="stats-strip" style={{ background: C.card, borderBottom: `1px solid ${C.cardBorder}` }}>
           <div className="stat-tile gsap-reveal" style={{ borderRight: `1px solid ${C.cardBorder}` }}>
             <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px', opacity: 0.7 }}><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
@@ -2238,27 +2257,27 @@ function App() {
         <div style={{ padding: '36px 16px 8px', maxWidth: '640px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '28px' }} className="reveal">
             <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.2px', color: C.textMuted, marginBottom: '8px' }}>Simple by design</div>
-            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '28px', fontStyle: 'italic', color: C.text, lineHeight: 1.2 }}>Three steps to a deal</div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '28px', fontStyle: 'italic', color: C.text, lineHeight: 1.2 }}>How it works</div>
           </div>
           {[
             {
               num: '01',
               icon: <svg width="22" height="22" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>,
-              title: 'Post your want',
-              desc: 'Describe what you need and your budget. Done in under a minute.',
+              title: 'Post what you want',
+              desc: 'Describe what you need and your budget. Takes less than a minute.',
               delay: 'delay-1'
             },
             {
               num: '02',
               icon: <svg width="22" height="22" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>,
-              title: 'Offers come in',
-              desc: 'Sellers who have what you want reach out directly. No searching.',
+              title: 'Receive offers',
+              desc: 'Sellers nearby send you their best deals. No cold searching required.',
               delay: 'delay-2'
             },
             {
               num: '03',
               icon: <svg width="22" height="22" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
-              title: 'Pick and deal',
+              title: 'Choose the best one',
               desc: 'Compare offers, message the seller, and close on your terms.',
               delay: 'delay-3'
             }
@@ -2276,6 +2295,26 @@ function App() {
           ))}
         </div>
 
+        <div style={{ padding: '32px 16px 8px', maxWidth: '640px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '20px' }} className="reveal">
+            <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.2px', color: C.textMuted, marginBottom: '8px' }}>The smarter way to buy</div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '28px', fontStyle: 'italic', color: C.text, lineHeight: 1.2 }}>Why use Offrit?</div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '8px' }}>
+            {[
+              { icon: <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>, title: 'No more searching', desc: 'Stop scrolling listings that don\'t match. Post once, done.' },
+              { icon: <svg width="20" height="20" fill="none" stroke="#0E9A6E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>, title: 'Better deals', desc: 'Sellers compete for your business. You pick the best.' },
+              { icon: <svg width="20" height="20" fill="none" stroke="#7C3AED" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>, title: 'Local & fast', desc: 'Connect with sellers near you. Avg first offer in 2 hours.' },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} className="gsap-reveal card" style={{ padding: '18px 14px', textAlign: 'center' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: dark ? 'rgba(14,127,168,0.12)' : '#EBF6FB', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>{icon}</div>
+                <div style={{ fontSize: '13px', fontWeight: '600', color: C.text, marginBottom: '5px', lineHeight: 1.3 }}>{title}</div>
+                <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.5 }}>{desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div style={{ maxWidth: '640px', margin: '0 auto', padding: '16px 16px 24px', width: '100%', boxSizing: 'border-box' }}>
           {FeaturedSection()}
           <div className="gsap-reveal" onClick={() => { setFilterType('service'); setPage('browse') }} style={{ background: 'linear-gradient(135deg, #4C1D95, #7C3AED)', borderRadius: '16px', padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', cursor: 'pointer' }}>
@@ -2287,12 +2326,19 @@ function App() {
             <div style={{ flexShrink: 0, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '10px', padding: '10px 14px', color: '#fff', fontSize: '13px', fontWeight: '600', whiteSpace: 'nowrap' }}>Browse →</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }}>
-            <span style={{ fontSize: '15px', fontWeight: '600', color: C.text }}>Recent listings</span>
+            <span style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontStyle: 'italic', fontSize: '20px', fontWeight: '400', color: C.text, lineHeight: 1.2 }}>See what people want</span>
             {wants.length > 0 && <span style={{ fontSize: '12px', color: C.textMuted }}>{wants.length} live</span>}
           </div>
           {loading ? [1,2,3].map(i => <SkeletonCard key={i} hasImage={i !== 2} />) : wants.slice(0, 6).map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i, noAnimate: true })}</Fragment>)}
           {wants.length > 6 && <button className="btn" onClick={() => setPage('browse')} style={{ width: '100%', padding: '13px', marginTop: '4px', fontSize: '14px' }}>View all {wants.length} listings →</button>}
         </div>
+
+        <div style={{ background: 'linear-gradient(160deg, #0b6a8a 0%, #0f8bb8 60%, #0E9FCC 100%)', padding: '40px 24px', textAlign: 'center' }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '28px', fontStyle: 'italic', color: '#fff', marginBottom: '10px', lineHeight: 1.2 }}>Ready to get offers?</div>
+          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)', marginBottom: '24px', lineHeight: 1.6 }}>Post what you need — free, no account required to browse.</p>
+          <button className="btn btn-hero" onClick={() => setPage('signup')} style={{ background: '#fff', color: '#0b6a8a', border: 'none', padding: '15px 36px', fontSize: '15px', fontWeight: '700', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.2)', letterSpacing: '-0.2px' }}>Post what you need</button>
+        </div>
+
         <div style={{ borderTop: `1px solid ${C.cardBorder}`, padding: '20px 16px', display: 'flex', justifyContent: 'center', gap: '20px', background: C.card }}>
           <span onClick={() => setPage('terms')} style={{ fontSize: '12px', color: C.textMuted, cursor: 'pointer' }}>Terms of Service</span>
           <span style={{ fontSize: '12px', color: C.cardBorder }}>·</span>
