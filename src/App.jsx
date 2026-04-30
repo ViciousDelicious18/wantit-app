@@ -435,6 +435,7 @@ function App() {
   // Image carousel on cards
   const [cardImgIndexes, setCardImgIndexes] = useState({})
   const [globalDeals, setGlobalDeals] = useState(0)
+  const [demoIdx, setDemoIdx] = useState(0)
   const [profileResponseRate, setProfileResponseRate] = useState(null)
   const [dealRatingModal, setDealRatingModal] = useState(null)
   const [dealRatingScore, setDealRatingScore] = useState(0)
@@ -608,6 +609,12 @@ function App() {
     document.addEventListener('click', addRipple)
     return () => document.removeEventListener('click', addRipple)
   }, [])
+
+  useEffect(() => {
+    if (page !== 'landing') return
+    const iv = setInterval(() => setDemoIdx(i => (i + 1) % 5), 3500)
+    return () => clearInterval(iv)
+  }, [page])
 
   useEffect(() => {
     if (page !== 'landing') return
@@ -1602,21 +1609,22 @@ function App() {
       <>
         <div className="side-decor side-decor-left">
           {!dark ? (
-            /* YMid: SVG centred vertically. At 1366×768 viewport, panel=363px wide,
-               scale=1.21, rendered SVG=363×1089. Visible y = (1089-768)/2/1.21 ≈ 132 to 768.
-               Mountain peaks at y≈370 appear clearly in upper portion of the visible strip. */
             <svg viewBox="0 0 300 900" preserveAspectRatio="xMaxYMid slice" style={{ width: '100%', height: '100%' }}>
-              {/* Far range — sharp NZ-style peaks with L-command tips */}
-              <path d="M 0,900 L 0,658 Q 20,634 42,606 Q 64,576 82,548 Q 98,522 110,498 Q 120,478 126,462 Q 130,448 132,436 Q 134,424 135,412 Q 136,400 137,390 L 141,368 Q 146,388 152,408 Q 158,428 165,442 Q 171,454 176,446 L 181,430 Q 187,448 196,470 Q 207,494 222,514 Q 240,534 262,548 Q 280,558 294,564 L 300,567 L 300,900 Z" fill={m1}/>
-              {/* Snow caps at the two L-command peaks */}
-              <path d="M 136,392 L 141,368 L 147,390 Q 141,400 136,392 Z" fill={snow}/>
-              <path d="M 176,448 L 181,430 L 186,448 Q 181,456 176,448 Z" fill={snow}/>
-              {/* Mid range */}
-              <path d="M 0,900 L 0,768 Q 30,748 62,726 Q 92,706 114,688 Q 130,676 138,668 Q 143,662 146,656 L 150,642 Q 154,656 161,672 Q 171,692 186,708 Q 206,726 232,740 Q 258,752 280,760 L 300,764 L 300,900 Z" fill={m2}/>
-              {/* Near foothills */}
-              <path d="M 0,900 L 0,848 Q 54,836 114,828 Q 158,822 188,822 Q 218,822 252,828 Q 278,832 296,836 L 300,837 L 300,900 Z" fill={m3}/>
-              {/* Valley haze */}
-              <ellipse cx="195" cy="498" rx="140" ry="16" fill="rgba(175,218,242,0.07)"/>
+              {/* Ghost range — very distant, barely visible */}
+              <path d="M 0,900 L 0,680 L 20,658 L 38,636 L 54,614 L 68,592 L 80,570 L 90,550 L 98,532 L 104,516 L 108,502 L 111,490 L 113,478 L 114,468 L 116,456 L 118,466 L 121,480 L 126,498 L 133,518 L 142,538 L 153,558 L 166,576 L 180,592 L 196,606 L 213,618 L 231,628 L 250,636 L 268,642 L 284,646 L 300,648 L 300,900 Z" fill="rgba(190,218,238,0.16)"/>
+              {/* Far range — 3 distinct jagged peaks */}
+              <path d="M 0,900 L 0,630 L 12,608 L 24,586 L 34,564 L 43,544 L 51,524 L 58,506 L 64,488 L 69,472 L 73,456 L 76,442 L 78,428 L 80,414 L 81,402 L 82,390 L 84,376 L 85,364 L 86,352 L 87,342 L 88,332 L 86,342 L 84,355 L 82,370 L 81,385 L 83,374 L 86,360 L 90,344 L 95,328 L 101,314 L 108,302 L 114,292 L 119,304 L 123,318 L 127,334 L 130,322 L 133,308 L 136,294 L 138,282 L 140,270 L 141,260 L 143,270 L 145,284 L 148,300 L 152,316 L 157,304 L 161,290 L 165,278 L 168,268 L 170,280 L 173,294 L 177,310 L 182,326 L 188,342 L 195,358 L 203,372 L 212,386 L 222,398 L 233,410 L 246,420 L 260,430 L 275,438 L 290,444 L 300,448 L 300,900 Z" fill={m1}/>
+              {/* Snow caps */}
+              <path d="M 84,358 L 88,332 L 92,352 Q 88,366 84,358 Z" fill={snow}/>
+              <path d="M 137,294 L 141,260 L 145,284 L 142,300 Q 139,306 137,294 Z" fill={snow}/>
+              <path d="M 163,286 L 168,268 L 173,286 Q 168,296 163,286 Z" fill={snow}/>
+              {/* Mid range — prominent ridge with peak */}
+              <path d="M 0,900 L 0,776 L 14,762 L 28,748 L 42,734 L 55,720 L 67,708 L 77,696 L 86,685 L 94,675 L 101,665 L 107,655 L 112,646 L 116,638 L 119,630 L 121,622 L 123,630 L 126,640 L 130,652 L 135,664 L 141,678 L 148,692 L 156,706 L 165,718 L 175,730 L 186,740 L 199,750 L 213,758 L 228,764 L 244,769 L 261,773 L 278,776 L 300,778 L 300,900 Z" fill={m2}/>
+              {/* Near foothills — rolling */}
+              <path d="M 0,900 L 0,854 L 18,846 L 38,840 L 60,835 L 84,831 L 110,828 L 138,827 L 166,828 L 192,831 L 216,835 L 238,840 L 258,845 L 276,849 L 292,853 L 300,855 L 300,900 Z" fill={m3}/>
+              {/* Atmospheric haze */}
+              <ellipse cx="180" cy="520" rx="150" ry="14" fill="rgba(175,218,242,0.06)"/>
+              <ellipse cx="150" cy="660" rx="160" ry="10" fill="rgba(175,218,242,0.05)"/>
             </svg>
           ) : (
             <svg viewBox="0 0 300 900" style={{ width: '100%', height: '100%' }}/>
@@ -1625,17 +1633,21 @@ function App() {
         <div className="side-decor side-decor-right">
           {!dark ? (
             <svg viewBox="0 0 300 900" preserveAspectRatio="xMinYMid slice" style={{ width: '100%', height: '100%' }}>
-              {/* Far range — mirrored (x → 300-x) */}
-              <path d="M 300,900 L 300,658 Q 280,634 258,606 Q 236,576 218,548 Q 202,522 190,498 Q 180,478 174,462 Q 170,448 168,436 Q 166,424 165,412 Q 164,400 163,390 L 159,368 Q 154,388 148,408 Q 142,428 135,442 Q 129,454 124,446 L 119,430 Q 113,448 104,470 Q 93,494 78,514 Q 60,534 38,548 Q 20,558 6,564 L 0,567 L 0,900 Z" fill={m1}/>
+              {/* Ghost range — mirrored */}
+              <path d="M 300,900 L 300,680 L 280,658 L 262,636 L 246,614 L 232,592 L 220,570 L 210,550 L 202,532 L 196,516 L 192,502 L 189,490 L 187,478 L 186,468 L 184,456 L 182,466 L 179,480 L 174,498 L 167,518 L 158,538 L 147,558 L 134,576 L 120,592 L 104,606 L 87,618 L 69,628 L 50,636 L 32,642 L 16,646 L 0,648 L 0,900 Z" fill="rgba(190,218,238,0.16)"/>
+              {/* Far range — mirrored */}
+              <path d="M 300,900 L 300,630 L 288,608 L 276,586 L 266,564 L 257,544 L 249,524 L 242,506 L 236,488 L 231,472 L 227,456 L 224,442 L 222,428 L 220,414 L 219,402 L 218,390 L 216,376 L 215,364 L 214,352 L 213,342 L 212,332 L 214,342 L 216,355 L 218,370 L 219,385 L 217,374 L 214,360 L 210,344 L 205,328 L 199,314 L 192,302 L 186,292 L 181,304 L 177,318 L 173,334 L 170,322 L 167,308 L 164,294 L 162,282 L 160,270 L 159,260 L 157,270 L 155,284 L 152,300 L 148,316 L 143,304 L 139,290 L 135,278 L 132,268 L 130,280 L 127,294 L 123,310 L 118,326 L 112,342 L 105,358 L 97,372 L 88,386 L 78,398 L 67,410 L 54,420 L 40,430 L 25,438 L 10,444 L 0,448 L 0,900 Z" fill={m1}/>
               {/* Snow caps — mirrored */}
-              <path d="M 164,392 L 159,368 L 153,390 Q 159,400 164,392 Z" fill={snow}/>
-              <path d="M 124,448 L 119,430 L 114,448 Q 119,456 124,448 Z" fill={snow}/>
+              <path d="M 216,358 L 212,332 L 208,352 Q 212,366 216,358 Z" fill={snow}/>
+              <path d="M 163,294 L 159,260 L 155,284 L 158,300 Q 161,306 163,294 Z" fill={snow}/>
+              <path d="M 137,286 L 132,268 L 127,286 Q 132,296 137,286 Z" fill={snow}/>
               {/* Mid range — mirrored */}
-              <path d="M 300,900 L 300,768 Q 270,748 238,726 Q 208,706 186,688 Q 170,676 162,668 Q 157,662 154,656 L 150,642 Q 146,656 139,672 Q 129,692 114,708 Q 94,726 68,740 Q 42,752 20,760 L 0,764 L 0,900 Z" fill={m2}/>
+              <path d="M 300,900 L 300,776 L 286,762 L 272,748 L 258,734 L 245,720 L 233,708 L 223,696 L 214,685 L 206,675 L 199,665 L 193,655 L 188,646 L 184,638 L 181,630 L 179,622 L 177,630 L 174,640 L 170,652 L 165,664 L 159,678 L 152,692 L 144,706 L 135,718 L 125,730 L 114,740 L 101,750 L 87,758 L 72,764 L 56,769 L 39,773 L 22,776 L 0,778 L 0,900 Z" fill={m2}/>
               {/* Near foothills — mirrored */}
-              <path d="M 300,900 L 300,848 Q 246,836 186,828 Q 142,822 112,822 Q 82,822 48,828 Q 22,832 4,836 L 0,837 L 0,900 Z" fill={m3}/>
-              {/* Valley haze */}
-              <ellipse cx="105" cy="498" rx="140" ry="16" fill="rgba(175,218,242,0.07)"/>
+              <path d="M 300,900 L 300,854 L 282,846 L 262,840 L 240,835 L 216,831 L 190,828 L 162,827 L 134,828 L 108,831 L 84,835 L 62,840 L 42,845 L 24,849 L 8,853 L 0,855 L 0,900 Z" fill={m3}/>
+              {/* Atmospheric haze */}
+              <ellipse cx="120" cy="520" rx="150" ry="14" fill="rgba(175,218,242,0.06)"/>
+              <ellipse cx="150" cy="660" rx="160" ry="10" fill="rgba(175,218,242,0.05)"/>
             </svg>
           ) : (
             <svg viewBox="0 0 300 900" style={{ width: '100%', height: '100%' }}/>
@@ -2144,8 +2156,8 @@ function App() {
         <div style={{ position: 'relative', width: '100%' }}>
           {Header()}
           <div className="hero" style={{ width: '100%', boxSizing: 'border-box' }}>
-            {/* Ambient floating category pills */}
-            {[
+            {/* Ambient floating category pills — light mode only */}
+            {!dark && [
               { label: 'iPhones', style: { top: '14%', left: '6%', animationName: 'ambientDrift0', animationDuration: '8s' } },
               { label: 'Furniture', style: { top: '28%', left: '2%', animationName: 'ambientDrift1', animationDuration: '11s', animationDelay: '1.2s' } },
               { label: 'Cars & Vans', style: { top: '60%', left: '4%', animationName: 'ambientDrift2', animationDuration: '9.5s', animationDelay: '0.5s' } },
@@ -2166,32 +2178,44 @@ function App() {
                 <button className="btn-primary btn btn-hero" onClick={() => setPage('signup')} style={{ padding: '14px 32px', fontSize: '15px', borderRadius: '12px', fontWeight: '600' }}>Get started free</button>
                 <button className="btn" onClick={() => setPage('browse')} style={{ padding: '14px 28px', fontSize: '15px', borderRadius: '12px', background: 'rgba(255,255,255,0.09)', border: '1.5px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)' }}>Browse listings</button>
               </div>
-              {/* Rich mock card */}
-              <div className="gsap-h4" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: '18px', padding: '18px 20px', maxWidth: '300px', margin: '0 auto', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', animation: 'heroFloat 4.5s ease-in-out infinite', textAlign: 'left' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                    <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: 'linear-gradient(135deg, #0E7FA8, #0E9A6E)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '700', color: '#fff' }}>S</div>
-                    <div>
-                      <div style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(255,255,255,0.85)', lineHeight: 1 }}>Samsung Galaxy S24</div>
-                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.38)', marginTop: '2px' }}>Wellington · Budget $650</div>
+              {/* Rotating demo card */}
+              {(() => {
+                const demos = [
+                  { initials: 'S', g1: '#0E7FA8', g2: '#0E9A6E', title: 'Samsung Galaxy S24', meta: 'Wellington · Budget $650', offers: 4, prices: ['$590','$620','$648'], time: 'Posted 2 hours ago' },
+                  { initials: 'L', g1: '#7C3AED', g2: '#0E7FA8', title: 'Lawn mower — ride-on', meta: 'Auckland · Budget $200', offers: 3, prices: ['$160','$175','$190'], time: 'Posted 45 mins ago' },
+                  { initials: 'M', g1: '#0E9A6E', g2: '#0A6588', title: 'MacBook Pro 14"', meta: 'Christchurch · Budget $1,800', offers: 5, prices: ['$1,550','$1,650','$1,720'], time: 'Posted 1 hour ago' },
+                  { initials: 'C', g1: '#D97706', g2: '#0E7FA8', title: 'Couch — 3 seater', meta: 'Hamilton · Budget $350', offers: 3, prices: ['$280','$310','$335'], time: 'Posted 3 hours ago' },
+                  { initials: 'K', g1: '#0E9A6E', g2: '#7C3AED', title: 'Kids bike 20"', meta: 'Tauranga · Budget $80', offers: 2, prices: ['$55','$70','$72'], time: 'Posted 30 mins ago' },
+                ]
+                const d = demos[demoIdx]
+                return (
+                  <div className="gsap-h4" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: '18px', padding: '18px 20px', maxWidth: '300px', margin: '0 auto', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', animation: 'heroFloat 4.5s ease-in-out infinite', textAlign: 'left', transition: 'opacity 0.4s ease' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                        <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: `linear-gradient(135deg, ${d.g1}, ${d.g2})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '700', color: '#fff', flexShrink: 0 }}>{d.initials}</div>
+                        <div>
+                          <div style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(255,255,255,0.85)', lineHeight: 1 }}>{d.title}</div>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.38)', marginTop: '2px' }}>{d.meta}</div>
+                        </div>
+                      </div>
+                      <span style={{ fontSize: '10px', fontWeight: '700', background: 'rgba(52,211,153,0.18)', border: '1px solid rgba(52,211,153,0.3)', borderRadius: '20px', padding: '3px 9px', color: '#34D399', flexShrink: 0 }}>{d.offers} offers</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
+                      {d.prices.map((price, i) => (
+                        <div key={i} style={{ flex: 1, background: i === 0 ? 'rgba(52,211,153,0.15)' : 'rgba(255,255,255,0.05)', border: `1px solid ${i === 0 ? 'rgba(52,211,153,0.3)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '8px', padding: '6px 4px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '12px', fontWeight: '700', color: i === 0 ? '#34D399' : 'rgba(255,255,255,0.5)' }}>{price}</div>
+                          {i === 0 && <div style={{ fontSize: '9px', color: 'rgba(52,211,153,0.7)', marginTop: '1px' }}>Best</div>}
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', marginBottom: '10px' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>{d.time}</div>
+                      <div style={{ fontSize: '10px', fontWeight: '600', color: '#0E9FCC', background: 'rgba(14,127,168,0.2)', borderRadius: '6px', padding: '3px 8px' }}>View offers →</div>
                     </div>
                   </div>
-                  <span style={{ fontSize: '10px', fontWeight: '700', background: 'rgba(52,211,153,0.18)', border: '1px solid rgba(52,211,153,0.3)', borderRadius: '20px', padding: '3px 9px', color: '#34D399' }}>4 offers</span>
-                </div>
-                <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
-                  {[{ price: '$590', best: true }, { price: '$620', best: false }, { price: '$648', best: false }].map(({ price, best }) => (
-                    <div key={price} style={{ flex: 1, background: best ? 'rgba(52,211,153,0.15)' : 'rgba(255,255,255,0.05)', border: `1px solid ${best ? 'rgba(52,211,153,0.3)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '8px', padding: '6px 4px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '12px', fontWeight: '700', color: best ? '#34D399' : 'rgba(255,255,255,0.5)' }}>{price}</div>
-                      {best && <div style={{ fontSize: '9px', color: 'rgba(52,211,153,0.7)', marginTop: '1px' }}>Best</div>}
-                    </div>
-                  ))}
-                </div>
-                <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', marginBottom: '10px' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Posted 2 hours ago</div>
-                  <div style={{ fontSize: '10px', fontWeight: '600', color: '#0E9FCC', background: 'rgba(14,127,168,0.2)', borderRadius: '6px', padding: '3px 8px' }}>View offers →</div>
-                </div>
-              </div>
+                )
+              })()}
             </div>
             <svg viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', width: '100%', height: '56px', marginTop: '40px', marginBottom: '-1px' }}>
               <path d="M0,28 C240,56 480,0 720,28 C960,56 1200,0 1440,28 L1440,56 L0,56 Z" fill={C.card}/>
@@ -2207,8 +2231,8 @@ function App() {
           </div>
           <div className="stat-tile gsap-reveal" style={{ borderRight: `1px solid ${C.cardBorder}` }}>
             <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px', opacity: 0.7 }}><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
-            <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontSize: '20px', color: C.text, fontWeight: '400', lineHeight: 1, marginBottom: '4px' }}>Always free</div>
-            <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.3 }}>No fees, no commissions</div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontSize: '20px', color: C.text, fontWeight: '400', lineHeight: 1, marginBottom: '4px' }}>Sellers find you</div>
+            <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.3 }}>Post a want, they come to you</div>
           </div>
           <div className="stat-tile gsap-reveal">
             <svg width="20" height="20" fill="none" stroke="#0E9A6E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px' }}><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
