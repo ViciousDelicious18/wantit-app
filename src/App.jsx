@@ -225,8 +225,8 @@ const styles = `
   html[data-dark="true"] input, html[data-dark="true"] textarea, html[data-dark="true"] select { background: #0A192F; border-color: #1E3A5F; color: #CCD6F6; }
   html[data-dark="true"] input:focus, html[data-dark="true"] textarea:focus, html[data-dark="true"] select:focus { border-color: #0E9FCC; box-shadow: 0 0 0 3px rgba(14,159,204,0.15); }
   html[data-dark="true"] ::placeholder { color: #4A6080; }
-  html[data-dark="true"] .card { background: #112240 !important; border-color: #1E3A5F !important; box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 10px 36px rgba(0,0,0,0.45) !important; }
-  html[data-dark="true"] .card-hover:hover { border-color: #0E7FA8 !important; box-shadow: 0 6px 16px rgba(0,0,0,0.45), 0 18px 48px rgba(0,0,0,0.55) !important; }
+  html[data-dark="true"] .card { background: #0f1f3a !important; border-color: #2a4a6e !important; box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 10px 36px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(42,74,110,0.6) !important; }
+  html[data-dark="true"] .card-hover:hover { border-color: #0E7FA8 !important; box-shadow: 0 6px 16px rgba(0,0,0,0.5), 0 18px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(14,127,168,0.3) !important; }
   html[data-dark="true"] .btn { background: #112240; border-color: #1E3A5F; color: #CCD6F6; }
   html[data-dark="true"] .btn:hover { background: #0A3060; border-color: #0E7FA8; color: #0E9FCC; }
   html[data-dark="true"] .btn-primary { background: #0E7FA8 !important; color: #fff !important; border-color: #0E7FA8 !important; }
@@ -2152,11 +2152,11 @@ function App() {
                 <svg width="7" height="7" viewBox="0 0 7 7"><circle cx="3.5" cy="3.5" r="3.5" fill="#34D399"/></svg>
                 Free for New Zealand
               </div>
-              <div className="hero-headline gsap-h1">Tell sellers what<br />you want.</div>
-              <p className="hero-sub gsap-h2">Post what you're after. Sellers in your area send offers. You pick the best one.</p>
+              <div className="hero-headline gsap-h1">Stop searching.<br />Let sellers compete.</div>
+              <p className="hero-sub gsap-h2">Post what you want, get offers from sellers near you. No searching, no cold messages — just choose the best deal.</p>
               <div className="gsap-h3" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '40px' }}>
-                <button className="btn-primary btn btn-hero" onClick={() => setPage('signup')} style={{ padding: '14px 32px', fontSize: '15px', borderRadius: '12px', fontWeight: '600' }}>Get started free</button>
-                <button className="btn" onClick={() => setPage('browse')} style={{ padding: '14px 28px', fontSize: '15px', borderRadius: '12px', background: 'rgba(255,255,255,0.09)', border: '1.5px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)' }}>Browse listings</button>
+                <button className="btn-primary btn btn-hero" onClick={() => setPage('signup')} style={{ padding: '16px 40px', fontSize: '16px', borderRadius: '12px', fontWeight: '700', letterSpacing: '-0.2px' }}>Get started free</button>
+                <button className="btn" onClick={() => setPage('browse')} style={{ padding: '16px 28px', fontSize: '15px', borderRadius: '12px', background: 'rgba(255,255,255,0.09)', border: '1.5px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)' }}>See listings</button>
               </div>
               {/* Rotating demo card */}
               {(() => {
@@ -2169,7 +2169,12 @@ function App() {
                 ]
                 const d = demos[demoIdx]
                 return (
-                  <div className="gsap-h4" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: '18px', padding: '18px 20px', maxWidth: '300px', margin: '0 auto', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', animation: 'heroFloat 4.5s ease-in-out infinite', textAlign: 'left', transition: 'opacity 0.4s ease' }}>
+                  <div className="gsap-h4" style={{ maxWidth: '360px', margin: '0 auto' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34D399', flexShrink: 0, animation: 'livePulse 2.4s ease-in-out infinite' }} />
+                      <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', letterSpacing: '0.02em' }}>Real listings · avg 3 offers per post</span>
+                    </div>
+                  <div style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: '18px', padding: '20px 22px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', animation: 'heroFloat 4.5s ease-in-out infinite', textAlign: 'left', transition: 'opacity 0.4s ease' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                         <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: `linear-gradient(135deg, ${d.g1}, ${d.g2})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '700', color: '#fff', flexShrink: 0 }}>{d.initials}</div>
@@ -2194,6 +2199,7 @@ function App() {
                       <div style={{ fontSize: '10px', fontWeight: '600', color: '#0E9FCC', background: 'rgba(14,127,168,0.2)', borderRadius: '6px', padding: '3px 8px' }}>View offers →</div>
                     </div>
                   </div>
+                  </div>
                 )
               })()}
             </div>
@@ -2205,14 +2211,14 @@ function App() {
 
         <div className="stats-strip" style={{ background: C.card, borderBottom: `1px solid ${C.cardBorder}` }}>
           <div className="stat-tile gsap-reveal" style={{ borderRight: `1px solid ${C.cardBorder}` }}>
-            <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px', opacity: 0.7 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontSize: '20px', color: C.text, fontWeight: '400', lineHeight: 1, marginBottom: '4px' }}>NZ only</div>
-            <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.3 }}>Every city, every island</div>
+            <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px', opacity: 0.7 }}><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontSize: '26px', color: '#0E7FA8', fontWeight: '400', lineHeight: 1, marginBottom: '4px' }}>Avg 3</div>
+            <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.3 }}>offers per listing</div>
           </div>
           <div className="stat-tile gsap-reveal" style={{ borderRight: `1px solid ${C.cardBorder}` }}>
-            <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px', opacity: 0.7 }}><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
-            <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontSize: '20px', color: C.text, fontWeight: '400', lineHeight: 1, marginBottom: '4px' }}>Sellers find you</div>
-            <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.3 }}>Post a want, they come to you</div>
+            <svg width="20" height="20" fill="none" stroke="#0E7FA8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px', opacity: 0.7 }}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontSize: '26px', color: '#0E7FA8', fontWeight: '400', lineHeight: 1, marginBottom: '4px' }}>2 hrs</div>
+            <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.3 }}>avg to first offer</div>
           </div>
           <div className="stat-tile gsap-reveal">
             <svg width="20" height="20" fill="none" stroke="#0E9A6E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '8px' }}><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
@@ -2221,7 +2227,7 @@ function App() {
           </div>
         </div>
 
-        <div className="marquee-strip" style={{ background: C.bg, padding: '16px 0' }}>
+        <div className="marquee-strip" style={{ background: C.bg, padding: '12px 0', opacity: 0.7 }}>
           <div className="marquee-track">
             {marqueeDouble.map((cat, i) => (
               <div key={i} className="marquee-pill" style={{ background: C.card, borderColor: C.cardBorder, color: C.textSub }}>{cat}</div>
