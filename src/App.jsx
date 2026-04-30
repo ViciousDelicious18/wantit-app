@@ -3229,6 +3229,25 @@ function App() {
       )}
       {refreshing && <div className="pull-indicator">Refreshing…</div>}
 
+      {tickerWants.length >= 4 && (
+        <div className="ticker-strip" style={{ background: C.card, borderBottom: `1px solid ${C.cardBorder}`, paddingTop: '8px', paddingBottom: '8px' }}>
+          <div className="ticker-track">
+            {[...tickerWants, ...tickerWants].map((w, i) => {
+              const mins = Math.floor((Date.now() - new Date(w.created_at)) / 60000)
+              const age = mins < 60 ? `${mins}m ago` : mins < 1440 ? `${Math.floor(mins / 60)}h ago` : `${Math.floor(mins / 1440)}d ago`
+              return (
+                <div key={i} className="ticker-item" onClick={() => openWant(w)} style={{ color: C.textSub }}>
+                  <span className="live-dot" />
+                  <span style={{ color: C.text, fontWeight: '500' }}>{w.title}</span>
+                  <span style={{ color: C.textMuted, fontSize: '11px' }}>· {w.location} · {age}</span>
+                  <span className="ticker-sep">·</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="greeting-bar">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
           <div style={{ fontSize: '19px', fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', color: C.text, lineHeight: 1.2 }}>
@@ -3267,25 +3286,6 @@ function App() {
           {todayCount > 0 ? `${todayCount} new listing${todayCount !== 1 ? 's' : ''} posted today` : 'Browse what people are looking for'}
         </div>
       </div>
-
-      {tickerWants.length >= 4 && (
-        <div className="ticker-strip" style={{ paddingBottom: '10px' }}>
-          <div className="ticker-track">
-            {[...tickerWants, ...tickerWants].map((w, i) => {
-              const mins = Math.floor((Date.now() - new Date(w.created_at)) / 60000)
-              const age = mins < 60 ? `${mins}m ago` : mins < 1440 ? `${Math.floor(mins / 60)}h ago` : `${Math.floor(mins / 1440)}d ago`
-              return (
-                <div key={i} className="ticker-item" onClick={() => openWant(w)} style={{ color: C.textSub }}>
-                  <span className="live-dot" />
-                  <span style={{ color: C.text, fontWeight: '500' }}>{w.title}</span>
-                  <span style={{ color: C.textMuted, fontSize: '11px' }}>· {w.location} · {age}</span>
-                  <span className="ticker-sep">·</span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
 
       <div style={inner}>
         {notifications.length > 0 && (
