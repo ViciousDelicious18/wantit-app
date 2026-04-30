@@ -2692,14 +2692,30 @@ function App() {
           <div className="card fade-up" style={{ marginBottom: '14px', overflow: 'hidden' }}>
             {hasImages
               ? <div className="img-gallery-full" style={{ padding: '14px 14px 0' }}>{selectedWant.images.map((url, i) => <img key={i} src={url} alt="" onClick={() => setLightboxImg(url)} />)}</div>
-              : <div style={{ height: '5px', background: `linear-gradient(90deg, ${accentColor}, ${isService ? '#9F67FF' : '#0b6a8a'})` }} />
+              : (() => {
+                  const hBg = isService
+                    ? 'linear-gradient(160deg, #5B21B6 0%, #7C3AED 50%, #9333EA 100%)'
+                    : 'linear-gradient(160deg, #0b6a8a 0%, #0f8bb8 50%, #0E9FCC 100%)'
+                  return (
+                    <div style={{ position: 'relative', height: '72px', background: hBg, overflow: 'hidden' }}>
+                      <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.1 }} xmlns="http://www.w3.org/2000/svg">
+                        <defs><pattern id="hdr-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.5" fill="#fff"/></pattern></defs>
+                        <rect width="100%" height="100%" fill="url(#hdr-dots)"/>
+                      </svg>
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '0 20px', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '13px', fontWeight: '700', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{isService ? 'Service' : selectedWant.category || 'Want'}</span>
+                        <span className={`badge ${selectedWant.status === 'filled' ? 'badge-filled' : isService ? 'badge-service' : 'badge-want'}`} style={{ fontSize: '11px' }}>
+                          {selectedWant.status === 'filled' ? 'Filled' : isService ? 'Service' : 'Want'}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })()
             }
             <div style={{ padding: '20px 22px 22px' }}>
               <div style={{ marginBottom: '12px' }}>
-                <span className={`badge ${selectedWant.status === 'filled' ? 'badge-filled' : isService ? 'badge-service' : 'badge-want'}`} style={{ marginBottom: '8px', display: 'inline-flex' }}>
-                  {selectedWant.status === 'filled' ? 'Filled' : isService ? 'Service' : 'Want'}
-                </span>
-                <h2 style={{ fontSize: '21px', fontWeight: '700', color: C.text, lineHeight: '1.3', fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', marginTop: '6px' }}>{selectedWant.title}</h2>
+                {hasImages && <span className={`badge ${selectedWant.status === 'filled' ? 'badge-filled' : isService ? 'badge-service' : 'badge-want'}`} style={{ marginBottom: '8px', display: 'inline-flex' }}>{selectedWant.status === 'filled' ? 'Filled' : isService ? 'Service' : 'Want'}</span>}
+                <h2 style={{ fontSize: '22px', fontWeight: '700', color: C.text, lineHeight: '1.3', fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', marginTop: hasImages ? '6px' : '0' }}>{selectedWant.title}</h2>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
                 {selectedWant.budget && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 11px', borderRadius: '20px', fontSize: '13px', fontWeight: '700', color: accentColor, background: accentBg, border: `1px solid ${accentBorder}` }}><svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>{selectedWant.budget}</span>}
@@ -2758,7 +2774,7 @@ function App() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: offerCounts[selectedWant.id] > 0 ? '10px' : '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <svg width="16" height="16" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
-                  <h3 style={{ fontSize: '15px', fontWeight: '600', color: C.text }}>Make an offer</h3>
+                  <h3 style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontSize: '18px', fontWeight: '400', color: C.text }}>Make an offer</h3>
                 </div>
                 {offerCounts[selectedWant.id] > 0 && (
                   <span style={{ fontSize: '11px', fontWeight: '600', color: '#D97706', background: dark ? '#2A1A00' : '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '20px', padding: '3px 9px' }}>
@@ -2774,7 +2790,7 @@ function App() {
               <input placeholder={isService ? 'Your price — e.g. $80/hr or $150 flat' : 'Your price — e.g. $250'} value={offerPrice} onChange={e => setOfferPrice(e.target.value)} style={{ marginBottom: '10px' }} />
               <textarea placeholder={isService ? 'Your experience, availability, tools or equipment…' : 'Describe what you have — condition, photos, pickup…'} value={offerMessage} onChange={e => setOfferMessage(e.target.value)} rows={3} style={{ marginBottom: '14px', resize: 'vertical' }} maxLength={2000} />
               <button className="btn btn-primary" onClick={submitOffer} disabled={!offerMessage || submittingOffer} style={{ width: '100%', padding: '13px', fontSize: '14px', background: isService ? 'linear-gradient(160deg, #7C3AED, #5B21B6)' : undefined, borderColor: isService ? '#5B21B6' : undefined }}>
-                {submittingOffer ? 'Submitting…' : 'Submit offer'}
+                {submittingOffer ? 'Sending…' : 'Send my offer →'}
               </button>
             </div>
           ) : !user ? (
@@ -2787,15 +2803,15 @@ function App() {
           ) : null}
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: C.text }}>Offers</span>
-            {offers.length > 0 && <span style={{ background: '#0E9A6E', color: '#fff', fontSize: '11px', fontWeight: '700', borderRadius: '20px', padding: '2px 9px' }}>{offers.length}</span>}
+            <span style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontStyle: 'italic', fontSize: '20px', fontWeight: '400', color: C.text, lineHeight: 1.2 }}>Offers</span>
+            {offers.length > 0 && <span style={{ background: '#0E9A6E', color: '#fff', fontSize: '11px', fontWeight: '700', borderRadius: '20px', padding: '3px 11px' }}>{offers.length} offer{offers.length !== 1 ? 's' : ''}</span>}
           </div>
 
           {offers.length === 0 && (
             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
               <svg width="32" height="32" fill="none" stroke={C.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '10px', opacity: 0.5 }}><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
               <p style={{ fontSize: '14px', fontWeight: '600', color: C.text, marginBottom: '4px' }}>No offers yet</p>
-              <p style={{ fontSize: '13px', color: C.textMuted }}>Be the first to make one</p>
+              <p style={{ fontSize: '13px', color: C.textMuted }}>Be the first seller to reach out</p>
             </div>
           )}
 
@@ -2923,8 +2939,11 @@ function App() {
         <style>{styles}</style>
         {Header()}
         <div style={inner}>
-          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', fontStyle: 'italic', color: C.text, marginBottom: '16px', lineHeight: 1.25 }}>
-            {listingType === 'service' ? 'Post a job' : 'Post a want'}
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', fontStyle: 'italic', color: C.text, lineHeight: 1.25, marginBottom: '4px' }}>
+              {listingType === 'service' ? 'Post a job' : 'Post a want'}
+            </div>
+            <p style={{ fontSize: '13px', color: C.textMuted }}>Tell sellers what you need — they'll come to you with offers.</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
             <div onClick={() => { setListingType('item'); setCategory(''); setEstimatedHours('') }} style={{ padding: '16px 14px', borderRadius: '14px', border: `2px solid ${listingType === 'item' ? '#0E7FA8' : C.cardBorder}`, background: listingType === 'item' ? (dark ? 'rgba(14,127,168,0.12)' : '#EBF6FB') : C.card, cursor: 'pointer', transition: 'all 0.15s', boxShadow: listingType === 'item' ? '0 0 0 3px rgba(14,127,168,0.1)' : 'none' }}>
@@ -2940,10 +2959,13 @@ function App() {
           </div>
 
           <div className="card fade-up" style={{ padding: '20px', marginBottom: '10px' }}>
-            <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '12px' }}>The basics</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px' }}>What do you need?</div>
+              <span style={{ fontSize: '11px', color: title.length > 90 ? '#D97706' : C.textMuted }}>{title.length}/120</span>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <input placeholder={listingType === 'service' ? 'e.g. Lawns mowed — small Ponsonby section' : 'e.g. Road bike under $300, any colour'} value={title} onChange={e => setTitle(e.target.value)} maxLength={120} />
-              <textarea placeholder={listingType === 'service' ? 'Describe the job — location, access, tools needed…' : 'More details — brand, size, specs (optional)'} value={description} onChange={e => setDescription(e.target.value)} rows={3} style={{ resize: 'vertical' }} maxLength={2000} />
+              <textarea placeholder={listingType === 'service' ? 'Describe the job — location, access, tools needed…' : 'More details — brand, size, specs, what condition you\'d accept (optional)'} value={description} onChange={e => setDescription(e.target.value)} rows={3} style={{ resize: 'vertical' }} maxLength={2000} />
             </div>
           </div>
 
@@ -2984,9 +3006,12 @@ function App() {
             {ImageUploader()}
           </div>
 
-          <button className="btn btn-primary" onClick={postWant} disabled={!title || posting} style={{ width: '100%', padding: '15px', fontSize: '15px', borderRadius: '14px', marginBottom: '24px', background: listingType === 'service' ? 'linear-gradient(160deg, #7C3AED, #5B21B6)' : undefined, borderColor: listingType === 'service' ? '#5B21B6' : undefined }}>
-            {uploadingImages ? 'Uploading images…' : posting ? 'Posting…' : listingType === 'service' ? 'Post job' : 'Post listing'}
+          <button className="btn btn-primary" onClick={postWant} disabled={!title || posting} style={{ width: '100%', padding: '15px', fontSize: '15px', borderRadius: '14px', marginBottom: '10px', background: listingType === 'service' ? 'linear-gradient(160deg, #7C3AED, #5B21B6)' : undefined, borderColor: listingType === 'service' ? '#5B21B6' : undefined }}>
+            {uploadingImages ? 'Uploading images…' : posting ? 'Posting…' : listingType === 'service' ? 'Post job — get offers' : 'Post listing — get offers'}
           </button>
+          <p style={{ textAlign: 'center', fontSize: '12px', color: C.textMuted, marginBottom: '24px' }}>
+            Free to post · visible to sellers across NZ instantly
+          </p>
         </div>
         {BottomNav()}
       </div>
