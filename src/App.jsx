@@ -1784,7 +1784,8 @@ function App() {
     const username = getUsername(want.user_email)
     const SWATCH = { Electronics:'#D8E8F0','Sport & Outdoors':'#D4EAD8',Vehicles:'#E0DAD4',Furniture:'#EAE0D4',Clothing:'#EED4D8',Tools:'#EDE4D0',Music:'#E4D4EE',Other:'#E8E4DC' }
     const swatchBg = dark ? '#2A2218' : (want.listing_type === 'service' ? '#F5EBDF' : (SWATCH[want.category] || '#E8E4DC'))
-    const swatchLetter = (want.category || want.listing_type || 'O')[0].toUpperCase()
+    const ICON_COLOR = dark ? '#8A7E6E' : { Electronics:'#1E5470','Sport & Outdoors':'#3F6F4E',Vehicles:'#7A5A48',Furniture:'#8A6838',Clothing:'#8A3838',Tools:'#7A6838',Music:'#6B4878' }[want.category] || '#7A6F5C'
+    const IS = { width:22,height:22,fill:'none',stroke:ICON_COLOR,strokeWidth:1.6,strokeLinecap:'round',strokeLinejoin:'round',viewBox:'0 0 24 24' }
     return (
       <div className={noAnimate ? 'card card-hover' : `card card-hover reveal delay-${(index % 3) + 1}`} onClick={() => openWant(want)} style={{ marginBottom: '8px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden', cursor: 'pointer', display: 'flex', minHeight: 100 }}>
         {/* Left thumb */}
@@ -1796,7 +1797,15 @@ function App() {
             </>
           ) : (
             <div style={{ width: '100%', height: '100%', background: swatchBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 30, color: dark ? '#8A7E6E' : '#9B8E7C', lineHeight: 1, fontStyle: 'italic' }}>{swatchLetter}</span>
+              {want.listing_type === 'service' ? <svg {...IS}><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+              : want.category === 'Electronics' ? <svg {...IS}><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+              : want.category === 'Sport & Outdoors' ? <svg {...IS}><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M15 5a1 1 0 100-2 1 1 0 000 2zm-3 13V14l-3-3 4-3 2 3h2"/></svg>
+              : want.category === 'Vehicles' ? <svg {...IS}><path d="M19 17H5a2 2 0 01-2-2V9l3-6h10l3 6v6a2 2 0 01-2 2z"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg>
+              : want.category === 'Furniture' ? <svg {...IS}><path d="M3 10V6a2 2 0 012-2h14a2 2 0 012 2v4"/><path d="M3 10a2 2 0 100 4h18a2 2 0 100-4"/><line x1="5" y1="14" x2="5" y2="19"/><line x1="19" y1="14" x2="19" y2="19"/></svg>
+              : want.category === 'Clothing' ? <svg {...IS}><polyline points="9 11 12 14 15 11"/><path d="M9 3H5l-3 7h4v11h16V10h4l-3-7h-4a3 3 0 01-6 0z"/></svg>
+              : want.category === 'Tools' ? <svg {...IS}><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+              : want.category === 'Music' ? <svg {...IS}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              : <svg {...IS}><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>}
             </div>
           )}
           {want.listing_type === 'service' && want.status !== 'filled' && (
@@ -1822,10 +1831,13 @@ function App() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${C.cardBorder}`, paddingTop: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={{ fontSize: '11px', color: offerCounts[want.id] ? '#3F6F4E' : '#7A6F5C', fontWeight: offerCounts[want.id] ? 600 : 400 }}>
-                {offerCounts[want.id] ? `${offerCounts[want.id]} offer${offerCounts[want.id] !== 1 ? 's' : ''}` : 'No offers yet'}
-              </span>
-              {offerCounts[want.id] >= 3 && want.status !== 'filled' && <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', fontWeight: 600, color: '#A86A1A', letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Hot</span>}
+              {offerCounts[want.id] > 0 ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: dark ? '#1A2E1F' : '#EDFAF4', color: '#3F6F4E', borderRadius: 20, padding: '2px 8px', fontSize: '11px', fontWeight: 700 }}>
+                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#3F6F4E', display: 'inline-block', flexShrink: 0 }} />
+                  {offerCounts[want.id]} offer{offerCounts[want.id] !== 1 ? 's' : ''}
+                  {offerCounts[want.id] >= 3 && want.status !== 'filled' && <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', color: '#A86A1A' }}> · Hot</span>}
+                </span>
+              ) : null}
             </div>
             {want.status !== 'filled' && <span style={{ fontSize: '11px', fontWeight: 600, color: dark ? '#7FA8B8' : '#1E5470' }}>Offer →</span>}
           </div>
@@ -2187,7 +2199,7 @@ function App() {
               <p className="hero-sub gsap-h2">Post once. Sellers across NZ come to you with offers.</p>
               <div className="gsap-h3" style={{ marginBottom: '40px' }}>
                 <button className="btn-primary btn btn-hero" onClick={() => setPage('signup')} style={{ padding: '18px 48px', fontSize: '17px', borderRadius: '12px', fontWeight: '700', letterSpacing: '-0.2px' }}>Post what you need</button>
-                <button onClick={() => setPage('login')} style={{ display: 'block', margin: '16px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.65)', fontSize: '13px', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif" }}>or browse listings ↓</button>
+                <button onClick={() => setPage('login')} style={{ display: 'block', margin: '18px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.85)', fontSize: '15px', fontWeight: '500', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '-0.1px' }}>or browse listings ↓</button>
               </div>
             </div>
             <svg viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', width: '100%', height: '56px', marginTop: '40px', marginBottom: '-1px' }}>
@@ -2891,9 +2903,15 @@ function App() {
             </div>
             <p style={{ fontSize: '13px', color: C.textMuted }}>Tell sellers what you need — they'll come to you with offers.</p>
           </div>
-          <div style={{ display: 'inline-flex', border: `1.5px solid ${C.cardBorder}`, borderRadius: '8px', overflow: 'hidden', marginBottom: '18px' }}>
-            <button onClick={() => { setListingType('item'); setCategory(''); setEstimatedHours('') }} style={{ padding: '7px 18px', background: listingType === 'item' ? '#16110A' : 'transparent', color: listingType === 'item' ? '#F6F4EE' : C.textSub, border: 'none', cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '600', letterSpacing: '0.08em', textTransform: 'uppercase', transition: 'all 0.15s' }}>Buy item</button>
-            <button onClick={() => { setListingType('service'); setCategory(''); setCondition('') }} style={{ padding: '7px 18px', background: listingType === 'service' ? '#A0522D' : 'transparent', color: listingType === 'service' ? '#F6F4EE' : C.textSub, border: 'none', borderLeft: `1px solid ${C.cardBorder}`, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '600', letterSpacing: '0.08em', textTransform: 'uppercase', transition: 'all 0.15s' }}>Hire service</button>
+          <div style={{ display: 'flex', border: `1.5px solid ${C.cardBorder}`, borderRadius: '12px', overflow: 'hidden', marginBottom: '24px' }}>
+            <button onClick={() => { setListingType('item'); setCategory(''); setEstimatedHours('') }} style={{ flex: 1, padding: '14px 20px', background: listingType === 'item' ? '#16110A' : C.card, color: listingType === 'item' ? '#F6F4EE' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '600', fontFamily: "'Inter', system-ui, sans-serif", transition: 'all 0.15s' }}>
+              Buy item
+              {listingType === 'item' && <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '400', opacity: 0.65, marginTop: 2 }}>Want something specific</div>}
+            </button>
+            <button onClick={() => { setListingType('service'); setCategory(''); setCondition('') }} style={{ flex: 1, padding: '14px 20px', background: listingType === 'service' ? '#A0522D' : C.card, color: listingType === 'service' ? '#F6F4EE' : C.textSub, border: 'none', borderLeft: `1.5px solid ${C.cardBorder}`, cursor: 'pointer', fontSize: '14px', fontWeight: '600', fontFamily: "'Inter', system-ui, sans-serif", transition: 'all 0.15s' }}>
+              Hire service
+              {listingType === 'service' && <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '400', opacity: 0.65, marginTop: 2 }}>Get quotes from locals</div>}
+            </button>
           </div>
 
           <div className="card fade-up" style={{ padding: '20px', marginBottom: '10px' }}>
@@ -2944,11 +2962,11 @@ function App() {
             {ImageUploader()}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: '12px', padding: '14px 18px', marginBottom: '24px' }}>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '600', color: '#7A6F5C', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Free · NZ-wide</div>
-            <button className="btn btn-primary" onClick={postWant} disabled={!title || posting} style={{ padding: '12px 28px', fontSize: '14px', background: listingType === 'service' ? '#A0522D' : '#16110A', borderColor: listingType === 'service' ? '#A0522D' : '#16110A' }}>
-              {uploadingImages ? 'Uploading…' : posting ? 'Posting…' : 'Post listing →'}
+          <div style={{ marginBottom: '24px' }}>
+            <button className="btn btn-primary" onClick={postWant} disabled={!title || posting} style={{ width: '100%', padding: '16px', fontSize: '15px', fontWeight: '700', background: listingType === 'service' ? '#A0522D' : '#16110A', borderColor: listingType === 'service' ? '#A0522D' : '#16110A', borderRadius: '12px' }}>
+              {uploadingImages ? 'Uploading…' : posting ? 'Posting…' : (listingType === 'service' ? 'Post job →' : 'Post listing →')}
             </button>
+            <div style={{ textAlign: 'center', marginTop: 10, fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: C.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Free · Visible across NZ</div>
           </div>
         </div>
         {BottomNav()}
@@ -3030,15 +3048,12 @@ function App() {
                     </div>
                   )}
                   <div className="divider" style={{ marginBottom: '14px' }} />
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                     <button className="btn" onClick={() => openWant(want)} style={{ fontSize: '12px' }}>View offers →</button>
-                    <button className="btn" onClick={() => openEditModal(want)} style={{ fontSize: '12px' }}>
-                      <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                      Edit
-                    </button>
-                    {want.status !== 'filled' && <button className="btn btn-green" onClick={() => markFilled(want.id)} style={{ fontSize: '12px' }}><svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Mark filled</button>}
-                    {want.status !== 'filled' && <button className="btn" onClick={() => bumpListing(want.id)} style={{ fontSize: '12px', borderColor: '#D4B8A0', color: '#A0522D', background: dark ? '#2A1A0A' : '#F5EBDF' }}>↑ Bump</button>}
-                    <button className="btn btn-red" onClick={() => deleteWant(want.id)} style={{ fontSize: '12px' }}>Delete</button>
+                    <button className="btn" onClick={() => openEditModal(want)} style={{ fontSize: '12px' }}>Edit</button>
+                    {want.status !== 'filled' && <button className="btn btn-green" onClick={() => markFilled(want.id)} style={{ fontSize: '12px' }}>Mark filled</button>}
+                    {want.status !== 'filled' && <button onClick={() => bumpListing(want.id)} style={{ padding: '8px 16px', background: '#1E5470', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif" }}>↑ Bump</button>}
+                    <button onClick={() => deleteWant(want.id)} style={{ background: 'none', border: 'none', color: '#9B3232', fontSize: '12px', cursor: 'pointer', padding: '8px 4px', fontFamily: "'Inter', system-ui, sans-serif", textDecoration: 'underline' }}>Delete</button>
                   </div>
                 </div>
               ))}
