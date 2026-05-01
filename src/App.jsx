@@ -177,10 +177,15 @@ const styles = `
   .greeting-bar { padding: 14px 16px 0; max-width: 640px; margin: 0 auto; width: 100%; box-sizing: border-box; }
   .home-alert { display: flex; align-items: center; gap: 10px; border-radius: 12px; padding: 11px 14px; margin-bottom: 12px; cursor: pointer; }
 
-  .filter-chip { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1.5px solid #E8E2D5; background: #fff; color: #3D3528; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
-  .filter-chip.active { background: #1E5470; color: #fff; border-color: #1E5470; }
-  .filter-chip:hover { border-color: #1E5470; }
-  .chips-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; max-width: 100%; }
+  .filter-chip { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px; font-size: 13px; font-weight: 500; border: none; background: transparent; color: #7A6F5C; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
+  .filter-chip.active { background: #16110A; color: #F6F4EE; padding: 6px 14px; }
+  .filter-chip:hover { color: #3D3528; }
+  .filter-toolbar-chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; min-height: 36px; background: transparent; border: 1px solid #E8E2D5; border-radius: 8px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.04em; color: #3D3528; cursor: pointer; white-space: nowrap; }
+  .filter-toolbar-chip span { color: #7A6F5C; }
+  .filter-divider { height: 1px; background: #E8E2D5; margin: 8px 0 12px; }
+  .no-photo-placeholder { height: 110px; background: #F6F4EE; border: 1px dashed #E8E2D5; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0.12em; color: #7A6F5C; }
+  .post-pill { width: 28px; height: 28px; border-radius: 6px; background: #16110A; color: #F6F4EE; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; line-height: 1; }
+  .chips-row { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; max-width: 100%; }
   .chips-row::-webkit-scrollbar { display: none; }
 
   .skeleton { background: linear-gradient(90deg, #EDE6D6 25%, #F0EBDB 50%, #EDE6D6 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
@@ -251,9 +256,14 @@ const styles = `
   html[data-dark="true"] .badge-service { background: #5A3D24; color: #E2C9AD; }
   html[data-dark="true"] .badge-filled { background: #241E16; color: #7A6E5E; }
   html[data-dark="true"] .badge-accepted { background: #2A2218; color: #C9A87A; }
-  html[data-dark="true"] .filter-chip { background: #241E16; border-color: #3A2F22; color: #F0EBE0; }
-  html[data-dark="true"] .filter-chip:hover { border-color: #7FA8B8; }
-  html[data-dark="true"] .filter-chip.active { background: #2F4858; border-color: #7FA8B8; color: #F0EBE0; }
+  html[data-dark="true"] .filter-chip { background: transparent; border: none; color: #8A7E6E; }
+  html[data-dark="true"] .filter-chip:hover { color: #F0EBE0; }
+  html[data-dark="true"] .filter-chip.active { background: #F0EBE0; color: #1A1612; }
+  html[data-dark="true"] .filter-toolbar-chip { border-color: #3A2F22; color: #F0EBE0; }
+  html[data-dark="true"] .filter-toolbar-chip span { color: #8A7E6E; }
+  html[data-dark="true"] .filter-divider { background: #3A2F22; }
+  html[data-dark="true"] .no-photo-placeholder { background: #1A1612; border-color: #3A2F22; color: #8A7E6E; }
+  html[data-dark="true"] .post-pill { background: #F0EBE0; color: #1A1612; }
   html[data-dark="true"] .divider { background: #3A2F22; }
   html[data-dark="true"] .skeleton { background: linear-gradient(90deg, #241E16 25%, #2F2820 50%, #241E16 75%); background-size: 200% 100%; }
   html[data-dark="true"] .modal { background: #241E16; }
@@ -266,6 +276,14 @@ const styles = `
   html[data-dark="true"] .img-thumb { border-color: #3A2F22; }
   html[data-dark="true"] a { color: #7FA8B8; }
 `
+
+function titleCase(s) {
+  if (!s) return ''
+  return s.replace(/\b([a-z])/g, m => m.toUpperCase())
+    .replace(/\b(Pc|Cpu|Gpu|Tv|Suv|Iphone|Ipad|Imac|Macbook|Ai|Nz)\b/gi, m => m.toUpperCase())
+    .replace(/\bRtx\s?(\d+)/gi, 'RTX $1')
+    .replace(/\bGtx\s?(\d+)/gi, 'GTX $1')
+}
 
 function StarRating({ score, onSelect, readonly = false, size = 20 }) {
   const [hover, setHover] = useState(0)
@@ -1728,10 +1746,8 @@ function App() {
           <svg fill="none" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           <span className="nav-label">Browse</span>
         </button>
-        <button className={`nav-btn${page === 'post' ? ' active' : ''}`} onClick={() => setPage('post')}>
-          <div style={{ width: '44px', height: '44px', background: page === 'post' ? '#16110A' : C.card, border: `1.5px solid ${page === 'post' ? '#16110A' : C.cardBorder}`, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s ease, border-color 0.15s ease' }}>
-            <svg width="18" height="18" fill="none" stroke={page === 'post' ? '#fff' : '#16110A'} strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </div>
+        <button className="nav-btn" onClick={() => setPage('post')}>
+          <div className="post-pill">+</div>
           <span className="nav-label">Post</span>
         </button>
         <button className={`nav-btn${page === 'mylistings' ? ' active' : ''}`} onClick={() => setPage('mylistings')} style={{ position: 'relative' }}>
@@ -1754,6 +1770,9 @@ function App() {
     const imgIdx = cardImgIndexes[want.id] || 0
     return (
       <div className={noAnimate ? 'card card-hover' : `card card-hover reveal delay-${(index % 3) + 1}`} onClick={() => openWant(want)} style={{ marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden', cursor: 'pointer' }}>
+        {!hasImages && (
+          <div className="no-photo-placeholder" style={{ borderRadius: '10px 10px 0 0', border: 'none', borderBottom: `1px dashed ${C.cardBorder}` }}>NO PHOTO</div>
+        )}
         {hasImages && (
           <div style={{ position: 'relative', height: '185px', overflow: 'hidden', borderRadius: '10px 10px 0 0' }}>
             <img src={want.images[imgIdx]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -1777,7 +1796,7 @@ function App() {
         <div style={{ padding: '16px 18px' }}>
           {/* title row */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '600', color: C.text, flex: 1, paddingRight: '10px', lineHeight: '1.35' }}>{want.title}</h3>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: C.text, flex: 1, paddingRight: '10px', lineHeight: '1.35', textDecoration: want.status === 'filled' ? 'line-through' : 'none' }}>{titleCase(want.title)}</h3>
             <button onClick={e => toggleWishlist(e, want.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', lineHeight: 1, flexShrink: 0 }}>
               <svg width="16" height="16" fill={wishlists.includes(want.id) ? '#9B3232' : 'none'} stroke={wishlists.includes(want.id) ? '#9B3232' : '#C0B9AE'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
             </button>
@@ -1791,7 +1810,7 @@ function App() {
             </div>
             {want.budget && (
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontWeight: '400', color: dark ? '#5B9EC0' : '#1E5470', lineHeight: 1 }}>{want.budget}</div>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontWeight: '500', color: dark ? '#5B9EC0' : '#1E5470', lineHeight: 1 }}>{want.budget}</div>
                 <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', fontWeight: '500', color: '#7A6F5C', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>
                   Budget{want.negotiable ? ' · Flex' : ' · Firm'}
                 </div>
@@ -1799,16 +1818,18 @@ function App() {
             )}
           </div>
           {/* metadata mono line */}
-          {(want.location || want.condition || want.listing_type === 'service' || want.category) && (
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '400', color: '#7A6F5C', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '12px', lineHeight: 1.4 }}>
-              {[
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '400', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '12px', lineHeight: 1.4 }}>
+            {want.status === 'filled' ? (
+              <span style={{ color: '#9B3232', fontWeight: 600 }}>Filled · Closed {new Date(want.updated_at || want.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
+            ) : (
+              <span style={{ color: '#7A6F5C' }}>{[
                 want.location,
                 want.listing_type === 'service' ? (want.estimated_hours || 'Service') : (want.condition && want.condition !== 'Any' ? want.condition : null),
                 want.category,
                 timeAgo(want.created_at)
-              ].filter(Boolean).join(' · ')}
-            </div>
-          )}
+              ].filter(Boolean).join(' · ')}</span>
+            )}
+          </div>
           {/* bottom row */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${C.cardBorder}`, paddingTop: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1821,9 +1842,6 @@ function App() {
               )}
               {offerCounts[want.id] >= 3 && want.status !== 'filled' && (
                 <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', fontWeight: '600', color: '#A86A1A', letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Hot</span>
-              )}
-              {want.status === 'filled' && (
-                <span className="badge badge-filled" style={{ fontSize: '10px' }}>Filled</span>
               )}
             </div>
             {want.status !== 'filled' && (
@@ -1896,18 +1914,18 @@ function App() {
             ))}
           </div>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 11, letterSpacing: '0.05em', color: C.text, paddingBottom: 8, borderBottom: `1px solid ${C.cardBorder}`, marginBottom: 8 }}>
-          <button onClick={() => { setShowBudgetDropdown(v => !v); setShowSortDropdown(false) }} style={{ background: 'transparent', border: 'none', padding: 0, color: 'inherit', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', letterSpacing: 'inherit' }}>
-            BUDGET <span style={{ color: C.textMuted }}>{filterMaxBudget ? `≤$${filterMaxBudget}` : 'ANY'} ▾</span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+          <button className="filter-toolbar-chip" onClick={() => { setShowBudgetDropdown(v => !v); setShowSortDropdown(false) }}>
+            BUDGET <span>· {filterMaxBudget ? `≤$${filterMaxBudget}` : 'ANY'} ▾</span>
           </button>
-          <button onClick={() => { setShowSortDropdown(v => !v); setShowBudgetDropdown(false) }} style={{ background: 'transparent', border: 'none', padding: 0, color: 'inherit', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', letterSpacing: 'inherit' }}>
-            SORT <span style={{ color: C.textMuted }}>{sortLabels[filterSort] || 'NEWEST'} ▾</span>
+          <button className="filter-toolbar-chip" onClick={() => { setShowSortDropdown(v => !v); setShowBudgetDropdown(false) }}>
+            SORT <span>· {sortLabels[filterSort] || 'NEWEST'} ▾</span>
           </button>
-          <button onClick={() => { setShowLocationPicker(true); setShowBudgetDropdown(false); setShowSortDropdown(false) }} style={{ background: 'transparent', border: 'none', padding: 0, color: 'inherit', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', letterSpacing: 'inherit' }}>
-            📍 {locationLabel} ▾
+          <button className="filter-toolbar-chip" onClick={() => { setShowLocationPicker(true); setShowBudgetDropdown(false); setShowSortDropdown(false) }}>
+            📍 <span>{locationLabel} ▾</span>
           </button>
           {hasActiveFilters && (
-            <button onClick={() => { setFilterMaxBudget(''); setFilterSort('newest'); setFilterLocation(''); setNearMe(false); setUserCity(null) }} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', padding: 0, color: dark ? C.accentText : '#1E5470', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', letterSpacing: 'inherit' }}>Reset</button>
+            <button onClick={() => { setFilterMaxBudget(''); setFilterSort('newest'); setFilterLocation(''); setNearMe(false); setUserCity(null) }} style={{ background: 'transparent', border: 'none', padding: '8px 4px', color: dark ? C.accentText : '#1E5470', cursor: 'pointer', fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 12, letterSpacing: '0.04em' }}>Reset</button>
           )}
         </div>
         {showBudgetDropdown && (
@@ -1926,6 +1944,7 @@ function App() {
             </select>
           </div>
         )}
+        <div className="filter-divider" />
         <div ref={setupScrollDrag} className="chips-row">
           <span className={`filter-chip ${!filterCategory ? 'active' : ''}`} onClick={() => setFilterCategory('')}>All</span>
           {(filterType === 'service' ? serviceCategories : filterType === 'item' ? categories : [...categories, ...serviceCategories.filter(c => !categories.includes(c))]).map(c => <span key={c} className={`filter-chip ${filterCategory === c ? 'active' : ''}`} onClick={() => setFilterCategory(filterCategory === c ? '' : c)}>{c}</span>)}
@@ -3296,7 +3315,7 @@ function App() {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div>
             <div style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 10, letterSpacing: '0.12em', color: '#7A6F5C', marginBottom: 4, textTransform: 'uppercase' }}>
-              Hi, {displayName?.toUpperCase() || 'THERE'}
+              Hi, {displayName ? (displayName.slice(0, 10).toUpperCase() + (displayName.length > 10 ? '…' : '')) : 'THERE'}
             </div>
             <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 28, fontWeight: 400, letterSpacing: '-0.5px', color: dark ? C.text : '#16110A', margin: 0, lineHeight: 1.15 }}>
               Browse wants
