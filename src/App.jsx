@@ -248,7 +248,7 @@ const styles = `
 
   html[data-dark="true"] { background-color: #111009; }
   html[data-dark="true"] body { background: transparent !important; color: #F0EBE0; }
-  html[data-dark="true"] .hero { background: linear-gradient(to bottom, rgba(20,16,12,0.55) 0%, rgba(20,16,12,0.35) 45%, rgba(20,16,12,0.6) 100%), url('/mountain.jpg') center 50% / cover no-repeat; }
+  html[data-dark="true"] .hero { background: linear-gradient(to bottom, rgba(20,16,12,0.55) 0%, rgba(20,16,12,0.35) 45%, rgba(20,16,12,0.6) 100%), url('/mountain.jpg') center 40% / cover no-repeat; }
   html[data-dark="true"] .side-decor-left, html[data-dark="true"] .side-decor-right { background-image: url('/mountains-bgnight.jpg'); }
   html[data-dark="true"] input, html[data-dark="true"] textarea, html[data-dark="true"] select { background: #241E16; border-color: #3A2F22; color: #F0EBE0; }
   html[data-dark="true"] input:focus, html[data-dark="true"] textarea:focus, html[data-dark="true"] select:focus { border-color: #7FA8B8; box-shadow: 0 0 0 3px rgba(127,168,184,0.15); }
