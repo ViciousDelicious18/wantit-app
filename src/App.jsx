@@ -183,7 +183,7 @@ const styles = `
   .filter-toolbar-chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; min-height: 36px; background: transparent; border: 1px solid #E8E2D5; border-radius: 8px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.04em; color: #3D3528; cursor: pointer; white-space: nowrap; }
   .filter-toolbar-chip span { color: #7A6F5C; }
   .filter-divider { height: 1px; background: #E8E2D5; margin: 8px 0 12px; }
-  .no-photo-placeholder { height: 110px; background: #F6F4EE; border: 1px dashed #E8E2D5; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0.12em; color: #7A6F5C; }
+  .no-photo-placeholder { height: 72px; background: #F6F4EE; border: 1px dashed #E8E2D5; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0.12em; color: #7A6F5C; }
   .post-pill { width: 28px; height: 28px; border-radius: 6px; background: #16110A; color: #F6F4EE; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; line-height: 1; }
   .chips-row { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; max-width: 100%; }
   .chips-row::-webkit-scrollbar { display: none; }
@@ -234,7 +234,7 @@ const styles = `
 
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } .hero-content { animation: none !important; } }
 
-  .gsap-h0, .gsap-h1, .gsap-h2, .gsap-h3, .gsap-h4, .gsap-reveal { opacity: 0; }
+  .gsap-h0, .gsap-h1, .gsap-h2, .gsap-h3, .gsap-h4 { opacity: 0; }
 
   html[data-dark="true"] { background-color: #1A1612; }
   html[data-dark="true"] body { background: transparent !important; color: #F0EBE0; }
@@ -663,11 +663,13 @@ function App() {
         .fromTo('.gsap-h2', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.35')
         .fromTo('.gsap-h3', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45 }, '-=0.25')
         .fromTo('.gsap-h4', { opacity: 0, y: 30, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.65 }, '-=0.2')
+      g.set('.gsap-reveal', { opacity: 0, y: 22 })
       ST.batch('.gsap-reveal', {
-        onEnter: batch => g.fromTo(batch, { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.55, stagger: 0.09, ease: 'power2.out' }),
+        onEnter: batch => g.to(batch, { opacity: 1, y: 0, duration: 0.55, stagger: 0.09, ease: 'power2.out' }),
         once: true,
-        start: 'top 90%'
+        start: 'top 95%'
       })
+      ST.refresh()
       cleanup = () => { tl.kill(); ST.getAll().forEach(t => t.kill()) }
     })
     return () => cleanup()
@@ -1679,7 +1681,7 @@ function App() {
       <div className="app-header" style={{ background: transparent ? 'transparent' : C.headerBg, borderBottom: transparent ? 'none' : `1px solid ${C.cardBorder}`, boxShadow: transparent ? 'none' : '0 1px 12px rgba(14,127,168,0.08)', padding: '0 16px', position: 'sticky', top: 0, zIndex: 20, width: '100%' }}>
         <div style={{ maxWidth: '640px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div onClick={() => setPage(user ? 'home' : 'landing')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-            <img src="/logo1.svg" alt="Offrit" style={{ height: 36, width: 'auto', borderRadius: 6, display: 'block' }} />
+            <img src="/logo1.svg" alt="Offrit" style={{ height: 44, width: 'auto', borderRadius: 8, display: 'block' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button onClick={() => setDark(d => !d)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px', color: transparent ? 'rgba(255,255,255,0.8)' : C.textMuted, display: 'flex', alignItems: 'center' }} title={dark ? 'Light mode' : 'Dark mode'}>
@@ -1817,7 +1819,7 @@ function App() {
             ) : (
               <span style={{ color: '#7A6F5C' }}>{[
                 want.location,
-                want.listing_type === 'service' ? (want.estimated_hours || 'Service') : (want.condition && want.condition !== 'Any' ? want.condition : null),
+                want.listing_type === 'service' ? (want.estimated_hours || null) : (want.condition && !['any','unknown'].includes(want.condition.toLowerCase()) ? want.condition : null),
                 want.category,
                 timeAgo(want.created_at)
               ].filter(Boolean).join(' · ')}</span>
