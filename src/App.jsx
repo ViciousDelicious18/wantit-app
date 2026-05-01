@@ -137,7 +137,7 @@ const styles = `
   .star { font-size: 22px; cursor: pointer; transition: transform 0.1s ease; line-height: 1; }
   .star:hover { transform: scale(1.2); }
 
-  .hero { background: linear-gradient(to bottom, rgba(4,14,28,0.72) 0%, rgba(6,22,42,0.5) 45%, rgba(4,14,28,0.70) 100%), url('/mountains-bgnight.jpg') center 40% / cover no-repeat; padding: 80px 24px 0; text-align: center; position: relative; overflow: hidden; width: 100%; box-sizing: border-box; }
+  .hero { background: linear-gradient(to bottom, rgba(4,14,28,0.72) 0%, rgba(6,22,42,0.5) 45%, rgba(4,14,28,0.70) 100%), url('/mountain.jpg') center 40% / cover no-repeat; padding: 80px 24px 0; text-align: center; position: relative; overflow: hidden; width: 100%; box-sizing: border-box; }
   .hero::before { content: ''; position: absolute; inset: 0; background: none; }
   .hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0; }
   .hero-content { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding-bottom: 0; }
@@ -248,7 +248,7 @@ const styles = `
 
   html[data-dark="true"] { background-color: #111009; }
   html[data-dark="true"] body { background: transparent !important; color: #F0EBE0; }
-  html[data-dark="true"] .hero { background: linear-gradient(to bottom, rgba(20,16,12,0.55) 0%, rgba(20,16,12,0.35) 45%, rgba(20,16,12,0.6) 100%), url('/mountains-bgnight.jpg') center 50% / cover no-repeat; }
+  html[data-dark="true"] .hero { background: linear-gradient(to bottom, rgba(20,16,12,0.55) 0%, rgba(20,16,12,0.35) 45%, rgba(20,16,12,0.6) 100%), url('/mountain.jpg') center 50% / cover no-repeat; }
   html[data-dark="true"] .side-decor-left, html[data-dark="true"] .side-decor-right { background-image: url('/mountains-bgnight.jpg'); }
   html[data-dark="true"] input, html[data-dark="true"] textarea, html[data-dark="true"] select { background: #241E16; border-color: #3A2F22; color: #F0EBE0; }
   html[data-dark="true"] input:focus, html[data-dark="true"] textarea:focus, html[data-dark="true"] select:focus { border-color: #7FA8B8; box-shadow: 0 0 0 3px rgba(127,168,184,0.15); }
