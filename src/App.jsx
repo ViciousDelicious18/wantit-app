@@ -108,6 +108,16 @@ const styles = `
   html[data-dark="true"] .nav-btn { color: #8A7E6E; }
   html[data-dark="true"] .nav-btn.active { color: #F0EBE0; }
   .nav-label { font-size: 11px; font-weight: 500; }
+  .bottom-nav-bar { display: flex; }
+  @media (min-width: 641px) { .bottom-nav-bar { display: none !important; } }
+  .header-desktop-nav { display: none; gap: 2px; align-items: center; }
+  @media (min-width: 641px) { .header-desktop-nav { display: flex; } }
+  .header-nav-btn { background: transparent; border: none; padding: 6px 12px; cursor: pointer; font-size: 13px; font-weight: 500; color: #7A6F5C; border-radius: 8px; font-family: 'Inter', system-ui, sans-serif; transition: all 0.12s; }
+  .header-nav-btn:hover { color: #3D3528; background: rgba(22,17,10,0.04); }
+  .header-nav-btn.active { color: #16110A; font-weight: 600; }
+  html[data-dark="true"] .header-nav-btn { color: #8A7E6E; }
+  html[data-dark="true"] .header-nav-btn:hover { color: #F0EBE0; background: rgba(240,235,224,0.06); }
+  html[data-dark="true"] .header-nav-btn.active { color: #F0EBE0; }
 
   .img-upload-area { border: 2px dashed #E8E2D5; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.15s ease; background: #F5F3EE; }
   .img-upload-area:hover { border-color: #1E5470; background: #EAF0F4; }
@@ -133,8 +143,8 @@ const styles = `
   .hero-content { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding-bottom: 0; }
   .hero-headline { font-family: 'Fraunces', serif; font-size: clamp(52px, 8vw, 76px); color: #ffffff; font-style: italic; letter-spacing: -2px; margin-bottom: 20px; text-shadow: 0 2px 24px rgba(0,0,0,0.55), 0 8px 48px rgba(0,0,0,0.3); line-height: 1.05; }
   .hero-sub { font-size: 17px; color: rgba(255,255,255,0.78); margin: 0 0 28px; font-weight: 300; line-height: 1.65; max-width: 440px; margin-left: auto; margin-right: auto; text-shadow: 0 1px 12px rgba(0,0,0,0.4); }
-  @keyframes heroCtaGlow { 0%,100% { box-shadow: 0 4px 20px rgba(14,127,168,0.45), 0 0 0 0 rgba(14,127,168,0); } 50% { box-shadow: 0 4px 28px rgba(14,127,168,0.65), 0 0 50px rgba(14,127,168,0.18); } }
-  .btn-hero { animation: heroCtaGlow 2.8s ease-in-out infinite; }
+  .btn-hero { background: #F6F4EE; color: #16110A; border-color: #F6F4EE; }
+  .btn-hero:hover { background: #ffffff; border-color: #ffffff; }
   @keyframes ambientDrift0 { 0%,100% { transform: translateY(0) rotate(-3deg); opacity: 0.7; } 50% { transform: translateY(-14px) rotate(-3deg); opacity: 1; } }
   @keyframes ambientDrift1 { 0%,100% { transform: translateY(0) rotate(2deg); opacity: 0.5; } 50% { transform: translateY(-10px) rotate(2deg); opacity: 0.85; } }
   @keyframes ambientDrift2 { 0%,100% { transform: translateY(0) rotate(-1deg); opacity: 0.6; } 50% { transform: translateY(-18px) rotate(-1deg); opacity: 1; } }
@@ -236,7 +246,7 @@ const styles = `
 
   .gsap-h0, .gsap-h1, .gsap-h2, .gsap-h3, .gsap-h4 { opacity: 0; }
 
-  html[data-dark="true"] { background-color: #1A1612; }
+  html[data-dark="true"] { background-color: #111009; }
   html[data-dark="true"] body { background: transparent !important; color: #F0EBE0; }
   html[data-dark="true"] .hero { background: linear-gradient(to bottom, rgba(20,16,12,0.55) 0%, rgba(20,16,12,0.35) 45%, rgba(20,16,12,0.6) 100%), url('/mountains-bgnight.jpg') center 50% / cover no-repeat; }
   html[data-dark="true"] .side-decor-left, html[data-dark="true"] .side-decor-right { background-image: url('/mountains-bgnight.jpg'); }
@@ -1643,7 +1653,7 @@ function App() {
   const featuredWants = useMemo(() => [...wants].filter(w => (offerCounts[w.id] || 0) >= 1 && w.status !== 'filled').sort((a, b) => (offerCounts[b.id] || 0) - (offerCounts[a.id] || 0)).slice(0, 10), [wants, offerCounts])
 
   const C = dark ? {
-    bg: '#1A1612', card: '#241E16', cardBorder: '#3A2F22', text: '#F0EBE0',
+    bg: '#111009', card: '#241E16', cardBorder: '#3A2F22', text: '#F0EBE0',
     textSub: '#C8BFB0', textMuted: '#8A7E6E', accentText: '#7FA8B8',
     headerBg: '#1A1612', navBg: '#1A1612',
   } : {
@@ -1683,6 +1693,16 @@ function App() {
           <div onClick={() => setPage(user ? 'home' : 'landing')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
             <img src="/logo1.svg" alt="Offrit" style={{ height: 44, width: 'auto', borderRadius: 8, display: 'block' }} />
           </div>
+          {user && (
+            <div className="header-desktop-nav">
+              <button className={`header-nav-btn${['home','want'].includes(page) ? ' active' : ''}`} onClick={() => { setPage('home'); setSelectedWant(null) }}>Browse</button>
+              <button className={`header-nav-btn`} onClick={() => setPage('post')}>Post</button>
+              <button className={`header-nav-btn${page === 'mylistings' ? ' active' : ''}`} onClick={() => setPage('mylistings')}>Profile</button>
+              <button className={`header-nav-btn${['inbox','messages'].includes(page) ? ' active' : ''}`} onClick={() => setPage('inbox')}>
+                Messages{unreadMessages > 0 ? ` (${unreadMessages})` : ''}
+              </button>
+            </div>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button onClick={() => setDark(d => !d)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px', color: transparent ? 'rgba(255,255,255,0.8)' : C.textMuted, display: 'flex', alignItems: 'center' }} title={dark ? 'Light mode' : 'Dark mode'}>
               {dark
@@ -1736,7 +1756,7 @@ function App() {
   const BottomNav = () => {
     if (!user) return null
     return (
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: C.navBg, borderTop: `1px solid ${C.cardBorder}`, display: 'flex', zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="bottom-nav-bar" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: C.navBg, borderTop: `1px solid ${C.cardBorder}`, zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <button className={`nav-btn${['home','want'].includes(page) ? ' active' : ''}`} onClick={() => { setPage('home'); setSelectedWant(null) }}>
           <svg fill="none" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           <span className="nav-label">Browse</span>
@@ -1762,86 +1782,52 @@ function App() {
   const WantCard = ({ want, index = 0, noAnimate = false }) => {
     const hasImages = want.images && want.images.length > 0
     const username = getUsername(want.user_email)
-    const imgIdx = cardImgIndexes[want.id] || 0
+    const SWATCH = { Electronics:'#D8E8F0','Sport & Outdoors':'#D4EAD8',Vehicles:'#E0DAD4',Furniture:'#EAE0D4',Clothing:'#EED4D8',Tools:'#EDE4D0',Music:'#E4D4EE',Other:'#E8E4DC' }
+    const swatchBg = dark ? '#2A2218' : (want.listing_type === 'service' ? '#F5EBDF' : (SWATCH[want.category] || '#E8E4DC'))
+    const swatchLetter = (want.category || want.listing_type || 'O')[0].toUpperCase()
     return (
-      <div className={noAnimate ? 'card card-hover' : `card card-hover reveal delay-${(index % 3) + 1}`} onClick={() => openWant(want)} style={{ marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden', cursor: 'pointer' }}>
-        {!hasImages && (
-          <div className="no-photo-placeholder" style={{ borderRadius: '10px 10px 0 0', border: 'none', borderBottom: `1px dashed ${C.cardBorder}` }}>NO PHOTO</div>
-        )}
-        {hasImages && (
-          <div style={{ position: 'relative', height: '185px', overflow: 'hidden', borderRadius: '10px 10px 0 0' }}>
-            <img src={want.images[imgIdx]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 55%, rgba(15,32,48,0.22) 100%)', pointerEvents: 'none' }} />
-            {(want.status === 'filled' || want.listing_type === 'service') && (
-              <span className={`badge ${want.status === 'filled' ? 'badge-filled' : 'badge-service'}`} style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 2 }}>
-                {want.status === 'filled' ? 'Filled' : 'Service'}
+      <div className={noAnimate ? 'card card-hover' : `card card-hover reveal delay-${(index % 3) + 1}`} onClick={() => openWant(want)} style={{ marginBottom: '8px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden', cursor: 'pointer', display: 'flex', minHeight: 100 }}>
+        {/* Left thumb */}
+        <div style={{ width: 88, flexShrink: 0, position: 'relative', overflow: 'hidden', borderRadius: '10px 0 0 10px', alignSelf: 'stretch' }}>
+          {hasImages ? (
+            <>
+              <img src={want.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', position: 'absolute', inset: 0 }} />
+              {want.images.length > 1 && <div style={{ position: 'absolute', bottom: 5, right: 5, background: 'rgba(0,0,0,0.5)', borderRadius: 8, padding: '1px 5px', fontSize: 9, color: '#fff', fontFamily: "'JetBrains Mono', monospace" }}>+{want.images.length - 1}</div>}
+            </>
+          ) : (
+            <div style={{ width: '100%', height: '100%', background: swatchBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 30, color: dark ? '#8A7E6E' : '#9B8E7C', lineHeight: 1, fontStyle: 'italic' }}>{swatchLetter}</span>
+            </div>
+          )}
+          {want.listing_type === 'service' && want.status !== 'filled' && (
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, background: 'rgba(160,82,45,0.85)', padding: '3px 0', textAlign: 'center', fontFamily: "'JetBrains Mono', monospace", fontSize: 8, fontWeight: 600, color: '#fff', letterSpacing: '0.06em' }}>SVC</div>
+          )}
+        </div>
+        {/* Right content */}
+        <div style={{ flex: 1, padding: '12px 14px 10px', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+            <h3 style={{ fontSize: '14px', fontWeight: '600', color: C.text, margin: 0, lineHeight: '1.3', textDecoration: want.status === 'filled' ? 'line-through' : 'none', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{titleCase(want.title)}</h3>
+            <div style={{ flexShrink: 0, textAlign: 'right' }}>
+              {want.budget && <div style={{ fontFamily: "'Fraunces', serif", fontSize: '20px', fontWeight: '500', color: dark ? '#7FA8B8' : '#1E5470', lineHeight: 1 }}>{want.budget}</div>}
+              <button onClick={e => toggleWishlist(e, want.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', display: 'block', marginLeft: 'auto' }}>
+                <svg width="13" height="13" fill={wishlists.includes(want.id) ? '#9B3232' : 'none'} stroke={wishlists.includes(want.id) ? '#9B3232' : '#C0B9AE'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+              </button>
+            </div>
+          </div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1.4, flex: 1, marginBottom: 8 }}>
+            {want.status === 'filled'
+              ? <span style={{ color: '#9B3232', fontWeight: 600 }}>Filled · {new Date(want.updated_at || want.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
+              : <span style={{ color: '#7A6F5C' }}>{[want.location, want.listing_type === 'service' ? (want.estimated_hours || null) : (want.condition && !['any','unknown'].includes(want.condition.toLowerCase()) ? want.condition : null), want.category, timeAgo(want.created_at)].filter(Boolean).join(' · ')}</span>
+            }
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${C.cardBorder}`, paddingTop: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={{ fontSize: '11px', color: offerCounts[want.id] ? '#3F6F4E' : '#7A6F5C', fontWeight: offerCounts[want.id] ? 600 : 400 }}>
+                {offerCounts[want.id] ? `${offerCounts[want.id]} offer${offerCounts[want.id] !== 1 ? 's' : ''}` : 'No offers yet'}
               </span>
-            )}
-            {want.images.length > 1 && (
-              <>
-                <button onClick={e => { e.stopPropagation(); setCardImgIndexes(prev => ({ ...prev, [want.id]: Math.max(0, (prev[want.id] || 0) - 1) })) }} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.45)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: '#fff', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: imgIdx === 0 ? 0.3 : 1 }}>‹</button>
-                <button onClick={e => { e.stopPropagation(); setCardImgIndexes(prev => ({ ...prev, [want.id]: Math.min(want.images.length - 1, (prev[want.id] || 0) + 1) })) }} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.45)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: '#fff', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: imgIdx === want.images.length - 1 ? 0.3 : 1 }}>›</button>
-                <div style={{ position: 'absolute', bottom: '8px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '4px' }}>
-                  {want.images.map((_, i) => <div key={i} style={{ width: '5px', height: '5px', borderRadius: '50%', background: i === imgIdx ? '#fff' : 'rgba(255,255,255,0.45)' }} />)}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-        <div style={{ padding: '16px 18px' }}>
-          {/* title row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '600', color: C.text, flex: 1, paddingRight: '10px', lineHeight: '1.35', textDecoration: want.status === 'filled' ? 'line-through' : 'none' }}>{titleCase(want.title)}</h3>
-            <button onClick={e => toggleWishlist(e, want.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', lineHeight: 1, flexShrink: 0 }}>
-              <svg width="16" height="16" fill={wishlists.includes(want.id) ? '#9B3232' : 'none'} stroke={wishlists.includes(want.id) ? '#9B3232' : '#C0B9AE'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-            </button>
-          </div>
-          {want.description && <p style={{ fontSize: '13px', color: C.textSub, lineHeight: '1.55', marginBottom: '12px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{want.description}</p>}
-          {/* budget + author row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '12px', color: C.accentText, fontWeight: '500', cursor: 'pointer' }} onClick={e => { e.stopPropagation(); openProfile(want.user_email) }}>@{username}</span>
-              {RatingBadge({ email: want.user_email, small: true })}
+              {offerCounts[want.id] >= 3 && want.status !== 'filled' && <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', fontWeight: 600, color: '#A86A1A', letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Hot</span>}
             </div>
-            {want.budget && (
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontWeight: '500', color: dark ? '#5B9EC0' : '#1E5470', lineHeight: 1 }}>{want.budget}</div>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', fontWeight: '500', color: '#7A6F5C', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>
-                  Budget{want.negotiable ? ' · Flex' : ' · Firm'}
-                </div>
-              </div>
-            )}
-          </div>
-          {/* metadata mono line */}
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '400', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '12px', lineHeight: 1.4 }}>
-            {want.status === 'filled' ? (
-              <span style={{ color: '#9B3232', fontWeight: 600 }}>Filled · Closed {new Date(want.updated_at || want.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
-            ) : (
-              <span style={{ color: '#7A6F5C' }}>{[
-                want.location,
-                want.listing_type === 'service' ? (want.estimated_hours || null) : (want.condition && !['any','unknown'].includes(want.condition.toLowerCase()) ? want.condition : null),
-                want.category,
-                timeAgo(want.created_at)
-              ].filter(Boolean).join(' · ')}</span>
-            )}
-          </div>
-          {/* bottom row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${C.cardBorder}`, paddingTop: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {offerCounts[want.id] ? (
-                <span style={{ fontSize: '11px', fontWeight: '600', color: '#3F6F4E' }}>
-                  {offerCounts[want.id]} offer{offerCounts[want.id] !== 1 ? 's' : ''}
-                </span>
-              ) : (
-                <span style={{ fontSize: '11px', color: '#7A6F5C' }}>No offers yet</span>
-              )}
-              {offerCounts[want.id] >= 3 && want.status !== 'filled' && (
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', fontWeight: '600', color: '#A86A1A', letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Hot</span>
-              )}
-            </div>
-            {want.status !== 'filled' && (
-              <span style={{ fontSize: '12px', fontWeight: '600', color: '#1E5470' }} onClick={e => { e.stopPropagation(); openWant(want) }}>Make offer →</span>
-            )}
+            {want.status !== 'filled' && <span style={{ fontSize: '11px', fontWeight: 600, color: dark ? '#7FA8B8' : '#1E5470' }}>Offer →</span>}
           </div>
         </div>
       </div>
@@ -1887,11 +1873,6 @@ function App() {
     const hasActiveFilters = filterMaxBudget || filterSort !== 'newest' || filterLocation || nearMe
     return (
       <div style={{ marginBottom: '16px' }} className="fade-up">
-        <div style={{ display: 'flex', gap: '0', marginBottom: '10px', border: `1.5px solid ${C.cardBorder}`, borderRadius: '12px', overflow: 'hidden' }}>
-          <button onClick={() => { setFilterType(''); setFilterCategory('') }} style={{ flex: 1, padding: '9px', background: !filterType ? '#16110A' : C.card, color: !filterType ? '#fff' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', system-ui, sans-serif" }}>All</button>
-          <button onClick={() => { setFilterType('item'); setFilterCategory('') }} style={{ flex: 1, padding: '9px', background: filterType === 'item' ? '#1E5470' : C.card, color: filterType === 'item' ? '#fff' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', system-ui, sans-serif", borderLeft: `1px solid ${C.cardBorder}`, borderRight: `1px solid ${C.cardBorder}` }}>Items</button>
-          <button onClick={() => { setFilterType('service'); setFilterCategory('') }} style={{ flex: 1, padding: '9px', background: filterType === 'service' ? '#A0522D' : C.card, color: filterType === 'service' ? '#fff' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', system-ui, sans-serif" }}>Services</button>
-        </div>
         <input
           placeholder={filterType === 'service' ? 'Search jobs…' : 'Search listings…'}
           value={search}
@@ -1941,7 +1922,9 @@ function App() {
         )}
         <div className="filter-divider" />
         <div ref={setupScrollDrag} className="chips-row">
-          <span className={`filter-chip ${!filterCategory ? 'active' : ''}`} onClick={() => setFilterCategory('')}>All</span>
+          <span className={`filter-chip ${!filterType && !filterCategory ? 'active' : ''}`} onClick={() => { setFilterType(''); setFilterCategory('') }}>All</span>
+          <span className={`filter-chip ${filterType === 'item' && !filterCategory ? 'active' : ''}`} onClick={() => { setFilterType(filterType === 'item' ? '' : 'item'); setFilterCategory('') }}>Items</span>
+          <span className={`filter-chip ${filterType === 'service' && !filterCategory ? 'active' : ''}`} onClick={() => { setFilterType(filterType === 'service' ? '' : 'service'); setFilterCategory('') }}>Services</span>
           {(filterType === 'service' ? serviceCategories : filterType === 'item' ? categories : [...categories, ...serviceCategories.filter(c => !categories.includes(c))]).map(c => <span key={c} className={`filter-chip ${filterCategory === c ? 'active' : ''}`} onClick={() => setFilterCategory(filterCategory === c ? '' : c)}>{c}</span>)}
         </div>
       </div>
@@ -2193,8 +2176,6 @@ function App() {
 
   // LANDING PAGE
   if (page === 'landing') {
-    const marqueeItems = ['Electronics','Furniture','Cars & Vans','Clothing','Lawn mowing','iPhones','Vintage','Books','Cleaning','Baby gear','Gaming','Appliances','Bikes','Photography','Moving help','Tutoring','Jewellery','Tools','Art','Collectibles']
-    const marqueeDouble = [...marqueeItems, ...marqueeItems]
     return (
       <div style={{ minHeight: '100vh', background: 'transparent', color: C.text, fontFamily: "'Inter', system-ui, sans-serif", overflowX: 'hidden', position: 'relative', width: '100%' }}>
         <style>{styles}</style>
@@ -2205,7 +2186,8 @@ function App() {
               <div className="hero-headline gsap-h1">Tell us what<br />you need.</div>
               <p className="hero-sub gsap-h2">Post once. Sellers across NZ come to you with offers.</p>
               <div className="gsap-h3" style={{ marginBottom: '40px' }}>
-                <button className="btn-primary btn btn-hero" onClick={() => setPage('signup')} style={{ padding: '16px 40px', fontSize: '16px', borderRadius: '12px', fontWeight: '700', letterSpacing: '-0.2px' }}>Post what you need</button>
+                <button className="btn-primary btn btn-hero" onClick={() => setPage('signup')} style={{ padding: '18px 48px', fontSize: '17px', borderRadius: '12px', fontWeight: '700', letterSpacing: '-0.2px' }}>Post what you need</button>
+                <button onClick={() => setPage('login')} style={{ display: 'block', margin: '16px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.65)', fontSize: '13px', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif" }}>or browse listings ↓</button>
               </div>
             </div>
             <svg viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', width: '100%', height: '56px', marginTop: '40px', marginBottom: '-1px' }}>
@@ -2215,16 +2197,8 @@ function App() {
         </div>
 
         <div style={{ maxWidth: '640px', margin: '0 auto', padding: '20px 16px 0' }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '600', color: C.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '10px' }}>Live right now</div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: '600', color: C.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '10px' }}>Live right now</div>
           {loading ? SkeletonCard({ hasImage: true }) : wants[0] ? WantCard({ want: wants[0], index: 0, noAnimate: true }) : null}
-        </div>
-
-        <div className="marquee-strip" style={{ background: C.bg, padding: '12px 0', opacity: 0.7 }}>
-          <div className="marquee-track">
-            {marqueeDouble.map((cat, i) => (
-              <div key={i} className="marquee-pill" style={{ background: C.card, borderColor: C.cardBorder, color: C.textSub }}>{cat}</div>
-            ))}
-          </div>
         </div>
 
         <div style={{ padding: '36px 16px 8px', maxWidth: '640px', margin: '0 auto' }}>
@@ -2671,7 +2645,7 @@ function App() {
           <div className="card fade-up" style={{ marginBottom: '14px', overflow: 'hidden' }}>
             {hasImages && <div className="img-gallery-full" style={{ padding: '14px 14px 0' }}>{selectedWant.images.map((url, i) => <img key={i} src={url} alt="" onClick={() => setLightboxImg(url)} />)}</div>}
             <div style={{ padding: '20px 22px 22px' }}>
-              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: '#7A6F5C', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: '#7A6F5C', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
                 {[isService ? 'Service' : selectedWant.category, selectedWant.listing_type !== 'service' && selectedWant.condition && selectedWant.condition !== 'Any' ? selectedWant.condition : null, selectedWant.location, selectedWant.status === 'filled' ? 'Filled' : null].filter(Boolean).join(' · ')}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px', gap: '12px' }}>
@@ -3309,7 +3283,7 @@ function App() {
       <div className="greeting-bar">
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div>
-            <div style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 10, letterSpacing: '0.12em', color: '#7A6F5C', marginBottom: 4, textTransform: 'uppercase' }}>
+            <div style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 11, letterSpacing: '0.12em', color: '#7A6F5C', marginBottom: 4, textTransform: 'uppercase' }}>
               Hi, {displayName ? (displayName.slice(0, 10).toUpperCase() + (displayName.length > 10 ? '…' : '')) : 'THERE'}
             </div>
             <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 28, fontWeight: 400, letterSpacing: '-0.5px', color: dark ? C.text : '#16110A', margin: 0, lineHeight: 1.15 }}>
@@ -3367,7 +3341,7 @@ function App() {
         {user && myKeywords.length === 0 && (
           <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 16px', marginBottom: '16px' }}>
             <div>
-              <div style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 10, letterSpacing: '0.12em', color: '#7A6F5C', marginBottom: 4, textTransform: 'uppercase' }}>Seller Nudge</div>
+              <div style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 11, letterSpacing: '0.12em', color: '#7A6F5C', marginBottom: 4, textTransform: 'uppercase' }}>Seller Nudge</div>
               <div style={{ fontSize: 13, color: dark ? C.textSub : '#3D3528' }}>Get notified when buyers post matching wants.</div>
             </div>
             <a href="#" onClick={e => { e.preventDefault(); setPage('settings') }} style={{ fontSize: 13, color: dark ? C.accentText : '#1E5470', whiteSpace: 'nowrap', textDecoration: 'none' }}>Set up alerts →</a>
