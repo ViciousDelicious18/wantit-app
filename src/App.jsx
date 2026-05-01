@@ -1678,15 +1678,8 @@ function App() {
     <>
       <div className="app-header" style={{ background: transparent ? 'transparent' : C.headerBg, borderBottom: transparent ? 'none' : `1px solid ${C.cardBorder}`, boxShadow: transparent ? 'none' : '0 1px 12px rgba(14,127,168,0.08)', padding: '0 16px', position: 'sticky', top: 0, zIndex: 20, width: '100%' }}>
         <div style={{ maxWidth: '640px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div onClick={() => setPage(user ? 'home' : 'landing')} style={{ display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: '#16110A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                <path d="M 1,24 L 10,5 L 19,24 Z" fill="rgba(255,255,255,0.22)"/>
-                <path d="M 12,24 L 21,8 L 28,24 Z" fill="rgba(255,255,255,0.32)"/>
-                <circle cx="14" cy="14" r="4.5" stroke="rgba(255,255,255,0.95)" strokeWidth="2.2" fill="rgba(255,255,255,0.1)"/>
-              </svg>
-            </div>
-            <span style={{ fontFamily: "'Fraunces', serif", fontSize: '22px', color: transparent ? '#fff' : C.text, letterSpacing: '-0.5px', fontStyle: 'italic', lineHeight: 1, userSelect: 'none' }}>Offrit</span>
+          <div onClick={() => setPage(user ? 'home' : 'landing')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <img src="/logo1.svg" alt="Offrit" style={{ height: 36, width: 'auto', borderRadius: 6, display: 'block' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button onClick={() => setDark(d => !d)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px', color: transparent ? 'rgba(255,255,255,0.8)' : C.textMuted, display: 'flex', alignItems: 'center' }} title={dark ? 'Light mode' : 'Dark mode'}>
