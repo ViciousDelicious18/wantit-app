@@ -522,7 +522,22 @@ function App() {
   const serviceCategories = ['Lawn & Garden', 'Cleaning', 'Removals & Moving', 'Handyman & Repairs', 'Plumbing', 'Electrical', 'Painting & Decorating', 'IT & Tech', 'Tutoring & Lessons', 'Pet Care', 'Deliveries', 'Photography', 'Design & Creative', 'Personal Training', 'Cooking & Catering', 'Childcare', 'Event Help', 'Odd Jobs', 'Other']
   const conditions = ['Any', 'New', 'Like New', 'Good', 'Fair']
   const conditionColour = { 'New': '#3F6F4E', 'Like New': '#1E5470', 'Good': '#A86A1A', 'Fair': '#9B3232' }
-  const locations = ['Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga', 'Dunedin', 'Napier', 'Palmerston North', 'Rotorua', 'Nelson', 'New Plymouth', 'Other']
+  const REGIONS = {
+    'Northland': ['Whangarei', 'Kerikeri', 'Kaitaia', 'Dargaville'],
+    'Auckland': ['Auckland', 'Auckland Central', 'North Shore', 'West Auckland', 'South Auckland', 'East Auckland'],
+    'Waikato': ['Hamilton', 'Te Awamutu', 'Thames', 'Tokoroa', 'Huntly'],
+    'Bay of Plenty': ['Tauranga', 'Rotorua', 'Whakatane', 'Taupō'],
+    "Hawke's Bay": ['Napier', 'Hastings'],
+    'Taranaki': ['New Plymouth', 'Stratford', 'Hāwera'],
+    'Manawatu-Whanganui': ['Palmerston North', 'Whanganui', 'Levin', 'Feilding'],
+    'Wellington': ['Wellington', 'Lower Hutt', 'Upper Hutt', 'Porirua', 'Kāpiti Coast'],
+    'Nelson-Marlborough': ['Nelson', 'Blenheim', 'Motueka', 'Picton'],
+    'West Coast': ['Greymouth', 'Westport', 'Hokitika'],
+    'Canterbury': ['Christchurch', 'Timaru', 'Ashburton', 'Rangiora'],
+    'Otago': ['Dunedin', 'Queenstown', 'Wanaka', 'Alexandra'],
+    'Southland': ['Invercargill', 'Gore', 'Te Anau'],
+  }
+  const locations = Object.values(REGIONS).flat()
   const reportReasons = ['Spam or scam', 'Inappropriate content', 'Illegal item or service', 'Wrong category', 'Already sold', 'Other']
   const LICENSED_TRADE_CATS = new Set(['Electrical', 'Plumbing'])
   const PROHIBITED_KEYWORDS = ['cannabis','methamphetamine',' cocaine ',' heroin ','mdma','ketamine','illegal firearm','unregistered gun','counterfeit','fake id','prostitut','escort service']
@@ -731,6 +746,7 @@ function App() {
       const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
       let url = `${supabaseUrl}/rest/v1/wants?order=created_at.desc&select=*&limit=${limit}&offset=${offset}`
       if (serverFilters.location) url += `&location=eq.${encodeURIComponent(serverFilters.location)}`
+      if (serverFilters.locationIn) url += `&location=in.(${serverFilters.locationIn.map(encodeURIComponent).join(',')})`
       if (serverFilters.category) url += `&category=eq.${encodeURIComponent(serverFilters.category)}`
       if (serverFilters.listing_type) url += `&listing_type=eq.${encodeURIComponent(serverFilters.listing_type)}`
       const res = await fetch(url, { headers: { 'apikey': supabaseKey, 'Content-Type': 'application/json' } })
@@ -1417,16 +1433,48 @@ function App() {
         const { latitude, longitude } = pos.coords
         const cityCoords = {
           'Auckland': [-36.8485, 174.7633],
-          'Wellington': [-41.2865, 174.7762],
-          'Christchurch': [-43.5321, 172.6362],
+          'Auckland Central': [-36.8509, 174.7645],
+          'North Shore': [-36.7978, 174.7536],
+          'West Auckland': [-36.9041, 174.6186],
+          'South Auckland': [-37.0050, 174.8850],
+          'East Auckland': [-36.9000, 174.9000],
+          'Whangarei': [-35.7275, 174.3237],
+          'Kerikeri': [-35.2235, 173.9487],
+          'Kaitaia': [-35.1127, 173.2667],
+          'Dargaville': [-35.9348, 173.8805],
           'Hamilton': [-37.7870, 175.2793],
+          'Te Awamutu': [-38.0093, 175.3301],
+          'Thames': [-37.1385, 175.5398],
+          'Tokoroa': [-38.2268, 175.8693],
           'Tauranga': [-37.6878, 176.1651],
-          'Dunedin': [-45.8788, 170.5028],
-          'Napier': [-39.4928, 176.9120],
-          'Palmerston North': [-40.3523, 175.6082],
           'Rotorua': [-38.1368, 176.2497],
-          'Nelson': [-41.2706, 173.2840],
+          'Whakatane': [-37.9524, 176.9917],
+          'Taupō': [-38.6857, 176.0702],
+          'Napier': [-39.4928, 176.9120],
+          'Hastings': [-39.6386, 176.8398],
+          'Gisborne': [-38.6623, 178.0176],
           'New Plymouth': [-39.0556, 174.0752],
+          'Whanganui': [-39.9333, 175.0500],
+          'Palmerston North': [-40.3523, 175.6082],
+          'Levin': [-40.6218, 175.2862],
+          'Wellington': [-41.2865, 174.7762],
+          'Lower Hutt': [-41.2118, 174.9076],
+          'Upper Hutt': [-41.1244, 175.0703],
+          'Porirua': [-41.1339, 174.8398],
+          'Kāpiti Coast': [-40.8994, 175.0042],
+          'Nelson': [-41.2706, 173.2840],
+          'Blenheim': [-41.5132, 173.9600],
+          'Greymouth': [-42.4657, 171.2107],
+          'Christchurch': [-43.5321, 172.6362],
+          'Timaru': [-44.3987, 171.2553],
+          'Ashburton': [-43.9036, 171.7302],
+          'Rangiora': [-43.3042, 172.5977],
+          'Dunedin': [-45.8788, 170.5028],
+          'Queenstown': [-45.0312, 168.6626],
+          'Wanaka': [-44.7027, 169.1321],
+          'Alexandra': [-45.2477, 169.3757],
+          'Invercargill': [-46.4132, 168.3538],
+          'Gore': [-46.1009, 168.9417],
         }
         let closest = null, minDist = Infinity
         Object.entries(cityCoords).forEach(([city, [lat, lng]]) => {
@@ -1595,7 +1643,11 @@ function App() {
     if (!filterLocation && !filterCategory && !filterType && !nearMe) return {}
     const sf = { active: true }
     if (nearMe && userCity) sf.location = userCity
-    else if (filterLocation) sf.location = filterLocation
+    else if (filterLocation) {
+      const regionCities = REGIONS[filterLocation]
+      if (regionCities) sf.locationIn = regionCities
+      else sf.location = filterLocation
+    }
     if (filterCategory) sf.category = filterCategory
     if (filterType) sf.listing_type = filterType
     return sf
@@ -1881,7 +1933,7 @@ function App() {
 
   const SearchFilters = () => {
     const sortLabels = { newest: 'NEWEST', oldest: 'OLDEST', 'most-offers': 'TOP', 'budget-high': 'HIGH $', 'budget-low': 'LOW $' }
-    const locationLabel = nearMe ? 'NEAR ME' : (filterLocation || 'NZ-WIDE')
+    const locationLabel = nearMe ? 'NEAR ME' : (filterLocation ? filterLocation.toUpperCase() : 'NZ-WIDE')
     const hasActiveFilters = filterMaxBudget || filterSort !== 'newest' || filterLocation || nearMe
     return (
       <div style={{ marginBottom: '16px' }} className="fade-up">
@@ -2032,7 +2084,11 @@ function App() {
             <input placeholder={editListingType === 'service' ? 'Budget — e.g. $50 cash' : 'Max budget — e.g. $300'} value={editBudget} onChange={e => setEditBudget(e.target.value)} />
             <select value={editLocation} onChange={e => setEditLocation(e.target.value)}>
               <option value="">Location</option>
-              {locations.map(l => <option key={l}>{l}</option>)}
+              {Object.entries(REGIONS).map(([region, cities]) => (
+                <optgroup key={region} label={region}>
+                  {cities.map(c => <option key={c}>{c}</option>)}
+                </optgroup>
+              ))}
             </select>
             <select value={editCategory} onChange={e => setEditCategory(e.target.value)}>
               <option value="">Category</option>
@@ -2064,9 +2120,13 @@ function App() {
 
   const LocationPicker = () => {
     if (!showLocationPicker) return null
+    const isActive = (v) => filterLocation === v && !nearMe
+    const pick = (v) => { setFilterLocation(v); setNearMe(false); setUserCity(null); setShowLocationPicker(false) }
+    const Tick = () => <svg width="14" height="14" fill="none" stroke="#1E5470" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    const rowStyle = (active) => ({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px', borderRadius: '10px', border: `1.5px solid ${active ? '#1E5470' : C.cardBorder}`, background: active ? (dark ? 'rgba(30,84,112,0.15)' : '#EAF0F4') : C.card, cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: active ? '#1E5470' : C.text, fontFamily: "'Inter', system-ui, sans-serif" })
     return (
       <div className="modal-overlay" onClick={() => setShowLocationPicker(false)}>
-        <div className="modal" style={{ background: C.card, maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+        <div className="modal" style={{ background: C.card, maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '700', color: C.text }}>Choose location</h3>
             <button onClick={() => setShowLocationPicker(false)} style={{ background: 'none', border: 'none', padding: '4px', cursor: 'pointer', color: C.textMuted }}>
@@ -2074,25 +2134,30 @@ function App() {
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <button
-              onClick={() => { activateNearMe(); setShowLocationPicker(false) }}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', borderRadius: '12px', border: `1.5px solid ${nearMe ? '#1E5470' : C.cardBorder}`, background: nearMe ? (dark ? 'rgba(30,84,112,0.15)' : '#EAF0F4') : C.card, cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: nearMe ? '#1E5470' : C.text, fontFamily: "'Inter', system-ui, sans-serif" }}>
-              📍 Near me
-              {nearMe && <svg width="14" height="14" fill="none" stroke="#1E5470" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>}
+            <button onClick={() => { activateNearMe(); setShowLocationPicker(false) }} style={rowStyle(nearMe)}>
+              📍 Near me {nearMe && <Tick />}
             </button>
-            <button
-              onClick={() => { setFilterLocation(''); setNearMe(false); setUserCity(null); setShowLocationPicker(false) }}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', borderRadius: '12px', border: `1.5px solid ${!filterLocation && !nearMe ? '#1E5470' : C.cardBorder}`, background: !filterLocation && !nearMe ? (dark ? 'rgba(30,84,112,0.15)' : '#EAF0F4') : C.card, cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: !filterLocation && !nearMe ? '#1E5470' : C.text, fontFamily: "'Inter', system-ui, sans-serif" }}>
-              All of New Zealand
-              {!filterLocation && !nearMe && <svg width="14" height="14" fill="none" stroke="#1E5470" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>}
+            <button onClick={() => { setFilterLocation(''); setNearMe(false); setUserCity(null); setShowLocationPicker(false) }} style={rowStyle(!filterLocation && !nearMe)}>
+              All of New Zealand {!filterLocation && !nearMe && <Tick />}
             </button>
-            {locations.map(l => (
-              <button key={l}
-                onClick={() => { setFilterLocation(l); setNearMe(false); setUserCity(null); setShowLocationPicker(false) }}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', borderRadius: '12px', border: `1.5px solid ${filterLocation === l && !nearMe ? '#1E5470' : C.cardBorder}`, background: filterLocation === l && !nearMe ? (dark ? 'rgba(30,84,112,0.15)' : '#EAF0F4') : C.card, cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: filterLocation === l && !nearMe ? '#1E5470' : C.text, fontFamily: "'Inter', system-ui, sans-serif" }}>
-                {l}
-                {filterLocation === l && !nearMe && <svg width="14" height="14" fill="none" stroke="#1E5470" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>}
-              </button>
+            {Object.entries(REGIONS).map(([region, cities]) => (
+              <div key={region}>
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px', marginBottom: '4px' }}>
+                  <button
+                    onClick={() => pick(region)}
+                    style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: isActive(region) ? '#1E5470' : C.textMuted, background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', display: 'flex', alignItems: 'center', gap: 6 }}
+                  >
+                    {region} {isActive(region) && <Tick />}
+                  </button>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '8px' }}>
+                  {cities.map(city => (
+                    <button key={city} onClick={() => pick(city)} style={rowStyle(isActive(city))}>
+                      {city} {isActive(city) && <Tick />}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -2909,7 +2974,7 @@ function App() {
               {listingType === 'item' && <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '400', opacity: 0.65, marginTop: 2 }}>Want something specific</div>}
             </button>
             <button onClick={() => { setListingType('service'); setCategory(''); setCondition('') }} style={{ flex: 1, padding: '14px 20px', background: listingType === 'service' ? '#A0522D' : C.card, color: listingType === 'service' ? '#F6F4EE' : C.textSub, border: 'none', borderLeft: `1.5px solid ${C.cardBorder}`, cursor: 'pointer', fontSize: '14px', fontWeight: '600', fontFamily: "'Inter', system-ui, sans-serif", transition: 'all 0.15s' }}>
-              Hire service
+              Request service
               {listingType === 'service' && <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '400', opacity: 0.65, marginTop: 2 }}>Get quotes from locals</div>}
             </button>
           </div>
@@ -2932,7 +2997,11 @@ function App() {
               <div style={{ display: 'flex', gap: '10px' }}>
                 <select value={location} onChange={e => setLocation(e.target.value)} style={{ flex: 1 }}>
                   <option value="">Your city</option>
-                  {locations.map(l => <option key={l}>{l}</option>)}
+                  {Object.entries(REGIONS).map(([region, cities]) => (
+                    <optgroup key={region} label={region}>
+                      {cities.map(c => <option key={c}>{c}</option>)}
+                    </optgroup>
+                  ))}
                 </select>
                 <select value={category} onChange={e => setCategory(e.target.value)} style={{ flex: 1 }}>
                   <option value="">Category</option>
