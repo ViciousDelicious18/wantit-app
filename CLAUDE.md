@@ -51,35 +51,40 @@ This applies to every const component defined inside `App()`.
 ### Colour tokens (light / dark)
 | Token | Light | Dark |
 |---|---|---|
-| Background | `#E8EFF5` | `#0B1829` |
-| Card bg | `#FFFFFF` | `#112240` |
-| Card border | `#D6E4EF` | `#1E3A5F` |
-| Primary text | `#0F2030` | `#CCD6F6` |
-| Sub text | `#4A6278` | `#8892B0` |
-| Muted text | `#8FA5B8` | `#4A6080` |
-| Accent (blue) | `#0E7FA8` | `#0E9FCC` |
-| Accent hover | `#0A6588` | — |
-| Green | `#0E9A6E` | `#34D399` |
-| Red | `#DC2626` | `#F87171` |
-| Amber | `#D97706` | `#FCD34D` |
+| Background | `#F6F4EE` (warm paper) | `#111009` (warm charcoal) |
+| Card bg | `#FFFFFF` | `#241E16` |
+| Card border | `#EDE6D6` | `#3A2F22` |
+| Primary text | `#16110A` | `#F0EBE0` |
+| Sub text | `#3D3528` | `#B0A898` |
+| Muted text | `#7A6F5C` | `#8A7E6E` |
+| Accent (teal) | `#1E5470` | `#7FA8B8` |
+| Service (clay) | `#A0522D` | `#E2C9AD` |
+| Green | `#3F6F4E` | `#8FB89A` |
+| Red | `#9B3232` | `#C99A9A` |
+| Amber | `#A86A1A` | `#C9A87A` |
 
 The `C` object in App() exposes these as `C.bg`, `C.card`, `C.cardBorder`, `C.text`, `C.textSub`, `C.textMuted`, `C.accentText` — always use `C.*` for dark-mode-aware colours in inline styles.
 
 ### CSS utility classes (injected via `<style>{styles}</style>`)
 - `.btn` — base button, `.btn-primary`, `.btn-green`, `.btn-red`, `.btn-amber`
-- `.card` — white card with border/shadow, `.card-hover` adds hover effect
-- `.badge`, `.badge-want`, `.badge-filled`, `.badge-accepted`
-- `.tag` — small inline label with icon
+- `.card` — warm paper card with border/shadow, `.card-hover` adds hover effect
+- `.badge`, `.badge-want`, `.badge-service`, `.badge-filled`, `.badge-accepted`
 - `.filter-chip`, `.chips-row` — horizontal scrollable filter pills
+- `.filter-toolbar-chip` — mono eyebrow chip (BUDGET/SORT/LOCATION)
 - `.skeleton` — shimmer loading placeholder
 - `.modal-overlay` + `.modal` — bottom-sheet modal pattern
 - `.toast` — floating notification (fixed, bottom centre)
-- `.fade-up`, `.stagger-1/2/3` — entrance animations
+- `.reveal`, `.delay-1/2/3` — GSAP ScrollTrigger entrance animations
 - `.msg-bubble`, `.msg-mine`, `.msg-theirs` — chat bubbles
+- `.header-desktop-nav` — desktop nav (641px+, hidden on mobile)
+- `.bottom-nav-bar` — bottom nav (hidden on desktop via media query)
+- `.no-photo-placeholder` — mono "NO PHOTO" swatch for imageless cards
+- `.post-pill` — square ink nav button for Post
 
 ### Typography
-- Body: `DM Sans` (weights 300–700)
-- Headings/logo: `DM Serif Display` (italic)
+- Headings/editorial: `Fraunces` (upright for h1/h2, italic for hero)
+- Body/UI: `Inter` (weights 400–700)
+- Eyebrows/metadata/mono: `JetBrains Mono`
 
 ### Spacing / sizing conventions
 - Cards: `padding: '18px 20px'` standard, `'24px 28px'` for forms
