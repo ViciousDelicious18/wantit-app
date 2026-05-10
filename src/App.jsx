@@ -57,6 +57,7 @@ const styles = `
   html[data-dark="true"] .side-decor-right { background: url('/mountains-bgnight.jpg') left center / cover no-repeat; }
   @media (max-width: 720px) { .side-decor { display: none !important; } }
   ::placeholder { color: #7A6F5C; }
+  .hero-search::placeholder { color: rgba(255,255,255,0.5); }
 
   .post-2col { display: flex; gap: 32px; align-items: flex-start; max-width: 1140px; margin: 0 auto; padding: 20px 16px; width: 100%; box-sizing: border-box; }
   .post-form-col { flex: 0 0 540px; min-width: 0; }
@@ -2563,11 +2564,17 @@ function App() {
           {Header()}
           <div className="hero" style={{ width: '100%', boxSizing: 'border-box' }}>
             <div className="hero-content">
-              <div className="hero-headline gsap-h1">Tell us what<br />you need.</div>
-              <p className="hero-sub gsap-h2">Post once. Sellers across NZ come to you with offers.</p>
-              <div className="gsap-h3" style={{ marginBottom: '40px' }}>
+              <div className="hero-headline gsap-h1">Post what you need.<br />Get offers.</div>
+              <p className="hero-sub gsap-h2">Sellers come to you. Compare deals, pick the best one.</p>
+              <div className="gsap-h3" style={{ marginBottom: '28px' }}>
                 <button className="btn-primary btn btn-hero" onClick={() => navigate('signup')} style={{ padding: '18px 48px', fontSize: '17px', borderRadius: '12px', fontWeight: '700', letterSpacing: '-0.2px' }}>Post what you need</button>
-                <button onClick={() => navigate('login')} style={{ display: 'block', margin: '18px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.85)', fontSize: '15px', fontWeight: '500', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '-0.1px' }}>or browse listings ↓</button>
+                <button onClick={() => navigate('browse')} style={{ display: 'block', margin: '18px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.85)', fontSize: '15px', fontWeight: '500', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '-0.1px' }}>or browse listings ↓</button>
+              </div>
+              <div className="gsap-h3" style={{ marginBottom: '40px', maxWidth: 360, margin: '0 auto 40px' }}>
+                <div style={{ position: 'relative' }} onClick={() => navigate('signup')}>
+                  <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input readOnly placeholder="Search listings — e.g. road bike, lawn mowing…" className="hero-search" style={{ width: '100%', boxSizing: 'border-box', padding: '13px 16px 13px 40px', borderRadius: '10px', border: '1.5px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px', cursor: 'pointer', backdropFilter: 'blur(8px)', fontFamily: "'Inter', system-ui, sans-serif" }} />
+                </div>
               </div>
             </div>
             <svg viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', width: '100%', height: '56px', marginTop: '40px', marginBottom: '-1px' }}>
@@ -2652,7 +2659,7 @@ function App() {
           {FeaturedSection()}
           <div className="gsap-reveal" onClick={() => { setFilterType('service'); navigate('browse') }} style={{ background: '#A0522D', borderRadius: '12px', padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', cursor: 'pointer' }}>
             <div>
-              <div style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '5px' }}>New on Offrit</div>
+              <div style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '5px' }}>Also on Offrit</div>
               <div style={{ fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '5px' }}>Cashies &amp; Services</div>
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', lineHeight: '1.45' }}>Lawn mowing, cleaning, removals &amp; more. Post a job, get offers from locals.</div>
             </div>
