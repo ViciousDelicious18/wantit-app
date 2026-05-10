@@ -624,6 +624,15 @@ function App() {
     setTimeout(() => window.scrollTo(0, savedY), 50)
   }
 
+  function navigate(newPage) {
+    if (newPage === page) return
+    scrollPos.current[page] = window.scrollY
+    window.history.pushState({ page: newPage }, '')
+    setNavStack(prev => [...prev, { page, selectedWant, profileEmail, activeThread }])
+    setPage(newPage)
+    window.scrollTo(0, 0)
+  }
+
   useEffect(() => {
     fetchWants()
     fetchAllRatings()
@@ -946,6 +955,7 @@ function App() {
   async function openProfile(email) {
     if (page !== 'profile') {
       scrollPos.current[page] = window.scrollY
+      window.history.pushState({ page: 'profile' }, '')
       setNavStack(prev => [...prev, { page, selectedWant, profileEmail, activeThread }])
       window.scrollTo(0, 0)
     }
@@ -1166,6 +1176,7 @@ function App() {
 
   async function openThread(offer, want) {
     scrollPos.current[page] = window.scrollY
+    window.history.pushState({ page: 'messages' }, '')
     setNavStack(prev => [...prev, { page, selectedWant, profileEmail, activeThread }])
     const updatedSeen = new Set([...seenThreads, offer.id])
     setSeenThreads(updatedSeen)
@@ -1306,7 +1317,7 @@ function App() {
 
   async function toggleWishlist(e, wantId) {
     e.stopPropagation()
-    if (!user) { setPage('login'); return }
+    if (!user) { navigate('login'); return }
     const isSaved = wishlists.includes(wantId)
     // Optimistic update — UI changes immediately
     if (isSaved) {
@@ -1853,17 +1864,17 @@ function App() {
     <>
       <div className="app-header" style={{ background: transparent ? 'transparent' : C.headerBg, borderBottom: transparent ? 'none' : `1px solid ${C.cardBorder}`, boxShadow: transparent ? 'none' : '0 1px 12px rgba(14,127,168,0.08)', padding: '0 16px', position: 'sticky', top: 0, zIndex: 20, width: '100%' }}>
         <div style={{ maxWidth: '640px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div onClick={() => setPage(user ? 'home' : 'landing')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <div onClick={() => navigate(user ? 'home' : 'landing')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
             <div style={{ height: 44, width: 130, overflow: 'hidden', borderRadius: 8, flexShrink: 0 }}>
               <img src="/logo3.jpg" alt="Offrit" style={{ height: 87, width: 'auto', display: 'block', marginTop: -13 }} />
             </div>
           </div>
           {user && (
             <div className="header-desktop-nav">
-              <button className={`header-nav-btn${['home','want'].includes(page) ? ' active' : ''}`} onClick={() => { setPage('home'); setSelectedWant(null) }}>Browse</button>
-              <button className={`header-nav-btn`} onClick={() => setPage('post')}>Post</button>
-              <button className={`header-nav-btn${page === 'mylistings' ? ' active' : ''}`} onClick={() => setPage('mylistings')}>Profile</button>
-              <button className={`header-nav-btn${['inbox','messages'].includes(page) ? ' active' : ''}`} onClick={() => setPage('inbox')}>
+              <button className={`header-nav-btn${['home','want'].includes(page) ? ' active' : ''}`} onClick={() => { navigate('home'); setSelectedWant(null) }}>Browse</button>
+              <button className={`header-nav-btn`} onClick={() => navigate('post')}>Post</button>
+              <button className={`header-nav-btn${page === 'mylistings' ? ' active' : ''}`} onClick={() => navigate('mylistings')}>Profile</button>
+              <button className={`header-nav-btn${['inbox','messages'].includes(page) ? ' active' : ''}`} onClick={() => navigate('inbox')}>
                 Messages{unreadMessages > 0 ? ` (${unreadMessages})` : ''}
               </button>
             </div>
@@ -1881,7 +1892,7 @@ function App() {
                 {notifications.length > 0 && <span style={{ position: 'absolute', top: '4px', right: '4px', background: '#9B3232', color: '#fff', fontSize: '9px', fontWeight: '700', minWidth: '14px', height: '14px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>{notifications.length}</span>}
               </button>
             )}
-            {!user && page === 'landing' && <button className="btn btn-primary" onClick={() => setPage('login')} style={{ fontSize: '13px', padding: '0 18px', height: 44 }}>Log in</button>}
+            {!user && page === 'landing' && <button className="btn btn-primary" onClick={() => navigate('login')} style={{ fontSize: '13px', padding: '0 18px', height: 44 }}>Log in</button>}
             {navStack.length > 0 && (page === 'want' || page === 'messages' || page === 'profile' || page === 'settings') && (
               <button className="btn" onClick={goBack}>
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
@@ -1924,7 +1935,7 @@ function App() {
       <>
       {page !== 'post' && (
         <button
-          onClick={() => setPage('post')}
+          onClick={() => navigate('post')}
           title="Post a listing"
           style={{ position: 'fixed', bottom: 76, right: 16, width: 50, height: 50, borderRadius: '50%', background: '#A0522D', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.28)', zIndex: 15, transition: 'transform 0.12s, box-shadow 0.12s' }}
           onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(0,0,0,0.36)' }}
@@ -1934,20 +1945,20 @@ function App() {
         </button>
       )}
       <div className="bottom-nav-bar" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: C.navBg, borderTop: `1px solid ${C.cardBorder}`, zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <button className={`nav-btn${['home','want'].includes(page) ? ' active' : ''}`} onClick={() => { setPage('home'); setSelectedWant(null) }}>
+        <button className={`nav-btn${['home','want'].includes(page) ? ' active' : ''}`} onClick={() => { navigate('home'); setSelectedWant(null) }}>
           <svg fill="none" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           <span className="nav-label">Browse</span>
         </button>
-        <button className="nav-btn" onClick={() => setPage('post')}>
+        <button className="nav-btn" onClick={() => navigate('post')}>
           <div className="post-pill">+</div>
           <span className="nav-label">Post</span>
         </button>
-        <button className={`nav-btn${page === 'mylistings' ? ' active' : ''}`} onClick={() => setPage('mylistings')} style={{ position: 'relative' }}>
+        <button className={`nav-btn${page === 'mylistings' ? ' active' : ''}`} onClick={() => navigate('mylistings')} style={{ position: 'relative' }}>
           <svg fill="none" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           {myNewOffers > 0 && <span style={{ position: 'absolute', top: '8px', right: 'calc(50% - 20px)', background: '#9B3232', color: '#fff', fontSize: '9px', fontWeight: '700', minWidth: '16px', height: '16px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{myNewOffers}</span>}
           <span className="nav-label">Profile</span>
         </button>
-        <button className={`nav-btn${['inbox','messages'].includes(page) ? ' active' : ''}`} onClick={() => setPage('inbox')} style={{ position: 'relative' }}>
+        <button className={`nav-btn${['inbox','messages'].includes(page) ? ' active' : ''}`} onClick={() => navigate('inbox')} style={{ position: 'relative' }}>
           <svg fill="none" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
           {unreadMessages > 0 && <span style={{ position: 'absolute', top: '8px', right: 'calc(50% - 20px)', background: '#9B3232', color: '#fff', fontSize: '9px', fontWeight: '700', minWidth: '16px', height: '16px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{unreadMessages}</span>}
           <span className="nav-label">Messages</span>
@@ -2534,9 +2545,9 @@ function App() {
             </div>
           ))}
           <div style={{ borderTop: `1px solid ${C.cardBorder}`, paddingTop: '20px', display: 'flex', justifyContent: 'center', gap: '20px' }}>
-            <span onClick={() => setPage('terms')} style={{ fontSize: '13px', color: isTerms ? C.accentText : C.textMuted, cursor: 'pointer', fontWeight: isTerms ? '600' : '400' }}>Terms of Service</span>
+            <span onClick={() => navigate('terms')} style={{ fontSize: '13px', color: isTerms ? C.accentText : C.textMuted, cursor: 'pointer', fontWeight: isTerms ? '600' : '400' }}>Terms of Service</span>
             <span style={{ fontSize: '13px', color: C.cardBorder }}>·</span>
-            <span onClick={() => setPage('privacy')} style={{ fontSize: '13px', color: !isTerms ? C.accentText : C.textMuted, cursor: 'pointer', fontWeight: !isTerms ? '600' : '400' }}>Privacy Policy</span>
+            <span onClick={() => navigate('privacy')} style={{ fontSize: '13px', color: !isTerms ? C.accentText : C.textMuted, cursor: 'pointer', fontWeight: !isTerms ? '600' : '400' }}>Privacy Policy</span>
           </div>
         </div>
       </div>
@@ -2555,8 +2566,8 @@ function App() {
               <div className="hero-headline gsap-h1">Tell us what<br />you need.</div>
               <p className="hero-sub gsap-h2">Post once. Sellers across NZ come to you with offers.</p>
               <div className="gsap-h3" style={{ marginBottom: '40px' }}>
-                <button className="btn-primary btn btn-hero" onClick={() => setPage('signup')} style={{ padding: '18px 48px', fontSize: '17px', borderRadius: '12px', fontWeight: '700', letterSpacing: '-0.2px' }}>Post what you need</button>
-                <button onClick={() => setPage('login')} style={{ display: 'block', margin: '18px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.85)', fontSize: '15px', fontWeight: '500', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '-0.1px' }}>or browse listings ↓</button>
+                <button className="btn-primary btn btn-hero" onClick={() => navigate('signup')} style={{ padding: '18px 48px', fontSize: '17px', borderRadius: '12px', fontWeight: '700', letterSpacing: '-0.2px' }}>Post what you need</button>
+                <button onClick={() => navigate('login')} style={{ display: 'block', margin: '18px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.85)', fontSize: '15px', fontWeight: '500', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '-0.1px' }}>or browse listings ↓</button>
               </div>
             </div>
             <svg viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', width: '100%', height: '56px', marginTop: '40px', marginBottom: '-1px' }}>
@@ -2639,7 +2650,7 @@ function App() {
 
         <div style={{ maxWidth: '640px', margin: '0 auto', padding: '16px 16px 24px', width: '100%', boxSizing: 'border-box' }}>
           {FeaturedSection()}
-          <div className="gsap-reveal" onClick={() => { setFilterType('service'); setPage('browse') }} style={{ background: '#A0522D', borderRadius: '12px', padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', cursor: 'pointer' }}>
+          <div className="gsap-reveal" onClick={() => { setFilterType('service'); navigate('browse') }} style={{ background: '#A0522D', borderRadius: '12px', padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', cursor: 'pointer' }}>
             <div>
               <div style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '5px' }}>New on Offrit</div>
               <div style={{ fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '5px' }}>Cashies &amp; Services</div>
@@ -2652,19 +2663,19 @@ function App() {
             {wants.length > 0 && <span style={{ fontSize: '10px', color: '#7A6F5C', fontWeight: '600', letterSpacing: '0.02em' }}>{wants.length} live</span>}
           </div>
           {loading ? [1,2,3].map(i => <SkeletonCard key={i} hasImage={i !== 2} />) : wants.slice(0, 6).map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i, noAnimate: true })}</Fragment>)}
-          {wants.length > 6 && <button className="btn" onClick={() => setPage('browse')} style={{ width: '100%', padding: '13px', marginTop: '4px', fontSize: '14px' }}>View all {wants.length} listings →</button>}
+          {wants.length > 6 && <button className="btn" onClick={() => navigate('browse')} style={{ width: '100%', padding: '13px', marginTop: '4px', fontSize: '14px' }}>View all {wants.length} listings →</button>}
         </div>
 
         <div style={{ background: '#16110A', padding: '40px 24px', textAlign: 'center' }}>
           <div style={{ fontFamily: "'Fraunces', serif", fontSize: '28px', fontStyle: 'italic', color: '#F6F4EE', marginBottom: '10px', lineHeight: 1.2 }}>Ready to get offers?</div>
           <p style={{ fontSize: '14px', color: 'rgba(246,244,238,0.65)', marginBottom: '24px', lineHeight: 1.6 }}>Post what you need — free, no account required to browse.</p>
-          <button onClick={() => setPage('signup')} style={{ background: '#F6F4EE', color: '#16110A', border: 'none', padding: '15px 36px', fontSize: '15px', fontWeight: '700', borderRadius: '8px', cursor: 'pointer', letterSpacing: '-0.2px' }}>Post your first want →</button>
+          <button onClick={() => navigate('signup')} style={{ background: '#F6F4EE', color: '#16110A', border: 'none', padding: '15px 36px', fontSize: '15px', fontWeight: '700', borderRadius: '8px', cursor: 'pointer', letterSpacing: '-0.2px' }}>Post your first want →</button>
         </div>
 
         <div style={{ borderTop: `1px solid ${C.cardBorder}`, padding: '20px 16px', display: 'flex', justifyContent: 'center', gap: '20px', background: C.card }}>
-          <span onClick={() => setPage('terms')} style={{ fontSize: '12px', color: C.textMuted, cursor: 'pointer' }}>Terms of Service</span>
+          <span onClick={() => navigate('terms')} style={{ fontSize: '12px', color: C.textMuted, cursor: 'pointer' }}>Terms of Service</span>
           <span style={{ fontSize: '12px', color: C.cardBorder }}>·</span>
-          <span onClick={() => setPage('privacy')} style={{ fontSize: '12px', color: C.textMuted, cursor: 'pointer' }}>Privacy Policy</span>
+          <span onClick={() => navigate('privacy')} style={{ fontSize: '12px', color: C.textMuted, cursor: 'pointer' }}>Privacy Policy</span>
           <span style={{ fontSize: '12px', color: C.cardBorder }}>·</span>
           <span style={{ fontSize: '12px', color: C.textMuted }}>© 2025 Offrit NZ</span>
         </div>
@@ -2698,9 +2709,9 @@ function App() {
                   </div>
                   <span style={{ fontSize: '13px', color: C.textSub, lineHeight: 1.55, cursor: 'pointer' }} onClick={() => setAgreedToTerms(v => !v)}>
                     I am 18 or over and agree to the{' '}
-                    <span onClick={e => { e.stopPropagation(); setPage('terms') }} style={{ color: '#1E5470', fontWeight: '600', cursor: 'pointer' }}>Terms of Service</span>
+                    <span onClick={e => { e.stopPropagation(); navigate('terms') }} style={{ color: '#1E5470', fontWeight: '600', cursor: 'pointer' }}>Terms of Service</span>
                     {' '}and{' '}
-                    <span onClick={e => { e.stopPropagation(); setPage('privacy') }} style={{ color: '#1E5470', fontWeight: '600', cursor: 'pointer' }}>Privacy Policy</span>
+                    <span onClick={e => { e.stopPropagation(); navigate('privacy') }} style={{ color: '#1E5470', fontWeight: '600', cursor: 'pointer' }}>Privacy Policy</span>
                   </span>
                 </div>
               )}
@@ -2719,15 +2730,15 @@ function App() {
             </button>
             <p style={{ fontSize: '13px', color: C.textMuted, textAlign: 'center' }}>
               {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-              <span onClick={() => { setPage(mode === 'login' ? 'signup' : 'login'); setAuthError(''); setResetSent(false); setAgreedToTerms(false) }} style={{ color: '#1E5470', fontWeight: '600', cursor: 'pointer' }}>
+              <span onClick={() => { navigate(mode === 'login' ? 'signup' : 'login'); setAuthError(''); setResetSent(false); setAgreedToTerms(false) }} style={{ color: '#1E5470', fontWeight: '600', cursor: 'pointer' }}>
                 {mode === 'login' ? 'Sign up free' : 'Log in'}
               </span>
             </p>
           </div>
           <div style={{ textAlign: 'center', marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '16px' }}>
-            <span onClick={() => setPage('terms')} style={{ fontSize: '12px', color: C.textMuted, cursor: 'pointer' }}>Terms of Service</span>
+            <span onClick={() => navigate('terms')} style={{ fontSize: '12px', color: C.textMuted, cursor: 'pointer' }}>Terms of Service</span>
             <span style={{ fontSize: '12px', color: C.cardBorder }}>·</span>
-            <span onClick={() => setPage('privacy')} style={{ fontSize: '12px', color: C.textMuted, cursor: 'pointer' }}>Privacy Policy</span>
+            <span onClick={() => navigate('privacy')} style={{ fontSize: '12px', color: C.textMuted, cursor: 'pointer' }}>Privacy Policy</span>
           </div>
         </div>
       </div>
@@ -2756,7 +2767,7 @@ function App() {
           <div style={{ background: '#16110A', borderRadius: '12px', padding: '24px', textAlign: 'center', marginTop: '8px', marginBottom: '20px' }}>
             <p style={{ color: '#fff', fontWeight: '600', fontSize: '15px', marginBottom: '6px' }}>Want to post a listing?</p>
             <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', marginBottom: '16px' }}>Sign up free and let sellers come to you</p>
-            <button onClick={() => setPage('signup')} style={{ background: '#F6F4EE', color: '#16110A', border: 'none', fontWeight: '600', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Sign up free</button>
+            <button onClick={() => navigate('signup')} style={{ background: '#F6F4EE', color: '#16110A', border: 'none', fontWeight: '600', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Sign up free</button>
           </div>
         </div>
       </div>
@@ -2985,7 +2996,7 @@ function App() {
               </div>
               <p style={{ fontFamily: "'Fraunces', serif", fontSize: '18px', fontWeight: '400', color: C.text, marginBottom: '6px' }}>No messages yet</p>
               <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '20px', lineHeight: 1.5 }}>Make an offer on a listing to start a conversation with a buyer.</p>
-              <button className="btn btn-primary" onClick={() => setPage('browse')} style={{ fontSize: '13px', padding: '10px 24px' }}>Browse listings →</button>
+              <button className="btn btn-primary" onClick={() => navigate('browse')} style={{ fontSize: '13px', padding: '10px 24px' }}>Browse listings →</button>
             </div>
           )}
           {myInbox.map((thread, i) => {
@@ -3157,7 +3168,7 @@ function App() {
           ) : !user ? (
             <div style={{ background: dark ? '#1A1208' : '#F5EBDF', border: `1px solid ${dark ? '#3D2A14' : '#E8D5BE'}`, borderRadius: '12px', padding: '16px 18px', marginBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', boxShadow: '0 1px 0 rgba(0,0,0,0.04)' }}>
               <span style={{ fontSize: '13px', color: dark ? '#C8A882' : '#3D3528' }}>Have something that matches? Make an offer.</span>
-              <button className="btn btn-primary" onClick={() => setPage('login')} style={{ fontSize: '12px', padding: '7px 14px', whiteSpace: 'nowrap' }}>Log in</button>
+              <button className="btn btn-primary" onClick={() => navigate('login')} style={{ fontSize: '12px', padding: '7px 14px', whiteSpace: 'nowrap' }}>Log in</button>
             </div>
           ) : selectedWant.status === 'filled' && !acceptedOffer ? (
             <div style={{ background: dark ? '#1A2030' : '#EDF2F7', borderRadius: '12px', padding: '14px 18px', marginBottom: '14px', fontSize: '13px', color: C.textMuted, textAlign: 'center' }}>This listing has been filled</div>
@@ -3173,7 +3184,7 @@ function App() {
               <svg width="32" height="32" fill="none" stroke={C.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '10px', opacity: 0.4 }}><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
               <p style={{ fontSize: '14px', fontWeight: '600', color: C.text, marginBottom: '4px' }}>No offers yet</p>
               <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: !user ? '16px' : '0' }}>Be the first seller to reach out</p>
-              {!user && <button className="btn btn-primary" onClick={() => setPage('login')} style={{ fontSize: '13px', padding: '10px 24px' }}>Make an offer →</button>}
+              {!user && <button className="btn btn-primary" onClick={() => navigate('login')} style={{ fontSize: '13px', padding: '10px 24px' }}>Make an offer →</button>}
             </div>
           )}
 
@@ -3528,7 +3539,7 @@ function App() {
             <div />
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span style={{ fontSize: '12px', color: '#7FA8B8', cursor: 'pointer', fontWeight: '500' }} onClick={() => openProfile(user.email)}>My public page →</span>
-              <button onClick={() => { scrollPos.current[page] = window.scrollY; setNavStack(prev => [...prev, { page, selectedWant, profileEmail, activeThread }]); setSettingsUsername(myProfile?.username || getUsername(user.email)); setPage('settings'); window.scrollTo(0, 0) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}>
+              <button onClick={() => { scrollPos.current[page] = window.scrollY; window.history.pushState({ page: 'settings' }, ''); setNavStack(prev => [...prev, { page, selectedWant, profileEmail, activeThread }]); setSettingsUsername(myProfile?.username || getUsername(user.email)); setPage('settings'); window.scrollTo(0, 0) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}>
                 <svg width="18" height="18" fill="none" stroke={C.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
               </button>
             </div>
@@ -3852,9 +3863,9 @@ function App() {
             <button className="btn btn-red" onClick={handleLogout} style={{ width: '100%', padding: '12px' }}>Log out</button>
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', paddingBottom: '16px' }}>
-            <span onClick={() => setPage('terms')} style={{ fontSize: '12px', color: C.textMuted, cursor: 'pointer' }}>Terms of Service</span>
+            <span onClick={() => navigate('terms')} style={{ fontSize: '12px', color: C.textMuted, cursor: 'pointer' }}>Terms of Service</span>
             <span style={{ fontSize: '12px', color: C.cardBorder }}>·</span>
-            <span onClick={() => setPage('privacy')} style={{ fontSize: '12px', color: C.textMuted, cursor: 'pointer' }}>Privacy Policy</span>
+            <span onClick={() => navigate('privacy')} style={{ fontSize: '12px', color: C.textMuted, cursor: 'pointer' }}>Privacy Policy</span>
           </div>
         </div>
         {BottomNav()}
@@ -3999,7 +4010,7 @@ function App() {
                 <div style={{ fontSize: 13, color: dark ? C.textSub : '#3D3528' }}>Get notified the moment buyers post matching wants.</div>
               </div>
             </div>
-            <button onClick={() => setPage('settings')} style={{ background: '#16110A', color: '#fff', border: 'none', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'Inter, system-ui, sans-serif', flexShrink: 0 }}>
+            <button onClick={() => navigate('settings')} style={{ background: '#16110A', color: '#fff', border: 'none', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'Inter, system-ui, sans-serif', flexShrink: 0 }}>
               Set up alerts →
             </button>
           </div>
