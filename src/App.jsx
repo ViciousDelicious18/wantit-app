@@ -3930,8 +3930,8 @@ function App() {
         </div>
       )}
 
-      <div className="greeting-bar" style={{ maxWidth: '1060px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
+      <div className="greeting-bar">
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0px' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 44, fontWeight: 400, letterSpacing: '-1.5px', color: dark ? C.text : '#16110A', margin: '0 0 8px', lineHeight: 1.05 }}>
               Browse <em style={{ fontStyle: 'italic', fontWeight: 300, color: dark ? '#5B9EC0' : '#1E5470' }}>wants</em>
