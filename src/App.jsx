@@ -72,8 +72,7 @@ const styles = `
   .browse-inner { max-width: 1060px; margin: 0 auto; padding: 8px 16px 32px; width: 100%; box-sizing: border-box; }
   .browse-filters { max-width: 1060px; margin: 0 auto; width: 100%; }
   .want-grid { display: grid; gap: 10px; }
-  @media (min-width: 820px) { .want-grid { grid-template-columns: 1fr 1fr; background-image: linear-gradient(to right, transparent calc(50% - 1px), #B8AD9E calc(50% - 1px), #B8AD9E calc(50% + 1px), transparent calc(50% + 1px)); } }
-  html[data-dark="true"] .want-grid { background-image: linear-gradient(to right, transparent calc(50% - 1px), #4A3F30 calc(50% - 1px), #4A3F30 calc(50% + 1px), transparent calc(50% + 1px)); }
+  @media (min-width: 820px) { .want-grid { grid-template-columns: 1fr 1fr; column-gap: 28px; } }
   .want-grid .card-hover { margin-bottom: 0; }
 
   .phone-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(14,154,110,0.18); border: 1px solid rgba(14,154,110,0.4); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; color: #4ade80; margin-left: 6px; }
