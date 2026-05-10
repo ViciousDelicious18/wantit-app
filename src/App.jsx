@@ -484,6 +484,8 @@ function App() {
   const [userCity, setUserCity] = useState(null)
   // Mine page
   const [mineTab, setMineTab] = useState('listings')
+  const [expandedRegion, setExpandedRegion] = useState(null)
+  const [dealPeriod, setDealPeriod] = useState('30d')
   const [showOffersMenu, setShowOffersMenu] = useState(false)
   const [showLocationPicker, setShowLocationPicker] = useState(false)
   const [showBudgetDropdown, setShowBudgetDropdown] = useState(false)
@@ -557,7 +559,7 @@ function App() {
   const conditionColour = { 'New': '#3F6F4E', 'Like New': '#1E5470', 'Good': '#A86A1A', 'Fair': '#9B3232' }
   const REGIONS = {
     'Northland': ['Whangarei', 'Kerikeri', 'Kaitaia', 'Dargaville', 'Paihia', 'Mangawhai', 'Whangārei Heads'],
-    'Auckland': ['Auckland', 'Auckland Central', 'North Shore', 'West Auckland', 'South Auckland', 'East Auckland', 'Manukau', 'Papakura', 'Pukekohe', 'Albany', 'Takapuna', 'Henderson', 'Botany', 'Howick', 'Pakuranga', 'Glenfield', 'Orewa', 'Kumeu', 'Devonport', 'Titirangi', 'Beachlands', 'Silverdale'],
+    'Auckland': ['Auckland'],
     'Waikato': ['Hamilton', 'Cambridge', 'Te Awamutu', 'Thames', 'Tokoroa', 'Huntly', 'Morrinsville', 'Ngāruawāhia', 'Te Kuiti', 'Putaruru', 'Taupō', 'Matamata', 'Paeroa'],
     'Bay of Plenty': ['Tauranga', 'Mount Maunganui', 'Rotorua', 'Whakatāne', 'Te Puke', 'Katikati', 'Ōpōtiki', 'Kawerau', 'Whakatane', 'Ōhope'],
     'Gisborne': ['Gisborne'],
@@ -837,14 +839,20 @@ function App() {
       else setLoadingMore(true)
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
       const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
-      let url = `${supabaseUrl}/rest/v1/wants?order=created_at.desc&select=*&limit=${limit}&offset=${offset}`
+      let url = `${supabaseUrl}/rest/v1/wants?order=status.desc,created_at.desc&select=*&limit=${limit}&offset=${offset}`
       if (serverFilters.location) url += `&location=eq.${encodeURIComponent(serverFilters.location)}`
       if (serverFilters.locationIn) url += `&location=in.(${serverFilters.locationIn.map(encodeURIComponent).join(',')})`
       if (serverFilters.category) url += `&category=eq.${encodeURIComponent(serverFilters.category)}`
       if (serverFilters.listing_type) url += `&listing_type=eq.${encodeURIComponent(serverFilters.listing_type)}`
       const res = await fetch(url, { headers: { 'apikey': supabaseKey, 'Content-Type': 'application/json' } })
       if (res.ok) {
-        const data = await res.json()
+        const raw = await res.json()
+        const data = [...raw].sort((a, b) => {
+          if (a.status !== b.status) return a.status !== 'filled' ? -1 : 1
+          const aT = a.bumped_at ? new Date(a.bumped_at) : new Date(a.created_at)
+          const bT = b.bumped_at ? new Date(b.bumped_at) : new Date(b.created_at)
+          return bT - aT
+        })
         if (append) setWants(prev => [...prev, ...data])
         else setWants(data)
         setHasMoreWants(!serverFilters.active && data.length === limit)
@@ -1450,7 +1458,7 @@ function App() {
     const token = sessionRef.current?.access_token
     try {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/offers?seller_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&select=*,wants(id,title,status,user_email)`,
+        `${supabaseUrl}/rest/v1/offers?seller_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&select=*,wants(id,title,status,user_email,category,location)`,
         { headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` } }
       )
       if (res.ok) setMyOffers(await res.json())
@@ -1527,48 +1535,61 @@ function App() {
         const { latitude, longitude } = pos.coords
         const cityCoords = {
           'Auckland': [-36.8485, 174.7633],
-          'Auckland Central': [-36.8509, 174.7645],
-          'North Shore': [-36.7978, 174.7536],
-          'West Auckland': [-36.9041, 174.6186],
-          'South Auckland': [-37.0050, 174.8850],
-          'East Auckland': [-36.9000, 174.9000],
           'Whangarei': [-35.7275, 174.3237],
           'Kerikeri': [-35.2235, 173.9487],
           'Kaitaia': [-35.1127, 173.2667],
           'Dargaville': [-35.9348, 173.8805],
+          'Paihia': [-35.2806, 174.0890],
           'Hamilton': [-37.7870, 175.2793],
+          'Cambridge': [-37.8887, 175.4679],
           'Te Awamutu': [-38.0093, 175.3301],
           'Thames': [-37.1385, 175.5398],
           'Tokoroa': [-38.2268, 175.8693],
+          'Taupō': [-38.6857, 176.0702],
           'Tauranga': [-37.6878, 176.1651],
+          'Mount Maunganui': [-37.6419, 176.1905],
           'Rotorua': [-38.1368, 176.2497],
           'Whakatane': [-37.9524, 176.9917],
-          'Taupō': [-38.6857, 176.0702],
+          'Te Puke': [-37.7838, 176.3210],
+          'Gisborne': [-38.6623, 178.0176],
           'Napier': [-39.4928, 176.9120],
           'Hastings': [-39.6386, 176.8398],
-          'Gisborne': [-38.6623, 178.0176],
+          'Havelock North': [-39.6641, 176.8811],
+          'Wairoa': [-39.0334, 177.4131],
           'New Plymouth': [-39.0556, 174.0752],
-          'Whanganui': [-39.9333, 175.0500],
+          'Stratford': [-39.3374, 174.2964],
+          'Hāwera': [-39.5930, 174.2835],
           'Palmerston North': [-40.3523, 175.6082],
+          'Whanganui': [-39.9333, 175.0500],
           'Levin': [-40.6218, 175.2862],
+          'Feilding': [-40.2248, 175.5671],
           'Wellington': [-41.2865, 174.7762],
           'Lower Hutt': [-41.2118, 174.9076],
           'Upper Hutt': [-41.1244, 175.0703],
           'Porirua': [-41.1339, 174.8398],
           'Kāpiti Coast': [-40.8994, 175.0042],
+          'Paraparaumu': [-40.9046, 174.9836],
+          'Masterton': [-40.9518, 175.6577],
           'Nelson': [-41.2706, 173.2840],
+          'Richmond': [-41.3407, 173.1784],
           'Blenheim': [-41.5132, 173.9600],
+          'Picton': [-41.2931, 174.0074],
           'Greymouth': [-42.4657, 171.2107],
+          'Hokitika': [-42.7178, 170.9742],
+          'Westport': [-41.7510, 171.5996],
           'Christchurch': [-43.5321, 172.6362],
-          'Timaru': [-44.3987, 171.2553],
-          'Ashburton': [-43.9036, 171.7302],
           'Rangiora': [-43.3042, 172.5977],
+          'Rolleston': [-43.5935, 172.3790],
+          'Ashburton': [-43.9036, 171.7302],
+          'Timaru': [-44.3987, 171.2553],
           'Dunedin': [-45.8788, 170.5028],
           'Queenstown': [-45.0312, 168.6626],
           'Wanaka': [-44.7027, 169.1321],
           'Alexandra': [-45.2477, 169.3757],
+          'Oamaru': [-45.0979, 170.9712],
           'Invercargill': [-46.4132, 168.3538],
           'Gore': [-46.1009, 168.9417],
+          'Te Anau': [-45.4183, 167.7177],
         }
         let closest = null, minDist = Infinity
         Object.entries(cityCoords).forEach(([city, [lat, lng]]) => {
@@ -1810,6 +1831,7 @@ function App() {
     return locMatch && catMatch && searchMatch && budgetMatch && typeMatch
   }).sort((a, b) => {
     if (filterSort === 'newest') {
+      if (a.status !== b.status) return a.status !== 'filled' ? -1 : 1
       const aTime = a.bumped_at ? new Date(a.bumped_at) : new Date(a.created_at)
       const bTime = b.bumped_at ? new Date(b.bumped_at) : new Date(b.created_at)
       return bTime - aTime
@@ -3555,11 +3577,14 @@ function App() {
               </button>
             </div>
           </div>
+          {(() => { const wonDeals = myOffers.filter(o => o.status === 'accepted'); const tabBtn = (id, label) => ({ flex: 1, padding: '10px 6px', background: mineTab === id ? '#1E5470' : C.card, color: mineTab === id ? '#fff' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '500', fontFamily: "'Inter', system-ui, sans-serif" }); return (
           <div style={{ display: 'flex', gap: '0', marginBottom: '20px', border: `1.5px solid ${C.cardBorder}`, borderRadius: '12px', overflow: 'hidden' }} className="fade-up">
-            <button onClick={() => setMineTab('listings')} style={{ flex: 1, padding: '10px', background: mineTab === 'listings' ? '#1E5470' : C.card, color: mineTab === 'listings' ? '#fff' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', system-ui, sans-serif" }}>Listings ({myWants.length})</button>
-            <button onClick={() => setMineTab('offers')} style={{ flex: 1, padding: '10px', background: mineTab === 'offers' ? '#1E5470' : C.card, color: mineTab === 'offers' ? '#fff' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', system-ui, sans-serif", borderLeft: `1px solid ${C.cardBorder}`, borderRight: `1px solid ${C.cardBorder}` }}>Offers ({myOffers.length})</button>
-            <button onClick={() => setMineTab('saved')} style={{ flex: 1, padding: '10px', background: mineTab === 'saved' ? '#1E5470' : C.card, color: mineTab === 'saved' ? '#fff' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', system-ui, sans-serif" }}>Saved ({savedWants.length})</button>
+            <button onClick={() => setMineTab('listings')} style={tabBtn('listings')}>Posts ({myWants.length})</button>
+            <button onClick={() => setMineTab('offers')} style={{ ...tabBtn('offers'), borderLeft: `1px solid ${C.cardBorder}` }}>Offers ({myOffers.length})</button>
+            <button onClick={() => setMineTab('deals')} style={{ ...tabBtn('deals'), borderLeft: `1px solid ${C.cardBorder}` }}>Won ({wonDeals.length})</button>
+            <button onClick={() => setMineTab('saved')} style={{ ...tabBtn('saved'), borderLeft: `1px solid ${C.cardBorder}` }}>Saved ({savedWants.length})</button>
           </div>
+          )})()}
 
           {mineTab === 'listings' && (
             <div>
@@ -3656,6 +3681,47 @@ function App() {
               ) : savedWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i })}</Fragment>)}
             </div>
           )}
+
+          {mineTab === 'deals' && (() => {
+            const wonDeals = myOffers.filter(o => o.status === 'accepted')
+            const periodMs = { '7d': 7*86400000, '30d': 30*86400000, '3m': 90*86400000, 'all': Infinity }
+            const filtered = wonDeals.filter(o => dealPeriod === 'all' || (Date.now() - new Date(o.created_at).getTime()) < periodMs[dealPeriod])
+            const totalEarned = filtered.reduce((sum, o) => sum + (parseFloat((o.price || '').replace(/[^0-9.]/g, '')) || 0), 0)
+            const fmtDate = (d) => new Date(d).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
+            return (
+              <div>
+                <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', alignItems: 'center' }} className="fade-up">
+                  {[['7d','7 days'],['30d','30 days'],['3m','3 months'],['all','All time']].map(([v, label]) => (
+                    <button key={v} onClick={() => setDealPeriod(v)} style={{ padding: '6px 12px', borderRadius: '20px', border: `1.5px solid ${dealPeriod === v ? '#1E5470' : C.cardBorder}`, background: dealPeriod === v ? '#1E5470' : C.card, color: dealPeriod === v ? '#fff' : C.textSub, fontSize: '12px', fontWeight: '500', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif" }}>{label}</button>
+                  ))}
+                </div>
+                {filtered.length > 0 && (
+                  <div className="card fade-up" style={{ padding: '14px 18px', marginBottom: '12px', background: dark ? '#0A2010' : '#EDFAF4', border: `1px solid ${dark ? '#1A4030' : '#A7EDD4'}` }}>
+                    <p style={{ fontSize: '11px', fontWeight: '700', color: '#0E9A6E', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '2px' }}>{filtered.length} deal{filtered.length !== 1 ? 's' : ''} won</p>
+                    {totalEarned > 0 && <p style={{ fontSize: '20px', fontWeight: '700', color: dark ? '#34D399' : '#065F46' }}>${totalEarned.toFixed(2)}</p>}
+                  </div>
+                )}
+                {filtered.length === 0 ? (
+                  <div className="card fade-up" style={{ padding: '48px 24px', textAlign: 'center' }}>
+                    <p style={{ fontSize: '15px', color: C.textSub, marginBottom: '6px' }}>No deals in this period</p>
+                    <p style={{ fontSize: '13px', color: C.textMuted }}>Make offers on listings to win deals</p>
+                  </div>
+                ) : filtered.map((offer, i) => (
+                  <div key={offer.id} className={`card reveal delay-${(i % 3) + 1}`} style={{ padding: '14px 18px', marginBottom: '8px', borderLeft: `3px solid #0E9A6E` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                      <p style={{ fontSize: '14px', fontWeight: '600', color: C.text, flex: 1, paddingRight: '10px', lineHeight: '1.35' }}>{offer.wants?.title || 'Listing removed'}</p>
+                      {offer.price && <p style={{ fontSize: '15px', fontWeight: '700', color: '#0E9A6E', flexShrink: 0 }}>${offer.price}</p>}
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '11px', color: C.textMuted }}>{fmtDate(offer.created_at)}</span>
+                      {offer.wants?.category && <span style={{ fontSize: '11px', color: C.textMuted }}>· {offer.wants.category}</span>}
+                      {offer.wants?.location && <span style={{ fontSize: '11px', color: C.textMuted }}>· {offer.wants.location}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          })()}
         </div>
         {BottomNav()}
       </div>
