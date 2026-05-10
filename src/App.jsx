@@ -1989,7 +1989,7 @@ function App() {
     return (
       <div className={noAnimate ? 'card card-hover' : `card card-hover reveal delay-${(index % 3) + 1}`} onClick={() => openWant(want)} style={{ marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden', cursor: 'pointer', display: 'flex', minHeight: 110 }}>
         {/* Left thumb */}
-        <div style={{ width: 92, flexShrink: 0, position: 'relative', overflow: 'hidden', borderRadius: '10px 0 0 10px', alignSelf: 'stretch' }}>
+        <div style={{ width: 92, flexShrink: 0, position: 'relative', overflow: 'hidden', borderRadius: '10px 0 0 10px', alignSelf: 'stretch', boxShadow: `inset 0 0 0 2px ${want.listing_type === 'service' ? '#A0522D' : '#1E5470'}` }}>
           {hasImages ? (
             <>
               <img src={want.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', position: 'absolute', inset: 0 }} />
@@ -2570,8 +2570,7 @@ function App() {
                 <button className="btn-primary btn btn-hero" onClick={() => navigate('signup')} style={{ padding: '18px 48px', fontSize: '17px', borderRadius: '12px', fontWeight: '700', letterSpacing: '-0.2px' }}>Post what you need</button>
                 <button onClick={() => navigate('browse')} style={{ display: 'block', margin: '18px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.85)', fontSize: '15px', fontWeight: '500', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '-0.1px' }}>or browse listings ↓</button>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '16px' }}>
-                <span style={{ fontSize: '13px' }}>🇳🇿</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
                 <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: '500', letterSpacing: '0.01em' }}>NZ owned & operated</span>
               </div>
               <div className="gsap-h3" style={{ marginBottom: '40px', maxWidth: 360, margin: '0 auto 40px' }}>
