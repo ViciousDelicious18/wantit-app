@@ -2570,6 +2570,10 @@ function App() {
                 <button className="btn-primary btn btn-hero" onClick={() => navigate('signup')} style={{ padding: '18px 48px', fontSize: '17px', borderRadius: '12px', fontWeight: '700', letterSpacing: '-0.2px' }}>Post what you need</button>
                 <button onClick={() => navigate('browse')} style={{ display: 'block', margin: '18px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.85)', fontSize: '15px', fontWeight: '500', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '-0.1px' }}>or browse listings ↓</button>
               </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '16px' }}>
+                <span style={{ fontSize: '13px' }}>🇳🇿</span>
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: '500', letterSpacing: '0.01em' }}>NZ owned & operated</span>
+              </div>
               <div className="gsap-h3" style={{ marginBottom: '40px', maxWidth: 360, margin: '0 auto 40px' }}>
                 <div style={{ position: 'relative' }} onClick={() => navigate('signup')}>
                   <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
