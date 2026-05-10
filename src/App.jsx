@@ -1989,7 +1989,7 @@ function App() {
     return (
       <div className={noAnimate ? 'card card-hover' : `card card-hover reveal delay-${(index % 3) + 1}`} onClick={() => openWant(want)} style={{ marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden', cursor: 'pointer', display: 'flex', minHeight: 110 }}>
         {/* Left thumb */}
-        <div style={{ width: 92, flexShrink: 0, position: 'relative', overflow: 'hidden', borderRadius: '10px 0 0 10px', alignSelf: 'stretch', boxShadow: `inset 0 0 0 2px ${want.listing_type === 'service' ? '#A0522D' : '#1E5470'}` }}>
+        <div style={{ width: 92, flexShrink: 0, position: 'relative', overflow: 'hidden', borderRadius: '10px 0 0 10px', alignSelf: 'stretch', boxShadow: `inset 0 0 0 3.5px ${want.listing_type === 'service' ? '#A0522D' : '#1E5470'}` }}>
           {hasImages ? (
             <>
               <img src={want.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', position: 'absolute', inset: 0 }} />
