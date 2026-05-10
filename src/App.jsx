@@ -1969,7 +1969,7 @@ function App() {
     )
   }
 
-  const WantCard = ({ want, index = 0, noAnimate = false }) => {
+  const WantCard = ({ want, index = 0, noAnimate = false, subtle = false }) => {
     const hasImages = want.images && want.images.length > 0
     const username = getUsername(want.user_email)
     const createdMs = new Date(want.created_at.endsWith('Z') || want.created_at.includes('+') ? want.created_at : want.created_at + 'Z').getTime()
@@ -1989,7 +1989,7 @@ function App() {
     return (
       <div className={noAnimate ? 'card card-hover' : `card card-hover reveal delay-${(index % 3) + 1}`} onClick={() => openWant(want)} style={{ marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden', cursor: 'pointer', display: 'flex', minHeight: 110 }}>
         {/* Left thumb */}
-        <div style={{ width: 92, flexShrink: 0, position: 'relative', overflow: 'hidden', borderRadius: '10px 0 0 10px', alignSelf: 'stretch', boxShadow: `inset 0 0 0 3.5px ${want.listing_type === 'service' ? '#A0522D' : '#1E5470'}` }}>
+        <div style={{ width: 92, flexShrink: 0, position: 'relative', overflow: 'hidden', borderRadius: '10px 0 0 10px', alignSelf: 'stretch', boxShadow: subtle ? `inset 0 0 0 2px ${want.listing_type === 'service' ? '#A0522D99' : '#1E547099'}` : `inset 0 0 0 3.5px ${want.listing_type === 'service' ? '#A0522D' : '#1E5470'}` }}>
           {hasImages ? (
             <>
               <img src={want.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', position: 'absolute', inset: 0 }} />
@@ -2773,7 +2773,7 @@ function App() {
               <p style={{ fontSize: '15px', fontWeight: '600', color: C.text, marginBottom: '6px' }}>Nothing here yet</p>
               <p style={{ fontSize: '13px', color: C.textMuted, lineHeight: '1.55' }}>Try a different location, category, or clear your filters</p>
             </div>
-          ) : filteredWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i })}</Fragment>)}
+          ) : filteredWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i, subtle: true })}</Fragment>)}
           <div style={{ background: '#16110A', borderRadius: '12px', padding: '24px', textAlign: 'center', marginTop: '8px', marginBottom: '20px' }}>
             <p style={{ color: '#fff', fontWeight: '600', fontSize: '15px', marginBottom: '6px' }}>Want to post a listing?</p>
             <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', marginBottom: '16px' }}>Sign up free and let sellers come to you</p>
@@ -4055,14 +4055,14 @@ function App() {
               </div>
               <span style={{ fontSize: '11px', fontWeight: '700', color: '#1E5470', background: dark ? 'rgba(30,84,112,0.12)' : '#EAF0F4', padding: '3px 10px', borderRadius: '20px' }}>{filteredWants.length} {filteredWants.length === 1 ? 'listing' : 'listings'}</span>
             </div>
-            <div className="want-grid">{filteredWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i })}</Fragment>)}</div>
+            <div className="want-grid">{filteredWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i, subtle: true })}</Fragment>)}</div>
           </>
         ) : (
           <>
-            {hotWants.length > 0 && <>{SectionHead({ label: 'Hot right now', count: hotWants.length, first: true })}<div className="want-grid">{hotWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i })}</Fragment>)}</div></>}
-            {freshWants.length > 0 && <>{SectionHead({ label: 'Fresh — last 48 hours', count: freshWants.length, first: hotWants.length === 0 })}<div className="want-grid">{freshWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: hotWants.length + i })}</Fragment>)}</div></>}
-            {weekWants.length > 0 && <>{SectionHead({ label: 'Earlier this week', count: weekWants.length, first: hotWants.length === 0 && freshWants.length === 0 })}<div className="want-grid">{weekWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: hotWants.length + freshWants.length + i })}</Fragment>)}</div></>}
-            {olderWants.length > 0 && <>{SectionHead({ label: 'Older listings', count: olderWants.length, first: hotWants.length === 0 && freshWants.length === 0 && weekWants.length === 0 })}<div className="want-grid">{olderWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: hotWants.length + freshWants.length + weekWants.length + i })}</Fragment>)}</div></>}
+            {hotWants.length > 0 && <>{SectionHead({ label: 'Hot right now', count: hotWants.length, first: true })}<div className="want-grid">{hotWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i, subtle: true })}</Fragment>)}</div></>}
+            {freshWants.length > 0 && <>{SectionHead({ label: 'Fresh — last 48 hours', count: freshWants.length, first: hotWants.length === 0 })}<div className="want-grid">{freshWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: hotWants.length + i, subtle: true })}</Fragment>)}</div></>}
+            {weekWants.length > 0 && <>{SectionHead({ label: 'Earlier this week', count: weekWants.length, first: hotWants.length === 0 && freshWants.length === 0 })}<div className="want-grid">{weekWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: hotWants.length + freshWants.length + i, subtle: true })}</Fragment>)}</div></>}
+            {olderWants.length > 0 && <>{SectionHead({ label: 'Older listings', count: olderWants.length, first: hotWants.length === 0 && freshWants.length === 0 && weekWants.length === 0 })}<div className="want-grid">{olderWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: hotWants.length + freshWants.length + weekWants.length + i, subtle: true })}</Fragment>)}</div></>}
           </>
         )}
         {!loading && hasMoreWants && !search && filterLocations.length === 0 && !filterCategory && !filterMaxBudget && !filterType && !nearMe && (
