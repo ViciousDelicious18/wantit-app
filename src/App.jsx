@@ -71,8 +71,9 @@ const styles = `
   @media (max-width: 820px) { .want-detail-layout { flex-direction: column; max-width: 640px; } .want-detail-main { padding-right: 0; } .want-detail-sidebar { width: 100%; position: static; border-left: none; padding-left: 0; border-top: 2px solid #C8BFB0; padding-top: 20px; } html[data-dark="true"] .want-detail-sidebar { border-top-color: #4A3F30; } }
   .browse-inner { max-width: 1060px; margin: 0 auto; padding: 8px 16px 32px; width: 100%; box-sizing: border-box; }
   .browse-filters { max-width: 1060px; margin: 0 auto; width: 100%; }
-  .want-grid { display: grid; gap: 10px; }
-  @media (min-width: 820px) { .want-grid { grid-template-columns: 1fr 1fr; } }
+  .want-grid { display: grid; gap: 10px; position: relative; }
+  @media (min-width: 820px) { .want-grid { grid-template-columns: 1fr 1fr; } .want-grid::after { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: #C8BFB0; pointer-events: none; } }
+  html[data-dark="true"] .want-grid::after { background: #4A3F30; }
   .want-grid .card-hover { margin-bottom: 0; }
 
   .phone-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(14,154,110,0.18); border: 1px solid rgba(14,154,110,0.4); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; color: #4ade80; margin-left: 6px; }
