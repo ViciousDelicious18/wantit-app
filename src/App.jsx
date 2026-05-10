@@ -72,7 +72,7 @@ const styles = `
   .browse-inner { max-width: 1060px; margin: 0 auto; padding: 8px 16px 32px; width: 100%; box-sizing: border-box; }
   .browse-filters { max-width: 1060px; margin: 0 auto; width: 100%; }
   .want-grid { display: grid; gap: 10px; position: relative; }
-  @media (min-width: 820px) { .want-grid { grid-template-columns: 1fr 1fr; } .want-grid::after { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: #C8BFB0; pointer-events: none; } }
+  @media (min-width: 820px) { .want-grid { grid-template-columns: 1fr 1fr; } .want-grid::after { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: 2px; background: #B8AD9E; pointer-events: none; z-index: 1; } }
   html[data-dark="true"] .want-grid::after { background: #4A3F30; }
   .want-grid .card-hover { margin-bottom: 0; }
 
