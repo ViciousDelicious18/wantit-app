@@ -58,6 +58,24 @@ const styles = `
   @media (max-width: 720px) { .side-decor { display: none !important; } }
   ::placeholder { color: #7A6F5C; }
 
+  .post-2col { display: flex; gap: 32px; align-items: flex-start; max-width: 1140px; margin: 0 auto; padding: 20px 16px; width: 100%; box-sizing: border-box; }
+  .post-form-col { flex: 0 0 540px; min-width: 0; }
+  .post-preview-col { display: none; flex: 1; min-width: 280px; position: sticky; top: 76px; }
+  @media (min-width: 900px) { .post-preview-col { display: block; } }
+  @media (max-width: 899px) { .post-2col { max-width: 640px; margin: 0 auto; padding: 20px 16px; } .post-form-col { flex: 1; } }
+
+  .want-detail-layout { display: flex; gap: 24px; align-items: flex-start; max-width: 1060px; margin: 0 auto; padding: 20px 16px 32px; width: 100%; box-sizing: border-box; }
+  .want-detail-main { flex: 1; min-width: 0; }
+  .want-detail-sidebar { width: 360px; flex-shrink: 0; position: sticky; top: 72px; }
+  @media (max-width: 820px) { .want-detail-layout { flex-direction: column; max-width: 640px; } .want-detail-sidebar { width: 100%; position: static; } }
+  .browse-inner { max-width: 1060px; margin: 0 auto; padding: 20px 16px; width: 100%; box-sizing: border-box; }
+  .browse-filters { max-width: 640px; margin: 0 auto; width: 100%; }
+  .want-grid { display: grid; gap: 10px; }
+  @media (min-width: 820px) { .want-grid { grid-template-columns: 1fr 1fr; } }
+  .want-grid .card-hover { margin-bottom: 0; }
+
+  .phone-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(14,154,110,0.18); border: 1px solid rgba(14,154,110,0.4); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; color: #4ade80; margin-left: 6px; }
+
   input, textarea, select {
     width: 100%; padding: 12px 14px; border-radius: 10px;
     border: 1.5px solid #E8E2D5; background: #FFFFFF;
@@ -99,22 +117,24 @@ const styles = `
   .badge-accepted { background: #FAF0E0; color: #A86A1A; }
 
   .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #3D3528; }
+  html[data-dark="true"] .tag { color: #8A7E6E; }
   .divider { height: 1px; background: #EDE6D6; }
 
   .nav-btn { flex: 1; padding: 8px 12px; background: transparent; border: none; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; color: #7A6F5C; }
   .nav-btn svg { width: 22px; height: 22px; stroke-width: 1.75; stroke: currentColor; flex-shrink: 0; }
   .nav-btn span { font-size: 11px; font-weight: 500; color: currentColor; }
-  .nav-btn.active { color: #16110A; }
+  .nav-btn.active { color: #16110A; border-top: 2px solid #A0522D; }
   html[data-dark="true"] .nav-btn { color: #8A7E6E; }
-  html[data-dark="true"] .nav-btn.active { color: #F0EBE0; }
+  html[data-dark="true"] .nav-btn.active { color: #F0EBE0; border-top-color: #C07848; }
   .nav-label { font-size: 11px; font-weight: 500; }
   .bottom-nav-bar { display: flex; }
   @media (min-width: 641px) { .bottom-nav-bar { display: none !important; } }
   .header-desktop-nav { display: none; gap: 2px; align-items: center; }
   @media (min-width: 641px) { .header-desktop-nav { display: flex; } }
-  .header-nav-btn { background: transparent; border: none; padding: 6px 12px; cursor: pointer; font-size: 13px; font-weight: 500; color: #7A6F5C; border-radius: 8px; font-family: 'Inter', system-ui, sans-serif; transition: all 0.12s; }
+  .header-nav-btn { position: relative; background: transparent; border: none; padding: 6px 12px 8px; cursor: pointer; font-size: 13px; font-weight: 500; color: #7A6F5C; border-radius: 8px 8px 0 0; font-family: 'Inter', system-ui, sans-serif; transition: color 0.12s, background 0.12s; }
   .header-nav-btn:hover { color: #3D3528; background: rgba(22,17,10,0.04); }
   .header-nav-btn.active { color: #16110A; font-weight: 600; }
+  .header-nav-btn.active::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 0; height: 2px; background: #A0522D; border-radius: 2px; }
   html[data-dark="true"] .header-nav-btn { color: #8A7E6E; }
   html[data-dark="true"] .header-nav-btn:hover { color: #F0EBE0; background: rgba(240,235,224,0.06); }
   html[data-dark="true"] .header-nav-btn.active { color: #F0EBE0; }
@@ -172,7 +192,7 @@ const styles = `
   .reveal.delay-1 { transition-delay: 0.07s; }
   .reveal.delay-2 { transition-delay: 0.14s; }
   .reveal.delay-3 { transition-delay: 0.21s; }
-  .marquee-strip { overflow: hidden; -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%); mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%); }
+  .marquee-strip { overflow: hidden; -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%); mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%); }
   .marquee-track { display: flex; gap: 10px; width: max-content; animation: marqueeScroll 32s linear infinite; will-change: transform; }
   @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } .hero-headline, .hero-sub, .gsap-h0, .gsap-h1, .gsap-h2, .gsap-h3, .gsap-h4 { opacity: 1 !important; transform: none !important; } }
   .marquee-strip:hover .marquee-track { animation-play-state: paused; }
@@ -190,7 +210,7 @@ const styles = `
   .filter-chip { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px; font-size: 13px; font-weight: 500; border: none; background: transparent; color: #7A6F5C; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
   .filter-chip.active { background: #16110A; color: #F6F4EE; padding: 6px 14px; }
   .filter-chip:hover { color: #3D3528; }
-  .filter-toolbar-chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; min-height: 36px; background: transparent; border: 1px solid #E8E2D5; border-radius: 8px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.04em; color: #3D3528; cursor: pointer; white-space: nowrap; }
+  .filter-toolbar-chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; min-height: 36px; background: transparent; border: 1px solid #E8E2D5; border-radius: 8px; font-family: 'Inter', system-ui, sans-serif; font-size: 12px; letter-spacing: 0; color: #3D3528; cursor: pointer; white-space: nowrap; }
   .filter-toolbar-chip span { color: #7A6F5C; }
   .filter-divider { height: 1px; background: #E8E2D5; margin: 8px 0 12px; }
   .no-photo-placeholder { height: 72px; background: #F6F4EE; border: 1px dashed #E8E2D5; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0.12em; color: #7A6F5C; }
@@ -285,6 +305,9 @@ const styles = `
   html[data-dark="true"] .img-gallery-full img { border-color: #3A2F22; }
   html[data-dark="true"] .img-thumb { border-color: #3A2F22; }
   html[data-dark="true"] a { color: #7FA8B8; }
+  html[data-dark="true"] .marquee-pill { background: #241E16; border-color: #3A2F22; color: #C8BFB0; }
+  html[data-dark="true"] .ticker-sep { color: #3A2F22; }
+  html[data-dark="true"] .ticker-item { color: #C8BFB0; }
 `
 
 function titleCase(s) {
@@ -333,28 +356,25 @@ function setupScrollDrag(el) {
   }
 }
 
-function SkeletonCard({ hasImage = false }) {
+function SkeletonCard() {
   return (
-    <div className="card" style={{ marginBottom: '10px', overflow: 'hidden' }}>
-      {hasImage
-        ? <div className="skeleton" style={{ height: '185px', borderRadius: '14px 14px 0 0', flexShrink: 0 }} />
-        : <div style={{ height: '4px', background: '#E8E2D5' }} />}
-      <div style={{ padding: '16px 18px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-          <div className="skeleton" style={{ height: '18px', width: '58%' }} />
-          <div className="skeleton" style={{ height: '18px', width: '46px', borderRadius: '20px' }} />
+    <div className="card" style={{ marginBottom: '10px', overflow: 'hidden', display: 'flex', flexDirection: 'row' }}>
+      <div className="skeleton" style={{ width: '92px', minWidth: '92px', borderRadius: '0' }} />
+      <div style={{ flex: 1, padding: '14px 16px', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <div className="skeleton" style={{ height: '11px', width: '52px', borderRadius: '4px' }} />
+          <div className="skeleton" style={{ height: '20px', width: '44px', borderRadius: '20px' }} />
         </div>
-        <div className="skeleton" style={{ height: '13px', width: '85%', marginBottom: '7px' }} />
-        <div className="skeleton" style={{ height: '13px', width: '55%', marginBottom: '14px' }} />
-        <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
-          <div className="skeleton" style={{ height: '24px', width: '52px', borderRadius: '8px' }} />
-          <div className="skeleton" style={{ height: '24px', width: '72px', borderRadius: '20px' }} />
-          <div className="skeleton" style={{ height: '24px', width: '60px', borderRadius: '20px' }} />
+        <div className="skeleton" style={{ height: '17px', width: '72%', marginBottom: '6px' }} />
+        <div className="skeleton" style={{ height: '13px', width: '88%', marginBottom: '4px' }} />
+        <div className="skeleton" style={{ height: '13px', width: '60%', marginBottom: '12px' }} />
+        <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+          <div className="skeleton" style={{ height: '22px', width: '56px', borderRadius: '20px' }} />
+          <div className="skeleton" style={{ height: '22px', width: '72px', borderRadius: '20px' }} />
         </div>
-        <div style={{ height: '1px', background: '#E4EFF7', marginBottom: '12px' }} />
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <div className="skeleton" style={{ height: '12px', width: '72px', borderRadius: '20px' }} />
-          <div className="skeleton" style={{ height: '12px', width: '48px' }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+          <div className="skeleton" style={{ height: '11px', width: '80px', borderRadius: '4px' }} />
+          <div className="skeleton" style={{ height: '11px', width: '48px', borderRadius: '4px' }} />
         </div>
       </div>
     </div>
@@ -367,6 +387,8 @@ function App() {
   const [description, setDescription] = useState('')
   const [budget, setBudget] = useState('')
   const [location, setLocation] = useState('')
+  const [postCityOpen, setPostCityOpen] = useState(false)
+  const [postCityExpanded, setPostCityExpanded] = useState(new Set())
   const [category, setCategory] = useState('')
   const [images, setImages] = useState([])
   const [imagePreviews, setImagePreviews] = useState([])
@@ -385,7 +407,8 @@ function App() {
   const [offerPrice, setOfferPrice] = useState('')
   const [offerMessage, setOfferMessage] = useState('')
   const [submittingOffer, setSubmittingOffer] = useState(false)
-  const [filterLocation, setFilterLocation] = useState('')
+  const [filterLocations, setFilterLocations] = useState([])
+  const [pendingLocations, setPendingLocations] = useState([])
   const [filterCategory, setFilterCategory] = useState('')
   const [filterSort, setFilterSort] = useState('newest')
   const [filterMaxBudget, setFilterMaxBudget] = useState('')
@@ -425,6 +448,10 @@ function App() {
   const [seenThreads, setSeenThreads] = useState(() => new Set(JSON.parse(localStorage.getItem('seenThreads') || '[]')))
   const [settingsUsername, setSettingsUsername] = useState('')
   const [settingsIrd, setSettingsIrd] = useState('')
+  const [settingsPhone, setSettingsPhone] = useState('')
+  const [phoneOtp, setPhoneOtp] = useState('')
+  const [phoneStep, setPhoneStep] = useState('input')
+  const [phoneLoading, setPhoneLoading] = useState(false)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [reportDetails, setReportDetails] = useState('')
   // Feature 1: Wishlist
@@ -489,6 +516,9 @@ function App() {
   const [pushEnabled, setPushEnabled] = useState(false)
   const [referralCount, setReferralCount] = useState(0)
   const [myListings, setMyListings] = useState([])
+  const [offerSentForWant, setOfferSentForWant] = useState(null)
+  const [expandedRegions, setExpandedRegions] = useState(new Set())
+  const [expiresIn, setExpiresIn] = useState('7d')
 
   const fileInputRef = useRef()
   const messagesEndRef = useRef()
@@ -520,22 +550,24 @@ function App() {
 
   const categories = ['Electronics', 'Sport & Outdoors', 'Vehicles', 'Furniture', 'Clothing', 'Tools', 'Music', 'Other']
   const serviceCategories = ['Lawn & Garden', 'Cleaning', 'Removals & Moving', 'Handyman & Repairs', 'Plumbing', 'Electrical', 'Painting & Decorating', 'IT & Tech', 'Tutoring & Lessons', 'Pet Care', 'Deliveries', 'Photography', 'Design & Creative', 'Personal Training', 'Cooking & Catering', 'Childcare', 'Event Help', 'Odd Jobs', 'Other']
+  const CAT_EMOJI = { 'Items': '📦', 'Services': '⚡', 'Electronics': '💻', 'Sport & Outdoors': '🏃', 'Vehicles': '🚗', 'Furniture': '🪑', 'Clothing': '👕', 'Tools': '🔧', 'Music': '🎵', 'Lawn & Garden': '🌿', 'Cleaning': '✨', 'Removals & Moving': '🚛', 'Handyman & Repairs': '🔨', 'Plumbing': '🚿', 'Electrical': '⚡', 'Painting & Decorating': '🎨', 'IT & Tech': '💻', 'Tutoring & Lessons': '📚', 'Pet Care': '🐾', 'Deliveries': '📦', 'Photography': '📷', 'Design & Creative': '🖌️', 'Personal Training': '💪', 'Cooking & Catering': '🍳', 'Childcare': '👶', 'Event Help': '🎉', 'Odd Jobs': '⚙️', 'Other': '•••' }
   const conditions = ['Any', 'New', 'Like New', 'Good', 'Fair']
   const conditionColour = { 'New': '#3F6F4E', 'Like New': '#1E5470', 'Good': '#A86A1A', 'Fair': '#9B3232' }
   const REGIONS = {
-    'Northland': ['Whangarei', 'Kerikeri', 'Kaitaia', 'Dargaville'],
-    'Auckland': ['Auckland', 'Auckland Central', 'North Shore', 'West Auckland', 'South Auckland', 'East Auckland'],
-    'Waikato': ['Hamilton', 'Te Awamutu', 'Thames', 'Tokoroa', 'Huntly'],
-    'Bay of Plenty': ['Tauranga', 'Rotorua', 'Whakatane', 'Taupō'],
-    "Hawke's Bay": ['Napier', 'Hastings'],
-    'Taranaki': ['New Plymouth', 'Stratford', 'Hāwera'],
-    'Manawatu-Whanganui': ['Palmerston North', 'Whanganui', 'Levin', 'Feilding'],
-    'Wellington': ['Wellington', 'Lower Hutt', 'Upper Hutt', 'Porirua', 'Kāpiti Coast'],
-    'Nelson-Marlborough': ['Nelson', 'Blenheim', 'Motueka', 'Picton'],
-    'West Coast': ['Greymouth', 'Westport', 'Hokitika'],
-    'Canterbury': ['Christchurch', 'Timaru', 'Ashburton', 'Rangiora'],
-    'Otago': ['Dunedin', 'Queenstown', 'Wanaka', 'Alexandra'],
-    'Southland': ['Invercargill', 'Gore', 'Te Anau'],
+    'Northland': ['Whangarei', 'Kerikeri', 'Kaitaia', 'Dargaville', 'Paihia', 'Mangawhai', 'Whangārei Heads'],
+    'Auckland': ['Auckland', 'Auckland Central', 'North Shore', 'West Auckland', 'South Auckland', 'East Auckland', 'Manukau', 'Papakura', 'Pukekohe', 'Albany', 'Takapuna', 'Henderson', 'Botany', 'Howick', 'Pakuranga', 'Glenfield', 'Orewa', 'Kumeu', 'Devonport', 'Titirangi', 'Beachlands', 'Silverdale'],
+    'Waikato': ['Hamilton', 'Cambridge', 'Te Awamutu', 'Thames', 'Tokoroa', 'Huntly', 'Morrinsville', 'Ngāruawāhia', 'Te Kuiti', 'Putaruru', 'Taupō', 'Matamata', 'Paeroa'],
+    'Bay of Plenty': ['Tauranga', 'Mount Maunganui', 'Rotorua', 'Whakatāne', 'Te Puke', 'Katikati', 'Ōpōtiki', 'Kawerau', 'Whakatane', 'Ōhope'],
+    'Gisborne': ['Gisborne'],
+    "Hawke's Bay": ['Napier', 'Hastings', 'Havelock North', 'Wairoa', 'Waipukurau', 'Clive'],
+    'Taranaki': ['New Plymouth', 'Stratford', 'Hāwera', 'Waitara', 'Inglewood', 'Ōakura'],
+    'Manawatu-Whanganui': ['Palmerston North', 'Whanganui', 'Levin', 'Feilding', 'Foxton', 'Marton', 'Bulls', 'Ōtaki', 'Dannevirke'],
+    'Wellington': ['Wellington', 'Lower Hutt', 'Upper Hutt', 'Porirua', 'Kāpiti Coast', 'Paraparaumu', 'Waikanae', 'Masterton', 'Petone', 'Featherston', 'Carterton', 'Greytown', 'Eastbourne'],
+    'Nelson-Marlborough': ['Nelson', 'Richmond', 'Blenheim', 'Motueka', 'Picton', 'Takaka', 'Havelock', 'Rai Valley', 'Murchison'],
+    'West Coast': ['Greymouth', 'Westport', 'Hokitika', 'Reefton', 'Westland', 'Haast'],
+    'Canterbury': ['Christchurch', 'Rolleston', 'Rangiora', 'Ashburton', 'Timaru', 'Lincoln', 'Selwyn', 'Methven', 'Geraldine', 'Temuka', 'Darfield', 'Leeston', 'Kaikōura'],
+    'Otago': ['Dunedin', 'Queenstown', 'Wanaka', 'Alexandra', 'Cromwell', 'Oamaru', 'Balclutha', 'Mosgiel', 'Clyde', 'Middlemarch', 'Palmerston', 'Roxburgh'],
+    'Southland': ['Invercargill', 'Gore', 'Te Anau', 'Winton', 'Bluff', 'Riverton', 'Lumsden'],
   }
   const locations = Object.values(REGIONS).flat()
   const reportReasons = ['Spam or scam', 'Inappropriate content', 'Illegal item or service', 'Wrong category', 'Already sold', 'Other']
@@ -543,7 +575,8 @@ function App() {
   const PROHIBITED_KEYWORDS = ['cannabis','methamphetamine',' cocaine ',' heroin ','mdma','ketamine','illegal firearm','unregistered gun','counterfeit','fake id','prostitut','escort service']
 
   function timeAgo(dateStr) {
-    const d = new Date(dateStr), now = new Date()
+    const normalised = dateStr && !dateStr.endsWith('Z') && !dateStr.includes('+') ? dateStr + 'Z' : dateStr
+    const d = new Date(normalised), now = new Date()
     const s = Math.floor((now - d) / 1000)
     if (s < 60) return 'just now'
     if (s < 3600) return `${Math.floor(s / 60)}m ago`
@@ -551,6 +584,23 @@ function App() {
     if (s < 604800) return d.toLocaleDateString('en-NZ', { weekday: 'short' })
     if (now.getFullYear() === d.getFullYear()) return d.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })
     return d.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
+  }
+
+  function getWantExpiry(want) {
+    if (want.expires_at) {
+      const s = want.expires_at
+      return new Date(s.endsWith('Z') || s.includes('+') ? s : s + 'Z').getTime()
+    }
+    const s = want.created_at
+    return new Date(s.endsWith('Z') || s.includes('+') ? s : s + 'Z').getTime() + 7 * 86400000
+  }
+
+  function formatTimeLeft(msLeft) {
+    if (msLeft <= 0) return null
+    const s = Math.floor(msLeft / 1000)
+    if (s < 3600) return `${Math.floor(s / 60)}m left`
+    if (s < 86400) return `${Math.floor(s / 3600)}h left`
+    return `${Math.floor(s / 86400)}d left`
   }
 
   function showToast(msg, type = 'default') {
@@ -629,7 +679,23 @@ function App() {
   }, [])
   const pageRef = useRef(page)
   useEffect(() => { pageRef.current = page }, [page])
-  useEffect(() => { const t = setInterval(() => { if (['want', 'mylistings'].includes(pageRef.current)) setNow(Date.now()) }, 10000); return () => clearInterval(t) }, [])
+  useEffect(() => { const t = setInterval(() => { if (['want', 'mylistings', 'home'].includes(pageRef.current)) setNow(Date.now()) }, 30000); return () => clearInterval(t) }, [])
+  useEffect(() => {
+    if (showLocationPicker) {
+      setPendingLocations([...filterLocations])
+      if (filterLocations.length > 0) {
+        const toExpand = new Set()
+        for (const loc of filterLocations) {
+          for (const [region, cities] of Object.entries(REGIONS)) {
+            if (region === loc || cities.includes(loc)) toExpand.add(region)
+          }
+        }
+        setExpandedRegions(toExpand)
+      }
+    } else {
+      setExpandedRegions(new Set())
+    }
+  }, [showLocationPicker])
   useEffect(() => { if (page !== 'profile') { setViewedProfile(null); setProfileResponseRate(null) } }, [page])
   useEffect(() => { if (user && page === 'mylistings') { fetchMyListings(); fetchMyOffers(); fetchSavedWants() } }, [page, user])
   useEffect(() => { if (selectedWant) fetchSimilarWants(selectedWant) }, [selectedWant])
@@ -645,7 +711,7 @@ function App() {
   useEffect(() => {
     if (!filterEffectInitRef.current) { filterEffectInitRef.current = true; return }
     fetchWants(0, false, buildServerFilters())
-  }, [filterLocation, filterCategory, filterType, nearMe, userCity])
+  }, [filterLocations, filterCategory, filterType, nearMe, userCity])
 
   useEffect(() => {
     let io
@@ -678,24 +744,40 @@ function App() {
 
 
   useEffect(() => {
-    if (page !== 'landing') return
     let cleanup = () => {}
     Promise.all([import('gsap'), import('gsap/ScrollTrigger')]).then(([{ gsap: g }, { ScrollTrigger: ST }]) => {
       g.registerPlugin(ST)
-      const tl = g.timeline({ defaults: { ease: 'power3.out' } })
-      tl.fromTo('.gsap-h0', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 })
-        .fromTo('.gsap-h1', { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.65 }, '-=0.3')
-        .fromTo('.gsap-h2', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.35')
-        .fromTo('.gsap-h3', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45 }, '-=0.25')
-        .fromTo('.gsap-h4', { opacity: 0, y: 30, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.65 }, '-=0.2')
+      let tl = null
+      if (page === 'landing') {
+        tl = g.timeline({ defaults: { ease: 'power3.out' } })
+        tl.fromTo('.gsap-h0', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 })
+          .fromTo('.gsap-h1', { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.65 }, '-=0.3')
+          .fromTo('.gsap-h2', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.35')
+          .fromTo('.gsap-h3', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45 }, '-=0.25')
+          .fromTo('.gsap-h4', { opacity: 0, y: 30, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.65 }, '-=0.2')
+      }
       g.set('.gsap-reveal', { opacity: 0, y: 22 })
       ST.batch('.gsap-reveal', {
         onEnter: batch => g.to(batch, { opacity: 1, y: 0, duration: 0.55, stagger: 0.09, ease: 'power2.out' }),
         once: true,
         start: 'top 95%'
       })
+      if (page === 'profile') {
+        document.querySelectorAll('.gsap-counter').forEach(el => {
+          const target = parseInt(el.dataset.target || '0', 10)
+          if (target === 0) return
+          const obj = { val: 0 }
+          g.to(obj, { val: target, duration: 1.1, ease: 'power2.out', delay: 0.5, onUpdate() { el.textContent = Math.round(obj.val) } })
+        })
+        const previewCol = document.querySelector('.post-preview-col')
+        if (previewCol) g.fromTo(previewCol, { opacity: 0, x: 20 }, { opacity: 1, x: 0, duration: 0.6, ease: 'power2.out', delay: 0.2 })
+      }
+      if (page === 'post') {
+        const previewCol = document.querySelector('.post-preview-col')
+        if (previewCol) g.fromTo(previewCol, { opacity: 0, x: 20 }, { opacity: 1, x: 0, duration: 0.6, ease: 'power2.out', delay: 0.3 })
+      }
       ST.refresh()
-      cleanup = () => { tl.kill(); ST.getAll().forEach(t => t.kill()) }
+      cleanup = () => { tl?.kill(); ST.getAll().forEach(t => t.kill()) }
     })
     return () => cleanup()
   }, [page])
@@ -802,14 +884,12 @@ function App() {
 
   async function fetchSimilarWants(want) {
     if (!want?.category) { setSimilarWants([]); return }
-    const { data } = await supabase.from('wants')
-      .select('id, title, budget, location, category, images, user_email, created_at, status, listing_type, views')
-      .eq('category', want.category)
-      .eq('status', 'active')
-      .neq('id', want.id)
-      .order('created_at', { ascending: false })
-      .limit(8)
-    setSimilarWants(data || [])
+    const sbUrl = import.meta.env.VITE_SUPABASE_URL
+    const sbKey = import.meta.env.VITE_SUPABASE_KEY
+    const url = `${sbUrl}/rest/v1/wants?select=id,title,budget,location,category,images,user_email,created_at,status,listing_type,views&category=eq.${encodeURIComponent(want.category)}&status=eq.open&id=neq.${want.id}&order=created_at.desc&limit=8`
+    const resp = await fetch(url, { headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` } })
+    const data = await resp.json()
+    setSimilarWants(Array.isArray(data) ? data : [])
   }
 
   async function subscribeToPush() {
@@ -930,6 +1010,7 @@ function App() {
     if (res.ok) {
       const data = await res.json()
       setOffers(data)
+      setOfferCounts(prev => ({ ...prev, [wantId]: data.length }))
       fetchAllProfiles([...new Set(data.map(o => o.seller_email).filter(Boolean))])
     }
   }
@@ -1197,13 +1278,13 @@ function App() {
       const res = await fetch(`${supabaseUrl}/rest/v1/wants`, {
         method: 'POST',
         headers: { ...authHeaders, 'Content-Type': 'application/json', Prefer: 'return=representation' },
-        body: JSON.stringify({ title, description, budget, location, category, condition: listingType === 'item' ? condition || null : null, negotiable, listing_type: listingType, estimated_hours: listingType === 'service' ? estimatedHours || null : null, user_id: user.id, user_email: user.email, images: imageUrls })
+        body: JSON.stringify({ title, description, budget, location, category, condition: listingType === 'item' ? condition || null : null, negotiable, listing_type: listingType, estimated_hours: listingType === 'service' ? estimatedHours || null : null, user_id: user.id, user_email: user.email, images: imageUrls, expires_at: new Date(Date.now() + (expiresIn === '24h' ? 86400000 : expiresIn === '48h' ? 172800000 : 604800000)).toISOString() })
       })
       if (!res.ok) throw new Error(`Insert failed: ${res.status} ${await res.text()}`)
       const data = await res.json()
       const inserted = Array.isArray(data) ? data[0] : data
       if (inserted) { setWants([{ ...inserted, images: imageUrls }, ...wants]); setOfferCounts({ ...offerCounts, [inserted.id]: 0 }) }
-      setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory(''); setCondition(''); setNegotiable(false); setListingType('item'); setEstimatedHours(''); setImages([]); setImagePreviews([])
+      setTitle(''); setDescription(''); setBudget(''); setLocation(''); setCategory(''); setCondition(''); setNegotiable(false); setListingType('item'); setEstimatedHours(''); setImages([]); setImagePreviews([]); setExpiresIn('7d'); setPostCityOpen(false); setPostCityExpanded(new Set())
       setPage('home')
       showToast('Listing posted!', 'success')
     } catch (e) {
@@ -1589,7 +1670,7 @@ function App() {
       setOfferPrice(''); setOfferMessage('')
       fetchOffers(selectedWant.id)
       setOfferCounts({ ...offerCounts, [selectedWant.id]: (offerCounts[selectedWant.id] || 0) + 1 })
-      showToast('Offer submitted!', 'success')
+      setOfferSentForWant(selectedWant.id)
       if (myKeywords.length === 0) setTimeout(() => showToast('Tip: set up keyword alerts in Settings to find more listings like this', 'default'), 1800)
       sendEmailNotification(
         selectedWant.user_email,
@@ -1611,12 +1692,13 @@ function App() {
     setNavStack(prev => [...prev, { page, selectedWant, profileEmail, activeThread }])
     let wantToShow = want
     if (want.user_id !== user?.id && !seenWants.has(want.id)) {
-      wantToShow = { ...want, views: (want.views || 0) + 1 }
+      const newCount = (want.view_count || 0) + 1
+      wantToShow = { ...want, view_count: newCount }
       const _u = import.meta.env.VITE_SUPABASE_URL, _k = import.meta.env.VITE_SUPABASE_KEY
-      fetch(`${_u}/rest/v1/rpc/increment_want_views`, {
-        method: 'POST',
-        headers: { apikey: _k, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ p_want_id: want.id })
+      fetch(`${_u}/rest/v1/wants?id=eq.${want.id}`, {
+        method: 'PATCH',
+        headers: { apikey: _k, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ view_count: newCount })
       })
       setWants(ws => ws.map(w => w.id === want.id ? wantToShow : w))
       const updatedSeen = new Set([...seenWants, want.id])
@@ -1640,13 +1722,18 @@ function App() {
   }
 
   function buildServerFilters() {
-    if (!filterLocation && !filterCategory && !filterType && !nearMe) return {}
+    if (filterLocations.length === 0 && !filterCategory && !filterType && !nearMe) return {}
     const sf = { active: true }
-    if (nearMe && userCity) sf.location = userCity
-    else if (filterLocation) {
-      const regionCities = REGIONS[filterLocation]
-      if (regionCities) sf.locationIn = regionCities
-      else sf.location = filterLocation
+    if (nearMe && userCity) {
+      sf.location = userCity
+    } else if (filterLocations.length > 0) {
+      const allCities = new Set()
+      for (const loc of filterLocations) {
+        const regionCities = REGIONS[loc]
+        if (regionCities) regionCities.forEach(c => allCities.add(c))
+        else allCities.add(loc)
+      }
+      sf.locationIn = [...allCities]
     }
     if (filterCategory) sf.category = filterCategory
     if (filterType) sf.listing_type = filterType
@@ -1679,10 +1766,32 @@ function App() {
 
   function getUsername(email) { return profiles[email] || email?.split('@')[0] || 'unknown' }
 
+  function levenshtein(a, b) {
+    const m = a.length, n = b.length
+    const dp = Array.from({length: m + 1}, (_, i) => Array.from({length: n + 1}, (_, j) => j === 0 ? i : i === 0 ? j : 0))
+    for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
+    return dp[m][n]
+  }
+  function fuzzyMatch(query, text) {
+    if (!query) return true
+    const qWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 0)
+    const tText = text.toLowerCase()
+    const tWords = tText.split(/\s+/)
+    return qWords.every(qw => {
+      if (tText.includes(qw)) return true
+      if (qw.length <= 2) return false
+      const maxDist = qw.length <= 4 ? 1 : qw.length <= 7 ? 2 : 3
+      return tWords.some(tw => levenshtein(qw, tw) <= maxDist)
+    })
+  }
+
   const filteredWants = useMemo(() => wants.filter(w => {
-    const locMatch = nearMe ? w.location === userCity : (!filterLocation || w.location === filterLocation)
+    const locMatch = nearMe ? w.location === userCity : (filterLocations.length === 0 || filterLocations.some(loc => {
+      const rc = REGIONS[loc]; return rc ? rc.includes(w.location) : w.location === loc
+    }))
     const catMatch = !filterCategory || w.category === filterCategory
-    const searchMatch = !search || w.title.toLowerCase().includes(search.toLowerCase()) || (w.description || '').toLowerCase().includes(search.toLowerCase())
+    const searchMatch = !search || fuzzyMatch(search, w.title + ' ' + (w.description || ''))
     const budgetMatch = !filterMaxBudget || (() => { const num = parseFloat((w.budget || '').replace(/[^0-9.]/g, '')); return !num || num <= parseFloat(filterMaxBudget) })()
     const typeMatch = !filterType || (w.listing_type || 'item') === filterType
     return locMatch && catMatch && searchMatch && budgetMatch && typeMatch
@@ -1696,8 +1805,9 @@ function App() {
     if (filterSort === 'most-offers') return (offerCounts[b.id] || 0) - (offerCounts[a.id] || 0)
     if (filterSort === 'budget-high') return parseFloat((b.budget || '').replace(/[^0-9.]/g, '') || 0) - parseFloat((a.budget || '').replace(/[^0-9.]/g, '') || 0)
     if (filterSort === 'budget-low') return parseFloat((a.budget || '').replace(/[^0-9.]/g, '') || 0) - parseFloat((b.budget || '').replace(/[^0-9.]/g, '') || 0)
+    if (filterSort === 'expiring') return getWantExpiry(a) - getWantExpiry(b)
     return 0
-  }), [wants, nearMe, userCity, filterLocation, filterCategory, search, filterMaxBudget, filterType, filterSort, offerCounts])
+  }), [wants, nearMe, userCity, filterLocations, filterCategory, search, filterMaxBudget, filterType, filterSort, offerCounts])
 
   const myWants = useMemo(() => myListings.length ? myListings : wants.filter(w => w.user_id === user?.id), [myListings, wants, user])
   const myNewOffers = useMemo(() => myWants.reduce((sum, w) => { const current = offerCounts[w.id] || 0; const seen = seenOffers[w.id] || 0; return sum + Math.max(0, current - seen) }, 0), [myWants, offerCounts, seenOffers])
@@ -1743,7 +1853,9 @@ function App() {
       <div className="app-header" style={{ background: transparent ? 'transparent' : C.headerBg, borderBottom: transparent ? 'none' : `1px solid ${C.cardBorder}`, boxShadow: transparent ? 'none' : '0 1px 12px rgba(14,127,168,0.08)', padding: '0 16px', position: 'sticky', top: 0, zIndex: 20, width: '100%' }}>
         <div style={{ maxWidth: '640px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div onClick={() => setPage(user ? 'home' : 'landing')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-            <img src="/logo1.svg" alt="Offrit" style={{ height: 44, width: 'auto', borderRadius: 8, display: 'block' }} />
+            <div style={{ height: 44, width: 130, overflow: 'hidden', borderRadius: 8, flexShrink: 0 }}>
+              <img src="/logo3.jpg" alt="Offrit" style={{ height: 87, width: 'auto', display: 'block', marginTop: -13 }} />
+            </div>
           </div>
           {user && (
             <div className="header-desktop-nav">
@@ -1768,14 +1880,14 @@ function App() {
                 {notifications.length > 0 && <span style={{ position: 'absolute', top: '4px', right: '4px', background: '#9B3232', color: '#fff', fontSize: '9px', fontWeight: '700', minWidth: '14px', height: '14px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>{notifications.length}</span>}
               </button>
             )}
-            {!user && page === 'landing' && <button className="btn btn-primary" onClick={() => setPage('login')} style={{ fontSize: '13px', padding: '8px 18px' }}>Log in</button>}
+            {!user && page === 'landing' && <button className="btn btn-primary" onClick={() => setPage('login')} style={{ fontSize: '13px', padding: '0 18px', height: 44 }}>Log in</button>}
             {navStack.length > 0 && (page === 'want' || page === 'messages' || page === 'profile' || page === 'settings') && (
               <button className="btn" onClick={goBack}>
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
                 Back
               </button>
             )}
-            {user && !['want','messages','profile','settings'].includes(page) && <button className="btn" onClick={handleLogout} style={{ fontSize: '12px' }}>Log out</button>}
+            {user && !['want','messages','profile','settings'].includes(page) && <button onClick={handleLogout} style={{ background: 'transparent', border: `1px solid ${transparent ? 'rgba(255,255,255,0.25)' : 'rgba(22,17,10,0.18)'}`, borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '500', color: transparent ? 'rgba(255,255,255,0.65)' : '#7A6F5C', cursor: 'pointer', fontFamily: 'Inter, system-ui, sans-serif', transition: 'all 0.15s' }}>Log out</button>}
           </div>
         </div>
       </div>
@@ -1808,6 +1920,18 @@ function App() {
   const BottomNav = () => {
     if (!user) return null
     return (
+      <>
+      {page !== 'post' && (
+        <button
+          onClick={() => setPage('post')}
+          title="Post a listing"
+          style={{ position: 'fixed', bottom: 76, right: 16, width: 50, height: 50, borderRadius: '50%', background: '#A0522D', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.28)', zIndex: 15, transition: 'transform 0.12s, box-shadow 0.12s' }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(0,0,0,0.36)' }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.28)' }}
+        >
+          <svg width="22" height="22" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      )}
       <div className="bottom-nav-bar" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: C.navBg, borderTop: `1px solid ${C.cardBorder}`, zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <button className={`nav-btn${['home','want'].includes(page) ? ' active' : ''}`} onClick={() => { setPage('home'); setSelectedWant(null) }}>
           <svg fill="none" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -1828,24 +1952,35 @@ function App() {
           <span className="nav-label">Messages</span>
         </button>
       </div>
+      </>
     )
   }
 
   const WantCard = ({ want, index = 0, noAnimate = false }) => {
     const hasImages = want.images && want.images.length > 0
     const username = getUsername(want.user_email)
+    const createdMs = new Date(want.created_at.endsWith('Z') || want.created_at.includes('+') ? want.created_at : want.created_at + 'Z').getTime()
+    const isNew = (Date.now() - createdMs) < 86400000
+    const isHot = (offerCounts[want.id] || 0) >= 3
+    const msLeft = getWantExpiry(want) - Date.now()
+    const timeLeft = want.status !== 'filled' ? formatTimeLeft(msLeft) : null
+    const urgentExpiry = timeLeft && msLeft < 86400000
     const SWATCH = { Electronics:'#D8E8F0','Sport & Outdoors':'#D4EAD8',Vehicles:'#E0DAD4',Furniture:'#EAE0D4',Clothing:'#EED4D8',Tools:'#EDE4D0',Music:'#E4D4EE',Other:'#E8E4DC' }
     const swatchBg = dark ? '#2A2218' : (want.listing_type === 'service' ? '#F5EBDF' : (SWATCH[want.category] || '#E8E4DC'))
     const ICON_COLOR = dark ? '#8A7E6E' : { Electronics:'#1E5470','Sport & Outdoors':'#3F6F4E',Vehicles:'#7A5A48',Furniture:'#8A6838',Clothing:'#8A3838',Tools:'#7A6838',Music:'#6B4878' }[want.category] || '#7A6F5C'
     const IS = { width:22,height:22,fill:'none',stroke:ICON_COLOR,strokeWidth:1.6,strokeLinecap:'round',strokeLinejoin:'round',viewBox:'0 0 24 24' }
+    const budgetRaw = want.budget ? String(want.budget).replace(/[^0-9.]/g, '') : ''
+    const budgetNum = budgetRaw ? parseFloat(budgetRaw) : null
+    const budgetDisplay = budgetNum ? budgetNum.toLocaleString('en-NZ') : (want.budget || '')
+    const avatarColor = ['#1E5470','#3F6F4E','#7A5A48','#8A3838','#6B4878','#A0522D'][username.charCodeAt(0) % 6]
     return (
-      <div className={noAnimate ? 'card card-hover' : `card card-hover reveal delay-${(index % 3) + 1}`} onClick={() => openWant(want)} style={{ marginBottom: '8px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden', cursor: 'pointer', display: 'flex', minHeight: 100 }}>
+      <div className={noAnimate ? 'card card-hover' : `card card-hover reveal delay-${(index % 3) + 1}`} onClick={() => openWant(want)} style={{ marginBottom: '10px', opacity: want.status === 'filled' ? 0.55 : 1, overflow: 'hidden', cursor: 'pointer', display: 'flex', minHeight: 110 }}>
         {/* Left thumb */}
-        <div style={{ width: 88, flexShrink: 0, position: 'relative', overflow: 'hidden', borderRadius: '10px 0 0 10px', alignSelf: 'stretch' }}>
+        <div style={{ width: 92, flexShrink: 0, position: 'relative', overflow: 'hidden', borderRadius: '10px 0 0 10px', alignSelf: 'stretch' }}>
           {hasImages ? (
             <>
               <img src={want.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', position: 'absolute', inset: 0 }} />
-              {want.images.length > 1 && <div style={{ position: 'absolute', bottom: 5, right: 5, background: 'rgba(0,0,0,0.5)', borderRadius: 8, padding: '1px 5px', fontSize: 9, color: '#fff', fontFamily: "'JetBrains Mono', monospace" }}>+{want.images.length - 1}</div>}
+              {want.images.length > 1 && <div style={{ position: 'absolute', bottom: 5, right: 5, background: 'rgba(0,0,0,0.5)', borderRadius: 8, padding: '1px 5px', fontSize: 9, color: '#fff' }}>+{want.images.length - 1}</div>}
             </>
           ) : (
             <div style={{ width: '100%', height: '100%', background: swatchBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1860,38 +1995,103 @@ function App() {
               : <svg {...IS}><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>}
             </div>
           )}
-          {want.listing_type === 'service' && want.status !== 'filled' && (
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, background: 'rgba(160,82,45,0.85)', padding: '3px 0', textAlign: 'center', fontFamily: "'JetBrains Mono', monospace", fontSize: 8, fontWeight: 600, color: '#fff', letterSpacing: '0.06em' }}>SVC</div>
+          {!hasImages && want.status !== 'filled' && (
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, background: want.listing_type === 'service' ? 'rgba(160,82,45,0.82)' : 'rgba(30,84,112,0.72)', padding: '3px 0', textAlign: 'center', fontSize: 8, fontWeight: 700, color: '#fff', letterSpacing: '0.08em' }}>
+              {want.listing_type === 'service' ? 'SERVICE' : 'ITEM'}
+            </div>
           )}
         </div>
+
         {/* Right content */}
         <div style={{ flex: 1, padding: '12px 14px 10px', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+
+          {/* Title + Budget */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
-            <h3 style={{ fontSize: '14px', fontWeight: '600', color: C.text, margin: 0, lineHeight: '1.3', textDecoration: want.status === 'filled' ? 'line-through' : 'none', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{titleCase(want.title)}</h3>
-            <div style={{ flexShrink: 0, textAlign: 'right' }}>
-              {want.budget && <div style={{ fontFamily: "'Fraunces', serif", fontSize: '20px', fontWeight: '500', color: dark ? '#7FA8B8' : '#1E5470', lineHeight: 1 }}>{want.budget}</div>}
-              <button onClick={e => toggleWishlist(e, want.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', display: 'block', marginLeft: 'auto' }}>
-                <svg width="13" height="13" fill={wishlists.includes(want.id) ? '#9B3232' : 'none'} stroke={wishlists.includes(want.id) ? '#9B3232' : '#C0B9AE'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-              </button>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: want.status === 'filled' ? C.textMuted : C.text, margin: 0, lineHeight: '1.25', textDecoration: want.status === 'filled' ? 'line-through' : 'none', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{titleCase(want.title)}</h3>
+            {want.budget && (
+              <div style={{ flexShrink: 0, textAlign: 'right', borderLeft: `1px solid ${C.cardBorder}`, paddingLeft: 10 }}>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: '22px', fontWeight: '400', color: dark ? '#7FA8B8' : '#1E5470', lineHeight: 1 }}>
+                  <sup style={{ fontSize: '12px', fontWeight: 500, verticalAlign: 'super', lineHeight: 0 }}>$</sup>{budgetDisplay}
+                </div>
+                <div style={{ fontSize: '9px', color: C.textMuted, letterSpacing: '0.05em', textTransform: 'uppercase', marginTop: 2 }}>
+                  Budget{want.negotiable ? ' · Flex' : ''}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Meta line */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap', marginBottom: 6 }}>
+            {want.status === 'filled' ? (
+              <span style={{ fontSize: '10px', fontWeight: 700, color: '#9B3232', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Filled · {new Date(want.updated_at || want.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
+            ) : (
+              <>
+                {want.location && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '11px', color: C.textMuted }}>
+                    <svg width="9" height="9" fill="#DC2626" stroke="#DC2626" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3" fill="white"/></svg>
+                    {want.location}
+                  </span>
+                )}
+                {want.category && <><span style={{ color: C.cardBorder, fontSize: 13, lineHeight: 1 }}>·</span><span style={{ fontSize: '11px', color: C.textMuted }}>{want.category}</span></>}
+                <span style={{ color: C.cardBorder, fontSize: 13, lineHeight: 1 }}>·</span>
+                <span style={{ fontSize: '11px', color: C.textMuted }}>{new Date(want.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
+                {isNew && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: dark ? 'rgba(30,84,112,0.2)' : '#EAF0F4', color: '#1E5470', border: '1px solid rgba(30,84,112,0.25)', borderRadius: 20, padding: '1px 8px', fontSize: '10px', fontWeight: 700 }}>• NEW</span>}
+                {isHot && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: dark ? 'rgba(168,106,26,0.2)' : '#FEF3C7', color: '#A86A1A', border: '1px solid rgba(168,106,26,0.25)', borderRadius: 20, padding: '1px 8px', fontSize: '10px', fontWeight: 700 }}>🔥 HOT</span>}
+              </>
+            )}
+          </div>
+
+          {/* Description */}
+          {want.description && want.status !== 'filled' && (
+            <p style={{ fontSize: '12px', color: C.textSub, lineHeight: 1.5, margin: '0 0 8px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{want.description}</p>
+          )}
+
+          {/* User row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, borderTop: `1px solid ${C.cardBorder}`, paddingTop: 7, marginTop: 8 }}>
+            {/* Avatar */}
+            <div style={{ width: 20, height: 20, borderRadius: '50%', background: avatarColor, color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: `1.5px solid ${avatarColor}88` }}>
+              {username.charAt(0).toUpperCase()}
             </div>
-          </div>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1.4, flex: 1, marginBottom: 8 }}>
-            {want.status === 'filled'
-              ? <span style={{ color: '#9B3232', fontWeight: 600 }}>Filled · {new Date(want.updated_at || want.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}</span>
-              : <span style={{ color: '#7A6F5C' }}>{[want.location, want.listing_type === 'service' ? (want.estimated_hours || null) : (want.condition && !['any','unknown'].includes(want.condition.toLowerCase()) ? want.condition : null), want.category, timeAgo(want.created_at)].filter(Boolean).join(' · ')}</span>
-            }
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${C.cardBorder}`, paddingTop: 8 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              {offerCounts[want.id] > 0 ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: dark ? '#1A2E1F' : '#EDFAF4', color: '#3F6F4E', borderRadius: 20, padding: '2px 8px', fontSize: '11px', fontWeight: 700 }}>
-                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#3F6F4E', display: 'inline-block', flexShrink: 0 }} />
-                  {offerCounts[want.id]} offer{offerCounts[want.id] !== 1 ? 's' : ''}
-                  {offerCounts[want.id] >= 3 && want.status !== 'filled' && <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', color: '#A86A1A' }}> · Hot</span>}
+            {/* @username */}
+            <span style={{ fontSize: '11px', color: C.textSub, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 75 }}>@{username}</span>
+            {/* Star rating */}
+            {allRatings[want.user_email] && (
+              <>
+                <span style={{ color: C.cardBorder, fontSize: 11, flexShrink: 0 }}>·</span>
+                <span style={{ fontSize: '11px', color: '#A86A1A', flexShrink: 0 }}>★ {allRatings[want.user_email].avg}</span>
+                <span style={{ fontSize: '10px', color: C.textMuted, flexShrink: 0 }}>· {allRatings[want.user_email].count}</span>
+              </>
+            )}
+            <span style={{ color: C.cardBorder, fontSize: 11, flexShrink: 0 }}>·</span>
+            {/* Offer dot indicator */}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '11px', color: C.textMuted, flexShrink: 0 }}>
+              <span style={{ width: 13, height: 13, borderRadius: '50%', border: `1.5px solid ${offerCounts[want.id] ? 'rgba(30,84,112,0.4)' : C.cardBorder}`, background: offerCounts[want.id] ? 'rgba(30,84,112,0.08)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {offerCounts[want.id] > 0 && <span style={{ width: 5, height: 5, borderRadius: '50%', background: dark ? '#7FA8B8' : '#1E5470', display: 'block' }} />}
+              </span>
+              {offerCounts[want.id] || 0}
+            </span>
+            <span style={{ color: C.cardBorder, fontSize: 11, flexShrink: 0 }}>·</span>
+            {/* Views */}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '11px', color: C.textMuted, flexShrink: 0 }}>
+              <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              {want.view_count || 0}
+            </span>
+            <span style={{ color: C.cardBorder, fontSize: 11, flexShrink: 0 }}>·</span>
+            <span style={{ fontSize: '11px', color: C.textMuted, flexShrink: 0 }}>{timeAgo(want.created_at)}</span>
+            {timeLeft && (
+              <>
+                <span style={{ color: C.cardBorder, fontSize: 11, flexShrink: 0 }}>·</span>
+                <span style={{ fontSize: '10px', fontWeight: 600, color: urgentExpiry ? '#DC2626' : C.textMuted, flexShrink: 0, letterSpacing: '0.02em' }}>
+                  {urgentExpiry && '⚡ '}{timeLeft}
                 </span>
-              ) : null}
+              </>
+            )}
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+              <button onClick={e => toggleWishlist(e, want.id)} style={{ background: 'none', border: `1px solid ${C.cardBorder}`, borderRadius: '7px', cursor: 'pointer', padding: '4px 5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="12" height="12" fill={wishlists.includes(want.id) ? '#9B3232' : 'none'} stroke={wishlists.includes(want.id) ? '#9B3232' : '#C0B9AE'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+              </button>
+              {want.status !== 'filled' && <span style={{ fontSize: '11px', fontWeight: 600, color: dark ? '#fff' : '#fff', whiteSpace: 'nowrap', background: dark ? '#1E5470' : '#1E5470', padding: '4px 10px', borderRadius: '20px' }}>Offer →</span>}
             </div>
-            {want.status !== 'filled' && <span style={{ fontSize: '11px', fontWeight: 600, color: dark ? '#7FA8B8' : '#1E5470' }}>Offer →</span>}
           </div>
         </div>
       </div>
@@ -1921,9 +2121,12 @@ function App() {
 
   const FeaturedSection = () => featuredWants.length === 0 ? null : (
     <div style={{ marginBottom: '20px' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '10px' }}>
-        <span style={{ fontSize: '14px', fontWeight: '600', color: C.text }}>Most wanted</span>
-        <span style={{ fontSize: '11px', color: C.textMuted }}>top {featuredWants.length}</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#A0522D', display: 'inline-block', flexShrink: 0 }} />
+          <span style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: '16px', fontWeight: 400, color: C.text, letterSpacing: '-0.3px' }}>Hot right now</span>
+        </div>
+        <span style={{ fontSize: '11px', fontWeight: '600', color: C.textMuted, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{featuredWants.length} {featuredWants.length === 1 ? 'listing' : 'listings'}</span>
       </div>
       <div ref={setupScrollDrag} style={{ display: 'flex', gap: '10px', overflowX: 'scroll', WebkitOverflowScrolling: 'touch', paddingBottom: '6px', scrollbarWidth: 'none', msOverflowStyle: 'none', marginLeft: '-2px' }}>
         {featuredWants.map(w => <Fragment key={w.id}>{FeaturedCard({ want: w })}</Fragment>)}
@@ -1932,9 +2135,37 @@ function App() {
   )
 
   const SearchFilters = () => {
-    const sortLabels = { newest: 'NEWEST', oldest: 'OLDEST', 'most-offers': 'TOP', 'budget-high': 'HIGH $', 'budget-low': 'LOW $' }
-    const locationLabel = nearMe ? 'NEAR ME' : (filterLocation ? filterLocation.toUpperCase() : 'NZ-WIDE')
-    const hasActiveFilters = filterMaxBudget || filterSort !== 'newest' || filterLocation || nearMe
+    const locationLabel = nearMe ? 'NEAR ME' : (filterLocations.length > 0 ? (filterLocations.length === 1 ? filterLocations[0].toUpperCase() : `${filterLocations.length} REGIONS`) : 'NZ-WIDE')
+    const hasActiveFilters = filterMaxBudget || filterSort !== 'newest' || filterLocations.length > 0 || nearMe
+    const BUDGET_OPTS = [
+      { label: 'Any', value: '' },
+      { label: '$100', value: '100' },
+      { label: '$200', value: '200' },
+      { label: '$300', value: '300' },
+      { label: '$500', value: '500' },
+      { label: '$1,000', value: '1000' },
+    ]
+    const SORT_OPTS = [
+      { label: '❄️ Fresh', value: 'newest' },
+      { label: '🔥 Hot', value: 'most-offers' },
+      { label: '⚡ Expiring', value: 'expiring' },
+    ]
+    const chipStyle = (active) => ({
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      padding: '7px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: active ? 700 : 500,
+      cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: "'Inter', system-ui, sans-serif",
+      border: `1.5px solid ${active ? '#1E5470' : C.cardBorder}`,
+      background: active ? (dark ? 'rgba(30,84,112,0.18)' : '#EAF0F4') : C.card,
+      color: active ? '#1E5470' : C.textSub, transition: 'all 0.12s',
+    })
+    const toggleHeaderStyle = (open, hasValue) => ({
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '8px 14px', borderRadius: '10px', cursor: 'pointer', width: '100%',
+      border: `1.5px solid ${hasValue ? '#1E5470' : C.cardBorder}`,
+      background: hasValue ? (dark ? 'rgba(30,84,112,0.12)' : '#EAF0F4') : C.card,
+      fontFamily: "'Inter', system-ui, sans-serif", fontSize: '12px', fontWeight: 600,
+      color: hasValue ? '#1E5470' : C.textSub,
+    })
     return (
       <div style={{ marginBottom: '16px' }} className="fade-up">
         <input
@@ -1954,42 +2185,59 @@ function App() {
             ))}
           </div>
         )}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-          <button className="filter-toolbar-chip" onClick={() => { setShowBudgetDropdown(v => !v); setShowSortDropdown(false) }}>
-            BUDGET <span>· {filterMaxBudget ? `≤$${filterMaxBudget}` : 'ANY'} ▾</span>
-          </button>
-          <button className="filter-toolbar-chip" onClick={() => { setShowSortDropdown(v => !v); setShowBudgetDropdown(false) }}>
-            SORT <span>· {sortLabels[filterSort] || 'NEWEST'} ▾</span>
-          </button>
-          <button className="filter-toolbar-chip" onClick={() => { setShowLocationPicker(true); setShowBudgetDropdown(false); setShowSortDropdown(false) }}>
+
+        {/* Sort + Budget side by side */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+          {/* Sort */}
+          <div>
+            <button style={toggleHeaderStyle(showSortDropdown, filterSort !== 'newest')} onClick={() => { setShowSortDropdown(v => !v); setShowBudgetDropdown(false) }}>
+              <span>Sort{filterSort !== 'newest' ? ` · ${SORT_OPTS.find(o => o.value === filterSort)?.label || ''}` : ''}</span>
+              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points={showSortDropdown ? '18 15 12 9 6 15' : '6 9 12 15 18 9'}/></svg>
+            </button>
+            {showSortDropdown && (
+              <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {SORT_OPTS.map(opt => (
+                  <button key={opt.value} onClick={() => { setFilterSort(opt.value); setShowSortDropdown(false) }} style={chipStyle(filterSort === opt.value)}>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Budget */}
+          <div>
+            <button style={toggleHeaderStyle(showBudgetDropdown, !!filterMaxBudget)} onClick={() => { setShowBudgetDropdown(v => !v); setShowSortDropdown(false) }}>
+              <span>Budget{filterMaxBudget ? ` · $${parseInt(filterMaxBudget).toLocaleString()}` : ''}</span>
+              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points={showBudgetDropdown ? '18 15 12 9 6 15' : '6 9 12 15 18 9'}/></svg>
+            </button>
+            {showBudgetDropdown && (
+              <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {BUDGET_OPTS.map(opt => (
+                  <button key={opt.value} onClick={() => { setFilterMaxBudget(opt.value); setShowBudgetDropdown(false) }} style={chipStyle(filterMaxBudget === opt.value)}>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Location + Reset */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <button className="filter-toolbar-chip" onClick={() => setShowLocationPicker(true)} style={{ flex: 1, background: filterLocations.length > 0 ? (dark ? 'rgba(30,84,112,0.12)' : '#EAF0F4') : undefined, borderColor: filterLocations.length > 0 ? '#1E5470' : undefined, color: filterLocations.length > 0 ? '#1E5470' : undefined }}>
             📍 <span>{locationLabel} ▾</span>
           </button>
           {hasActiveFilters && (
-            <button onClick={() => { setFilterMaxBudget(''); setFilterSort('newest'); setFilterLocation(''); setNearMe(false); setUserCity(null) }} style={{ background: 'transparent', border: 'none', padding: '8px 4px', color: dark ? C.accentText : '#1E5470', cursor: 'pointer', fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 12, letterSpacing: '0.04em' }}>Reset</button>
+            <button onClick={() => { setFilterMaxBudget(''); setFilterSort('newest'); setFilterLocations([]); setNearMe(false); setUserCity(null) }} style={{ background: 'transparent', border: 'none', padding: '8px 4px', color: dark ? C.accentText : '#1E5470', cursor: 'pointer', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 12, whiteSpace: 'nowrap' }}>Reset all</button>
           )}
         </div>
-        {showBudgetDropdown && (
-          <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
-            <input placeholder="Max budget e.g. 500" value={filterMaxBudget} onChange={e => setFilterMaxBudget(e.target.value)} style={{ flex: 1 }} autoFocus onBlur={() => setShowBudgetDropdown(false)} />
-          </div>
-        )}
-        {showSortDropdown && (
-          <div style={{ marginBottom: 8 }}>
-            <select value={filterSort} onChange={e => { setFilterSort(e.target.value); setShowSortDropdown(false) }} style={{ width: '100%' }} autoFocus onBlur={() => setShowSortDropdown(false)}>
-              <option value="newest">Newest first</option>
-              <option value="oldest">Oldest first</option>
-              <option value="most-offers">Most offers</option>
-              <option value="budget-high">Budget: high–low</option>
-              <option value="budget-low">Budget: low–high</option>
-            </select>
-          </div>
-        )}
+
         <div className="filter-divider" />
         <div ref={setupScrollDrag} className="chips-row">
           <span className={`filter-chip ${!filterType && !filterCategory ? 'active' : ''}`} onClick={() => { setFilterType(''); setFilterCategory('') }}>All</span>
-          <span className={`filter-chip ${filterType === 'item' && !filterCategory ? 'active' : ''}`} onClick={() => { setFilterType(filterType === 'item' ? '' : 'item'); setFilterCategory('') }}>Items</span>
-          <span className={`filter-chip ${filterType === 'service' && !filterCategory ? 'active' : ''}`} onClick={() => { setFilterType(filterType === 'service' ? '' : 'service'); setFilterCategory('') }}>Services</span>
-          {(filterType === 'service' ? serviceCategories : filterType === 'item' ? categories : [...categories, ...serviceCategories.filter(c => !categories.includes(c))]).map(c => <span key={c} className={`filter-chip ${filterCategory === c ? 'active' : ''}`} onClick={() => setFilterCategory(filterCategory === c ? '' : c)}>{c}</span>)}
+          <span className={`filter-chip ${filterType === 'item' && !filterCategory ? 'active' : ''}`} onClick={() => { setFilterType(filterType === 'item' ? '' : 'item'); setFilterCategory('') }}>{CAT_EMOJI['Items']} Items</span>
+          <span className={`filter-chip ${filterType === 'service' && !filterCategory ? 'active' : ''}`} onClick={() => { setFilterType(filterType === 'service' ? '' : 'service'); setFilterCategory('') }}>{CAT_EMOJI['Services']} Services</span>
+          {(filterType === 'service' ? serviceCategories : filterType === 'item' ? categories : [...categories, ...serviceCategories.filter(c => !categories.includes(c))]).map(c => <span key={c} className={`filter-chip ${filterCategory === c ? 'active' : ''}`} onClick={() => setFilterCategory(filterCategory === c ? '' : c)}>{CAT_EMOJI[c] ? `${CAT_EMOJI[c]} ` : ''}{c}</span>)}
         </div>
       </div>
     )
@@ -2120,45 +2368,88 @@ function App() {
 
   const LocationPicker = () => {
     if (!showLocationPicker) return null
-    const isActive = (v) => filterLocation === v && !nearMe
-    const pick = (v) => { setFilterLocation(v); setNearMe(false); setUserCity(null); setShowLocationPicker(false) }
+    const isPending = (v) => pendingLocations.includes(v)
+    const togglePending = (v) => setPendingLocations(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v])
+    const toggleRegion = (region) => setExpandedRegions(prev => { const s = new Set(prev); s.has(region) ? s.delete(region) : s.add(region); return s })
+    const apply = () => { setFilterLocations(pendingLocations); setNearMe(false); setUserCity(null); setShowLocationPicker(false) }
+    const clearAll = () => { setPendingLocations([]); setFilterLocations([]); setNearMe(false); setUserCity(null); setShowLocationPicker(false) }
     const Tick = () => <svg width="14" height="14" fill="none" stroke="#1E5470" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-    const rowStyle = (active) => ({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px', borderRadius: '10px', border: `1.5px solid ${active ? '#1E5470' : C.cardBorder}`, background: active ? (dark ? 'rgba(30,84,112,0.15)' : '#EAF0F4') : C.card, cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: active ? '#1E5470' : C.text, fontFamily: "'Inter', system-ui, sans-serif" })
+    const Chevron = ({ open }) => <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points={open ? '18 15 12 9 6 15' : '6 9 12 15 18 9'}/></svg>
+    const Checkbox = ({ checked }) => (
+      <div style={{ width: 18, height: 18, borderRadius: 5, border: `2px solid ${checked ? '#1E5470' : C.cardBorder}`, background: checked ? '#1E5470' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.12s' }}>
+        {checked && <svg width="10" height="10" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>}
+      </div>
+    )
+    const rowStyle = (checked) => ({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px', borderRadius: '10px', border: `1.5px solid ${checked ? '#1E5470' : C.cardBorder}`, background: checked ? (dark ? 'rgba(30,84,112,0.12)' : '#EAF0F4') : C.card, cursor: 'pointer', fontSize: '14px', fontWeight: checked ? 600 : 500, color: checked ? '#1E5470' : C.text, fontFamily: "'Inter', system-ui, sans-serif", width: '100%', textAlign: 'left' })
+    const subRowStyle = (checked) => ({ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'space-between', padding: '9px 14px', borderRadius: '8px', border: `1px solid ${checked ? '#1E5470' : C.cardBorder}`, background: checked ? (dark ? 'rgba(30,84,112,0.1)' : '#EAF0F4') : 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: checked ? 600 : 400, color: checked ? '#1E5470' : C.textSub, fontFamily: "'Inter', system-ui, sans-serif", width: '100%', textAlign: 'left' })
+    const anyPending = pendingLocations.length > 0
     return (
       <div className="modal-overlay" onClick={() => setShowLocationPicker(false)}>
-        <div className="modal" style={{ background: C.card, maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div className="modal" style={{ background: C.card, maxHeight: '85vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px', flexShrink: 0 }}>
             <h3 style={{ fontSize: '16px', fontWeight: '700', color: C.text }}>Choose location</h3>
             <button onClick={() => setShowLocationPicker(false)} style={{ background: 'none', border: 'none', padding: '4px', cursor: 'pointer', color: C.textMuted }}>
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {anyPending && (
+            <div style={{ fontSize: '12px', color: '#1E5470', marginBottom: '12px', flexShrink: 0 }}>
+              {pendingLocations.length} selected — tap Search to apply
+            </div>
+          )}
+          <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <button onClick={() => { activateNearMe(); setShowLocationPicker(false) }} style={rowStyle(nearMe)}>
-              📍 Near me {nearMe && <Tick />}
+              <span>📍 Near me</span>
+              {nearMe && <Tick />}
             </button>
-            <button onClick={() => { setFilterLocation(''); setNearMe(false); setUserCity(null); setShowLocationPicker(false) }} style={rowStyle(!filterLocation && !nearMe)}>
-              All of New Zealand {!filterLocation && !nearMe && <Tick />}
+            <button onClick={clearAll} style={rowStyle(pendingLocations.length === 0 && !nearMe)}>
+              <span>All of New Zealand</span>
+              {pendingLocations.length === 0 && !nearMe && <Tick />}
             </button>
-            {Object.entries(REGIONS).map(([region, cities]) => (
-              <div key={region}>
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px', marginBottom: '4px' }}>
+            <div style={{ height: 1, background: C.cardBorder, margin: '4px 0' }} />
+            {Object.entries(REGIONS).map(([region, cities]) => {
+              const expanded = expandedRegions.has(region)
+              const singleCity = cities.length === 1
+              const regionChecked = isPending(region)
+              const someCityChecked = cities.some(c => isPending(c))
+              const anySelected = regionChecked || someCityChecked
+              return (
+                <div key={region}>
                   <button
-                    onClick={() => pick(region)}
-                    style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: isActive(region) ? '#1E5470' : C.textMuted, background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', display: 'flex', alignItems: 'center', gap: 6 }}
+                    onClick={() => singleCity ? togglePending(cities[0]) : toggleRegion(region)}
+                    style={{ ...rowStyle(singleCity ? isPending(cities[0]) : regionChecked), display: 'flex', alignItems: 'center', gap: 10 }}
                   >
-                    {region} {isActive(region) && <Tick />}
+                    {singleCity
+                      ? <><Checkbox checked={isPending(cities[0])} /><span style={{ flex: 1 }}>{cities[0]}</span></>
+                      : <><span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {anySelected && !expanded && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1E5470', display: 'inline-block', flexShrink: 0 }} />}
+                          {region}
+                        </span><Chevron open={expanded} /></>
+                    }
                   </button>
+                  {expanded && !singleCity && (
+                    <div style={{ marginTop: 4, marginLeft: 12, display: 'flex', flexDirection: 'column', gap: 3, paddingLeft: 12, borderLeft: `2px solid ${C.cardBorder}` }}>
+                      <button onClick={() => togglePending(region)} style={subRowStyle(regionChecked)}>
+                        <span>All of {region}</span>
+                        <Checkbox checked={regionChecked} />
+                      </button>
+                      {cities.map(city => (
+                        <button key={city} onClick={() => togglePending(city)} style={subRowStyle(isPending(city))}>
+                          <span>{city}</span>
+                          <Checkbox checked={isPending(city)} />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '8px' }}>
-                  {cities.map(city => (
-                    <button key={city} onClick={() => pick(city)} style={rowStyle(isActive(city))}>
-                      {city} {isActive(city) && <Tick />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
+              )
+            })}
+          </div>
+          {/* Sticky apply button */}
+          <div style={{ paddingTop: 14, flexShrink: 0 }}>
+            <button className="btn btn-primary" onClick={apply} style={{ width: '100%', padding: '13px', fontSize: '14px' }}>
+              {anyPending ? `Search ${pendingLocations.length} region${pendingLocations.length !== 1 ? 's' : ''}` : 'Search NZ-wide'}
+            </button>
           </div>
         </div>
       </div>
@@ -2274,8 +2565,14 @@ function App() {
         </div>
 
         <div style={{ maxWidth: '640px', margin: '0 auto', padding: '20px 16px 0' }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: '600', color: C.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '10px' }}>Live right now</div>
-          {loading ? SkeletonCard({ hasImage: true }) : wants[0] ? WantCard({ want: wants[0], index: 0, noAnimate: true }) : null}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#0E9A6E', display: 'inline-block', boxShadow: '0 0 0 3px rgba(14,154,110,0.2)' }} />
+              <span style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Live right now</span>
+            </div>
+            {wants.length > 0 && <span style={{ fontSize: '11px', color: C.textMuted }}>{wants.length} open</span>}
+          </div>
+          {loading ? [1,2].map(i => <div key={i} style={{ marginBottom: 10 }}>{SkeletonCard({ hasImage: i === 1 })}</div>) : wants.slice(0, 3).map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i, noAnimate: true })}</Fragment>)}
         </div>
 
         <div style={{ padding: '36px 16px 8px', maxWidth: '640px', margin: '0 auto' }}>
@@ -2351,7 +2648,7 @@ function App() {
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }}>
             <span style={{ fontSize: '14px', fontWeight: '600', color: C.text }}>See what people want</span>
-            {wants.length > 0 && <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: '#7A6F5C', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{wants.length} live</span>}
+            {wants.length > 0 && <span style={{ fontSize: '10px', color: '#7A6F5C', fontWeight: '600', letterSpacing: '0.02em' }}>{wants.length} live</span>}
           </div>
           {loading ? [1,2,3].map(i => <SkeletonCard key={i} hasImage={i !== 2} />) : wants.slice(0, 6).map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i, noAnimate: true })}</Fragment>)}
           {wants.length > 6 && <button className="btn" onClick={() => setPage('browse')} style={{ width: '100%', padding: '13px', marginTop: '4px', fontSize: '14px' }}>View all {wants.length} listings →</button>}
@@ -2493,20 +2790,29 @@ function App() {
       <div style={pageStyle}>
         <style>{styles}</style>
         {Header()}
-        <div style={{ background: '#16110A', padding: '28px 20px 56px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ background: 'linear-gradient(135deg, #16110A 0%, #1A1D2E 60%, #0F1820 100%)', padding: '28px 20px 56px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 70% 30%, rgba(30,84,112,0.18) 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, rgba(160,82,45,0.12) 0%, transparent 50%)', pointerEvents: 'none' }} />
           <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-            <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#1E5470', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 28, fontWeight: '700', margin: '0 auto 12px', border: '3px solid rgba(255,255,255,0.15)' }}>
+            <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg, #1E5470, #2A7A9E)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 28, fontWeight: '700', margin: '0 auto 12px', border: '3px solid rgba(255,255,255,0.15)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
               {profileUsername ? profileUsername[0].toUpperCase() : '?'}
             </div>
             <div style={{ fontSize: '20px', fontWeight: '700', color: '#fff', marginBottom: '2px' }}>@{profileUsername}</div>
             {joinDate && <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '10px' }}>Member since {joinDate}</div>}
-            {r ? (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: '20px', padding: '5px 14px' }}>
-                <span style={{ color: '#FCD34D', fontSize: '13px' }}>★</span>
-                <span style={{ fontSize: '13px', fontWeight: '700', color: '#FCD34D' }}>{r.avg}</span>
-                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>({r.count} review{r.count !== 1 ? 's' : ''})</span>
-              </div>
-            ) : <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>No ratings yet</span>}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {r ? (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: '20px', padding: '5px 14px' }}>
+                  <span style={{ color: '#FCD34D', fontSize: '13px' }}>★</span>
+                  <span style={{ fontSize: '13px', fontWeight: '700', color: '#FCD34D' }}>{r.avg}</span>
+                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>({r.count} review{r.count !== 1 ? 's' : ''})</span>
+                </div>
+              ) : <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>No ratings yet</span>}
+              {viewedProfile?.phone_verified && (
+                <div className="phone-badge">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                  Phone verified
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div style={{ ...inner, marginTop: '-28px' }}>
@@ -2514,7 +2820,7 @@ function App() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
               {[{ value: profileWants.length, label: 'Listings' }, { value: totalDeals, label: 'Deals done' }, { value: r?.count || 0, label: 'Reviews' }].map(({ value, label }, i) => (
                 <div key={i} style={{ padding: '18px 12px', textAlign: 'center', borderRight: i < 2 ? `1px solid ${C.cardBorder}` : 'none' }}>
-                  <div style={{ fontSize: '22px', fontWeight: '800', color: '#1E5470', lineHeight: 1, marginBottom: '4px' }}>{value}</div>
+                  <div className="gsap-counter" data-target={value} style={{ fontSize: '22px', fontWeight: '800', color: '#1E5470', lineHeight: 1, marginBottom: '4px' }}>{value}</div>
                   <div style={{ fontSize: '11px', color: C.textMuted, fontWeight: '500' }}>{label}</div>
                 </div>
               ))}
@@ -2671,7 +2977,16 @@ function App() {
             <h2 style={{ fontSize: '16px', fontWeight: '600', color: C.text }}>Messages</h2>
             <span style={{ fontSize: '12px', color: C.textMuted }}>{myInbox.length} thread{myInbox.length !== 1 ? 's' : ''}</span>
           </div>
-          {myInbox.length === 0 && <div className="card fade-up" style={{ padding: '48px 24px', textAlign: 'center' }}><p style={{ fontSize: '15px', color: '#4A6278', marginBottom: '6px' }}>No messages yet</p><p style={{ fontSize: '13px', color: '#8FA5B8' }}>When you message a seller or buyer, threads appear here</p></div>}
+          {myInbox.length === 0 && (
+            <div className="card fade-up" style={{ padding: '52px 24px', textAlign: 'center' }}>
+              <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: dark ? 'rgba(30,84,112,0.12)' : '#EAF0F4', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <svg width="24" height="24" fill="none" stroke={dark ? '#5B9EC0' : '#1E5470'} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              </div>
+              <p style={{ fontFamily: "'Fraunces', serif", fontSize: '18px', fontWeight: '400', color: C.text, marginBottom: '6px' }}>No messages yet</p>
+              <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '20px', lineHeight: 1.5 }}>Make an offer on a listing to start a conversation with a buyer.</p>
+              <button className="btn btn-primary" onClick={() => setPage('browse')} style={{ fontSize: '13px', padding: '10px 24px' }}>Browse listings →</button>
+            </div>
+          )}
           {myInbox.map((thread, i) => {
             const want = wants.find(w => w.id === thread.want_id)
             const offer = { id: thread.offer_id, seller_email: thread.offers?.seller_email, price: thread.offers?.price }
@@ -2707,7 +3022,9 @@ function App() {
     const isService = selectedWant.listing_type === 'service'
     const accentColor = isService ? '#A0522D' : '#1E5470'
     const accentBg = isService ? '#F5EBDF' : '#EAF0F4'
-    const accentBorder = isService ? '#DDD6FE' : '#B8DCEE'
+    const detailBudgetRaw = selectedWant.budget ? String(selectedWant.budget).replace(/[^0-9.]/g, '') : ''
+    const detailBudgetNum = detailBudgetRaw ? parseFloat(detailBudgetRaw) : null
+    const detailBudgetDisplay = detailBudgetNum ? '$' + detailBudgetNum.toLocaleString('en-NZ') : selectedWant.budget
     return (
       <div style={pageStyle}>
         <style>{styles}</style>
@@ -2718,23 +3035,28 @@ function App() {
         {EditModal()}
         {DealRatingModal()}
         {toast && <div className={`toast toast-${toast.type || 'default'}`}><span>{toast.msg}</span><button className="toast-close" onClick={() => setToast(null)}>✕</button></div>}
-        <div style={inner}>
+        <div className="want-detail-layout">
+          {/* LEFT: listing info */}
+          <div className="want-detail-main">
           <div className="card fade-up" style={{ marginBottom: '14px', overflow: 'hidden' }}>
-            {hasImages && <div className="img-gallery-full" style={{ padding: '14px 14px 0' }}>{selectedWant.images.map((url, i) => <img key={i} src={url} alt="" onClick={() => setLightboxImg(url)} />)}</div>}
+            {hasImages
+              ? <div className="img-gallery-full" style={{ padding: '14px 14px 0' }}>{selectedWant.images.map((url, i) => <img key={i} src={url} alt="" onClick={() => setLightboxImg(url)} />)}</div>
+              : <div style={{ height: '6px', background: `linear-gradient(90deg, ${accentColor}, ${isService ? '#C07848' : '#2A7A9E'})` }} />
+            }
             <div style={{ padding: '20px 22px 22px' }}>
-              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: '#7A6F5C', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: C.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
                 {[isService ? 'Service' : selectedWant.category, selectedWant.listing_type !== 'service' && selectedWant.condition && selectedWant.condition !== 'Any' ? selectedWant.condition : null, selectedWant.location, selectedWant.status === 'filled' ? 'Filled' : null].filter(Boolean).join(' · ')}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px', gap: '12px' }}>
                 <h2 style={{ fontSize: '26px', fontWeight: '400', color: C.text, lineHeight: '1.2', fontFamily: "'Fraunces', serif", flex: 1 }}>{selectedWant.title}</h2>
                 {selectedWant.budget && (
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: '36px', fontWeight: '400', color: dark ? '#5B9EC0' : '#1E5470', lineHeight: 1 }}>{selectedWant.budget}</div>
-                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', fontWeight: '500', color: '#7A6F5C', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '3px' }}>Budget{selectedWant.negotiable ? ' · Flex' : ' · Firm'}</div>
+                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: '36px', fontWeight: '400', color: dark ? '#5B9EC0' : accentColor, lineHeight: 1 }}>{detailBudgetDisplay}</div>
+                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', fontWeight: '500', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '3px' }}>Budget{selectedWant.negotiable ? ' · Flex' : ' · Firm'}</div>
                   </div>
                 )}
               </div>
-              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: '#7A6F5C', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: C.textMuted, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                 {selectedWant.views > 5 && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>{selectedWant.views}</span>}
                 {selectedWant.listing_type === 'service' && selectedWant.estimated_hours && <span>{selectedWant.estimated_hours}</span>}
                 <span>{timeAgo(selectedWant.created_at)}</span>
@@ -2749,7 +3071,7 @@ function App() {
                     {(() => {
                       const r = allRatings[selectedWant.user_email]
                       const parts = [r ? `★ ${r.avg}` : null, r?.count ? `${r.count} deals` : null, `Posted ${timeAgo(selectedWant.created_at)}`].filter(Boolean)
-                      return <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', color: '#7A6F5C', letterSpacing: '0.05em', textTransform: 'uppercase', marginTop: '2px' }}>{parts.join(' · ')}</div>
+                      return <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', color: C.textMuted, letterSpacing: '0.05em', textTransform: 'uppercase', marginTop: '2px' }}>{parts.join(' · ')}</div>
                     })()}
                   </div>
                 </div>
@@ -2785,35 +3107,51 @@ function App() {
               </div>
             </div>
           )}
+          </div>
 
+          {/* RIGHT: offer form + offers */}
+          <div className="want-detail-sidebar">
           {user && selectedWant.status !== 'filled' && !isOwner ? (
             <div className="card fade-up" style={{ padding: '22px', marginBottom: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: offerCounts[selectedWant.id] > 0 ? '10px' : '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <svg width="16" height="16" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
-                  <h3 style={{ fontSize: '14px', fontWeight: '600', color: C.text }}>Make an offer</h3>
+              {offerSentForWant === selectedWant.id ? (
+                <div style={{ textAlign: 'center', padding: '10px 0 6px' }}>
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#0E9A6E', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+                    <svg width="22" height="22" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <p style={{ fontSize: '16px', fontWeight: '700', color: C.text, marginBottom: '6px' }}>Offer sent!</p>
+                  <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '18px', lineHeight: 1.5 }}>The buyer has been notified. You'll hear back via Messages if they're keen.</p>
+                  <button className="btn" onClick={() => setOfferSentForWant(null)} style={{ fontSize: '13px', padding: '9px 20px' }}>Send another offer</button>
                 </div>
-                {offerCounts[selectedWant.id] > 0 && (
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '500', color: '#A86A1A', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                    {(() => {
-                      const prices = offers.map(o => parseFloat((o.price || '').replace(/[^0-9.]/g, ''))).filter(n => n > 0)
-                      const best = prices.length ? Math.min(...prices) : null
-                      const bestStr = best ? offers.find(o => parseFloat((o.price || '').replace(/[^0-9.]/g, '')) === best)?.price : null
-                      return `${offerCounts[selectedWant.id]} in${bestStr ? ` · Best ${bestStr}` : ''}`
-                    })()}
-                  </span>
-                )}
-              </div>
-              {offerCounts[selectedWant.id] >= 2 && (
-                <div style={{ fontSize: '12px', color: C.textMuted, marginBottom: '14px', paddingBottom: '14px', borderBottom: `1px solid ${C.cardBorder}` }}>
-                  {offerCounts[selectedWant.id]} sellers have already offered — make yours stand out.
-                </div>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: offerCounts[selectedWant.id] > 0 ? '10px' : '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <svg width="16" height="16" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+                      <h3 style={{ fontSize: '14px', fontWeight: '600', color: C.text }}>Make an offer</h3>
+                    </div>
+                    {offerCounts[selectedWant.id] > 0 && (
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '500', color: '#A86A1A', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                        {(() => {
+                          const prices = offers.map(o => parseFloat((o.price || '').replace(/[^0-9.]/g, ''))).filter(n => n > 0)
+                          const best = prices.length ? Math.min(...prices) : null
+                          const bestStr = best ? offers.find(o => parseFloat((o.price || '').replace(/[^0-9.]/g, '')) === best)?.price : null
+                          return `${offerCounts[selectedWant.id]} in${bestStr ? ` · Best ${bestStr}` : ''}`
+                        })()}
+                      </span>
+                    )}
+                  </div>
+                  {offerCounts[selectedWant.id] >= 2 && (
+                    <div style={{ fontSize: '12px', color: C.textMuted, marginBottom: '14px', paddingBottom: '14px', borderBottom: `1px solid ${C.cardBorder}` }}>
+                      {offerCounts[selectedWant.id]} sellers have already offered — make yours stand out.
+                    </div>
+                  )}
+                  <input placeholder={isService ? 'Your price — e.g. $80/hr or $150 flat' : 'Your price — e.g. $250'} value={offerPrice} onChange={e => setOfferPrice(e.target.value)} style={{ marginBottom: '10px' }} />
+                  <textarea placeholder={isService ? 'Your experience, availability, tools or equipment…' : 'Describe what you have — condition, photos, pickup…'} value={offerMessage} onChange={e => setOfferMessage(e.target.value)} rows={3} style={{ marginBottom: '14px', resize: 'vertical' }} maxLength={2000} />
+                  <button className="btn btn-primary" onClick={submitOffer} disabled={!offerMessage || submittingOffer} style={{ width: '100%', padding: '13px', fontSize: '14px', background: isService ? '#A0522D' : undefined, borderColor: isService ? '#A0522D' : undefined }}>
+                    {submittingOffer ? 'Sending…' : 'Send my offer →'}
+                  </button>
+                </>
               )}
-              <input placeholder={isService ? 'Your price — e.g. $80/hr or $150 flat' : 'Your price — e.g. $250'} value={offerPrice} onChange={e => setOfferPrice(e.target.value)} style={{ marginBottom: '10px' }} />
-              <textarea placeholder={isService ? 'Your experience, availability, tools or equipment…' : 'Describe what you have — condition, photos, pickup…'} value={offerMessage} onChange={e => setOfferMessage(e.target.value)} rows={3} style={{ marginBottom: '14px', resize: 'vertical' }} maxLength={2000} />
-              <button className="btn btn-primary" onClick={submitOffer} disabled={!offerMessage || submittingOffer} style={{ width: '100%', padding: '13px', fontSize: '14px', background: isService ? '#A0522D' : undefined, borderColor: isService ? '#A0522D' : undefined }}>
-                {submittingOffer ? 'Sending…' : 'Send my offer →'}
-              </button>
             </div>
           ) : !user ? (
             <div style={{ background: dark ? '#1A1208' : '#F5EBDF', border: `1px solid ${dark ? '#3D2A14' : '#E8D5BE'}`, borderRadius: '12px', padding: '16px 18px', marginBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', boxShadow: '0 1px 0 rgba(0,0,0,0.04)' }}>
@@ -2920,27 +3258,32 @@ function App() {
             )
           })
           })()}
-        </div>
+          </div>{/* end sidebar */}
+        </div>{/* end want-detail-layout */}
 
         {similarWants.length > 0 && (
-          <div style={{ padding: '0 0 8px' }}>
-            <div style={{ padding: '0 16px 12px', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '13px', fontWeight: '600', color: C.text }}>More in {selectedWant.category}</span>
-              <span style={{ fontSize: '12px', color: C.textMuted }}>{similarWants.length} listing{similarWants.length !== 1 ? 's' : ''}</span>
+          <div style={{ maxWidth: '1060px', margin: '0 auto', padding: '0 16px 8px' }}>
+            <div style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '15px', lineHeight: 1 }}>{CAT_EMOJI[selectedWant.category] || '📦'}</span>
+                <span style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: '16px', fontWeight: 400, color: C.text, letterSpacing: '-0.3px' }}>More in {selectedWant.category}</span>
+              </div>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: '#1E5470', background: dark ? 'rgba(30,84,112,0.12)' : '#EAF0F4', padding: '3px 10px', borderRadius: '20px' }}>{similarWants.length} {similarWants.length === 1 ? 'listing' : 'listings'}</span>
             </div>
-            <div ref={el => el && setupScrollDrag(el)} style={{ display: 'flex', gap: '10px', overflowX: 'auto', padding: '2px 16px 16px', scrollbarWidth: 'none', cursor: 'grab' }}>
+            <div ref={el => el && setupScrollDrag(el)} style={{ display: 'flex', gap: '10px', overflowX: 'auto', padding: '2px 0 16px', scrollbarWidth: 'none', cursor: 'grab' }}>
               {similarWants.map(w => (
                 <div key={w.id} onClick={() => openWant(w)} className="card card-hover" style={{ flexShrink: 0, width: '200px', overflow: 'hidden', cursor: 'pointer' }}>
+                  <div style={{ height: '3px', background: w.listing_type === 'service' ? '#A0522D' : '#1E5470', flexShrink: 0 }} />
                   {w.images?.[0] ? (
-                    <img src={w.images[0]} alt="" style={{ width: '100%', height: '110px', objectFit: 'cover' }} />
+                    <img src={w.images[0]} alt="" style={{ width: '100%', height: '108px', objectFit: 'cover' }} />
                   ) : (
-                    <div style={{ height: '110px', background: w.listing_type === 'service' ? 'rgba(160,82,45,0.08)' : '#EAF0F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ height: '108px', background: w.listing_type === 'service' ? (dark ? 'rgba(160,82,45,0.12)' : 'rgba(160,82,45,0.07)') : (dark ? 'rgba(30,84,112,0.12)' : '#EAF0F4'), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <svg width="28" height="28" fill="none" stroke={w.listing_type === 'service' ? '#A0522D' : '#1E5470'} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ opacity: 0.5 }}>{w.listing_type === 'service' ? <><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></> : <><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></>}</svg>
                     </div>
                   )}
                   <div style={{ padding: '10px 12px' }}>
                     <p style={{ fontSize: '12px', fontWeight: '600', color: C.text, lineHeight: 1.3, marginBottom: '5px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{w.title}</p>
-                    {w.budget && <span style={{ fontSize: '11px', fontWeight: '700', color: '#1E5470' }}>{w.budget}</span>}
+                    {w.budget && (() => { const r = String(w.budget).replace(/[^0-9.]/g, ''); const n = r ? parseFloat(r) : null; return <span style={{ fontSize: '11px', fontWeight: '700', color: dark ? '#7FA8B8' : '#1E5470' }}>${n ? n.toLocaleString('en-NZ') : w.budget}</span> })()}
                     {w.location && <p style={{ fontSize: '11px', color: C.textMuted, marginTop: '2px' }}>📍 {w.location}</p>}
                   </div>
                 </div>
@@ -2957,85 +3300,181 @@ function App() {
   // POST PAGE
   if (page === 'post') {
     const postAccent = listingType === 'service' ? '#A0522D' : '#1E5470'
+    const SWATCH = { Electronics:'#D8E8F0','Sport & Outdoors':'#D4EAD8',Vehicles:'#E0DAD4',Furniture:'#EAE0D4',Clothing:'#EED4D8',Tools:'#EDE4D0',Music:'#E4D4EE',Other:'#E8E4DC' }
+    const swatchBg = dark ? '#2A2218' : (listingType === 'service' ? '#F5EBDF' : (SWATCH[category] || '#E8E4DC'))
+    const ICON_COLOR = dark ? '#8A7E6E' : { Electronics:'#1E5470','Sport & Outdoors':'#3F6F4E',Vehicles:'#7A5A48',Furniture:'#8A6838',Clothing:'#8A3838',Tools:'#7A6838',Music:'#6B4878' }[category] || '#7A6F5C'
+    const IS = { width:22,height:22,fill:'none',stroke:ICON_COLOR,strokeWidth:1.6,strokeLinecap:'round',strokeLinejoin:'round',viewBox:'0 0 24 24' }
+    const categoryIcon = listingType === 'service'
+      ? <svg {...IS}><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+      : category === 'Electronics' ? <svg {...IS}><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      : category === 'Sport & Outdoors' ? <svg {...IS}><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M15 5a1 1 0 100-2 1 1 0 000 2zm-3 13V14l-3-3 4-3 2 3h2"/></svg>
+      : category === 'Vehicles' ? <svg {...IS}><path d="M19 17H5a2 2 0 01-2-2V9l3-6h10l3 6v6a2 2 0 01-2 2z"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg>
+      : category === 'Furniture' ? <svg {...IS}><path d="M3 10V6a2 2 0 012-2h14a2 2 0 012 2v4"/><path d="M3 10a2 2 0 100 4h18a2 2 0 100-4"/><line x1="5" y1="14" x2="5" y2="19"/><line x1="19" y1="14" x2="19" y2="19"/></svg>
+      : category === 'Clothing' ? <svg {...IS}><polyline points="9 11 12 14 15 11"/><path d="M9 3H5l-3 7h4v11h16V10h4l-3-7h-4a3 3 0 01-6 0z"/></svg>
+      : category === 'Tools' ? <svg {...IS}><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+      : category === 'Music' ? <svg {...IS}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      : <svg {...IS}><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+    const metaLine = [location, listingType === 'service' ? estimatedHours || null : (condition && !['any','unknown'].includes(condition.toLowerCase()) ? condition : null), category, 'Just now'].filter(Boolean).join(' · ') || 'Location · Category · Just now'
+
     return (
       <div style={pageStyle}>
         <style>{styles}</style>
         {Header()}
-        <div style={inner}>
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontStyle: 'italic', color: C.text, lineHeight: 1.25, marginBottom: '4px' }}>
-              {listingType === 'service' ? 'Post a job' : 'Post a want'}
-            </div>
-            <p style={{ fontSize: '13px', color: C.textMuted }}>Tell sellers what you need — they'll come to you with offers.</p>
-          </div>
-          <div style={{ display: 'flex', border: `1.5px solid ${C.cardBorder}`, borderRadius: '12px', overflow: 'hidden', marginBottom: '24px' }}>
-            <button onClick={() => { setListingType('item'); setCategory(''); setEstimatedHours('') }} style={{ flex: 1, padding: '14px 20px', background: listingType === 'item' ? '#16110A' : C.card, color: listingType === 'item' ? '#F6F4EE' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '600', fontFamily: "'Inter', system-ui, sans-serif", transition: 'all 0.15s' }}>
-              Buy item
-              {listingType === 'item' && <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '400', opacity: 0.65, marginTop: 2 }}>Want something specific</div>}
-            </button>
-            <button onClick={() => { setListingType('service'); setCategory(''); setCondition('') }} style={{ flex: 1, padding: '14px 20px', background: listingType === 'service' ? '#A0522D' : C.card, color: listingType === 'service' ? '#F6F4EE' : C.textSub, border: 'none', borderLeft: `1.5px solid ${C.cardBorder}`, cursor: 'pointer', fontSize: '14px', fontWeight: '600', fontFamily: "'Inter', system-ui, sans-serif", transition: 'all 0.15s' }}>
-              Request service
-              {listingType === 'service' && <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '400', opacity: 0.65, marginTop: 2 }}>Get quotes from locals</div>}
-            </button>
-          </div>
-
-          <div className="card fade-up" style={{ padding: '20px', marginBottom: '10px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px' }}>What do you need?</div>
-              <span style={{ fontSize: '11px', color: title.length > 90 ? '#D97706' : C.textMuted }}>{title.length}/120</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <input placeholder={listingType === 'service' ? 'e.g. Lawns mowed — small Ponsonby section' : 'e.g. Road bike under $300, any colour'} value={title} onChange={e => setTitle(e.target.value)} maxLength={120} />
-              <textarea placeholder={listingType === 'service' ? 'Describe the job — location, access, tools needed…' : 'More details — brand, size, specs, what condition you\'d accept (optional)'} value={description} onChange={e => setDescription(e.target.value)} rows={3} style={{ resize: 'vertical' }} maxLength={2000} />
-            </div>
-          </div>
-
-          <div className="card reveal delay-1" style={{ padding: '20px', marginBottom: '10px' }}>
-            <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '12px' }}>Budget & location</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <input placeholder={listingType === 'service' ? 'Budget — e.g. $50 cash, up to $200' : 'Max budget — e.g. $300'} value={budget} onChange={e => setBudget(e.target.value)} />
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <select value={location} onChange={e => setLocation(e.target.value)} style={{ flex: 1 }}>
-                  <option value="">Your city</option>
-                  {Object.entries(REGIONS).map(([region, cities]) => (
-                    <optgroup key={region} label={region}>
-                      {cities.map(c => <option key={c}>{c}</option>)}
-                    </optgroup>
-                  ))}
-                </select>
-                <select value={category} onChange={e => setCategory(e.target.value)} style={{ flex: 1 }}>
-                  <option value="">Category</option>
-                  {(listingType === 'service' ? serviceCategories : categories).map(c => <option key={c}>{c}</option>)}
-                </select>
+        <div className="post-2col">
+          {/* Form column */}
+          <div className="post-form-col">
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontStyle: 'italic', color: C.text, lineHeight: 1.25, marginBottom: '4px' }}>
+                {listingType === 'service' ? 'Post a job' : 'Post a want'}
               </div>
-              {listingType === 'service'
-                ? <input placeholder="Estimated time — e.g. 2 hours, half day" value={estimatedHours} onChange={e => setEstimatedHours(e.target.value)} />
-                : <select value={condition} onChange={e => setCondition(e.target.value)}><option value="">Condition (optional)</option>{conditions.map(c => <option key={c} value={c}>{c}</option>)}</select>
-              }
-              {listingType === 'service' && LICENSED_TRADE_CATS.has(category) && (
-                <div style={{ background: dark ? '#2A1A00' : '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', padding: '11px 14px', fontSize: '13px', color: dark ? '#FCD34D' : '#92400E', lineHeight: 1.5 }}>
-                  <strong>NZ licensing reminder:</strong> {category} work must be carried out by a licensed tradesperson. Ensure any seller you hire holds the required licence.
-                </div>
-              )}
-              <div onClick={() => setNegotiable(n => !n)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: '10px', border: `1.5px solid ${negotiable ? postAccent : C.cardBorder}`, background: negotiable ? (dark ? `rgba(${listingType === 'service' ? '124,58,237' : '14,127,168'},0.1)` : listingType === 'service' ? '#F5F3FF' : '#EAF0F4') : 'transparent', transition: 'all 0.15s' }}>
-                <div style={{ width: '18px', height: '18px', flexShrink: 0, borderRadius: '5px', border: `2px solid ${negotiable ? postAccent : '#C8DCE8'}`, background: negotiable ? postAccent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
-                  {negotiable && <svg width="10" height="10" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>}
-                </div>
-                <span style={{ fontSize: '13px', color: negotiable ? postAccent : C.text, fontWeight: negotiable ? '600' : '400' }}>Flexible budget</span>
+              <p style={{ fontSize: '13px', color: C.textMuted }}>Tell sellers what you need — they'll come to you with offers.</p>
+            </div>
+            <div style={{ display: 'flex', border: `1.5px solid ${C.cardBorder}`, borderRadius: '12px', overflow: 'hidden', marginBottom: '24px' }}>
+              <button onClick={() => { setListingType('item'); setCategory(''); setEstimatedHours('') }} style={{ flex: 1, padding: '14px 20px', background: listingType === 'item' ? '#16110A' : C.card, color: listingType === 'item' ? '#F6F4EE' : C.textSub, border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '600', fontFamily: "'Inter', system-ui, sans-serif", transition: 'all 0.15s' }}>
+                Buy item
+                {listingType === 'item' && <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '400', opacity: 0.65, marginTop: 2 }}>Want something specific</div>}
+              </button>
+              <button onClick={() => { setListingType('service'); setCategory(''); setCondition('') }} style={{ flex: 1, padding: '14px 20px', background: listingType === 'service' ? '#A0522D' : C.card, color: listingType === 'service' ? '#F6F4EE' : C.textSub, border: 'none', borderLeft: `1.5px solid ${C.cardBorder}`, cursor: 'pointer', fontSize: '14px', fontWeight: '600', fontFamily: "'Inter', system-ui, sans-serif", transition: 'all 0.15s' }}>
+                Request service
+                {listingType === 'service' && <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: '400', opacity: 0.65, marginTop: 2 }}>Get quotes from locals</div>}
+              </button>
+            </div>
+
+            <div className="card fade-up" style={{ padding: '20px', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px' }}>What do you need?</div>
+                <span style={{ fontSize: '11px', color: title.length > 90 ? '#D97706' : C.textMuted }}>{title.length}/120</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <input placeholder={listingType === 'service' ? 'e.g. Lawns mowed — small Ponsonby section' : 'e.g. Road bike under $300, any colour'} value={title} onChange={e => setTitle(e.target.value)} maxLength={120} />
+                <textarea placeholder={listingType === 'service' ? 'Describe the job — location, access, tools needed…' : 'More details — brand, size, specs, what condition you\'d accept (optional)'} value={description} onChange={e => setDescription(e.target.value)} rows={3} style={{ resize: 'vertical' }} maxLength={2000} />
               </div>
             </div>
+
+            <div className="card reveal delay-1" style={{ padding: '20px', marginBottom: '10px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '12px' }}>Budget & location</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <input placeholder={listingType === 'service' ? 'Budget — e.g. $50 cash, up to $200' : 'Max budget — e.g. $300'} value={budget} onChange={e => setBudget(e.target.value)} />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <div style={{ flex: 1, position: 'relative' }}>
+                    <button type="button" onClick={() => setPostCityOpen(o => !o)} style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: `1.5px solid ${postCityOpen ? '#1E5470' : '#E8E2D5'}`, background: dark ? '#1A1208' : '#fff', color: location ? C.text : '#7A6F5C', fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: postCityOpen ? '0 0 0 3px rgba(30,84,112,0.12)' : 'none' }}>
+                      <span>{location || 'Your city'}</span>
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ transform: postCityOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: C.textMuted, flexShrink: 0 }}><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    {postCityOpen && (
+                      <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: dark ? '#1A1208' : '#fff', border: `1.5px solid #E8E2D5`, borderRadius: 12, zIndex: 100, maxHeight: 320, overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }}>
+                        {Object.entries(REGIONS).map(([region, cities]) => {
+                          const isExpanded = postCityExpanded.has(region)
+                          const subCities = cities.filter(c => c !== region)
+                          const hasSubCities = subCities.length > 0
+                          return (
+                            <div key={region}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <button type="button" onClick={() => { setLocation(region); setPostCityOpen(false) }} style={{ flex: 1, padding: '10px 14px', background: location === region ? (dark ? 'rgba(30,84,112,0.2)' : '#EAF0F4') : 'none', border: 'none', color: location === region ? '#1E5470' : C.text, fontFamily: "'Inter', system-ui, sans-serif", fontSize: 13, fontWeight: 600, textAlign: 'left', cursor: 'pointer' }}>
+                                  {region}
+                                </button>
+                                {hasSubCities && (
+                                  <button type="button" onClick={() => setPostCityExpanded(prev => { const s = new Set(prev); s.has(region) ? s.delete(region) : s.add(region); return s })} style={{ padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', color: C.textMuted, display: 'flex', alignItems: 'center' }}>
+                                    <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><polyline points="6 9 12 15 18 9"/></svg>
+                                  </button>
+                                )}
+                              </div>
+                              {isExpanded && subCities.map(c => (
+                                <button type="button" key={c} onClick={() => { setLocation(c); setPostCityOpen(false) }} style={{ width: '100%', padding: '8px 14px 8px 28px', background: location === c ? (dark ? 'rgba(30,84,112,0.15)' : '#F0F6FA') : 'none', border: 'none', color: location === c ? '#1E5470' : C.textSub, fontFamily: "'Inter', system-ui, sans-serif", fontSize: 13, textAlign: 'left', cursor: 'pointer' }}>
+                                  {c}
+                                </button>
+                              ))}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  <select value={category} onChange={e => setCategory(e.target.value)} style={{ flex: 1 }}>
+                    <option value="">Category</option>
+                    {(listingType === 'service' ? serviceCategories : categories).map(c => <option key={c}>{c}</option>)}
+                  </select>
+                </div>
+                {listingType === 'service'
+                  ? <input placeholder="Estimated time — e.g. 2 hours, half day" value={estimatedHours} onChange={e => setEstimatedHours(e.target.value)} />
+                  : <select value={condition} onChange={e => setCondition(e.target.value)}><option value="">Condition (optional)</option>{conditions.map(c => <option key={c} value={c}>{c}</option>)}</select>
+                }
+                {listingType === 'service' && LICENSED_TRADE_CATS.has(category) && (
+                  <div style={{ background: dark ? '#2A1A00' : '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', padding: '11px 14px', fontSize: '13px', color: dark ? '#FCD34D' : '#92400E', lineHeight: 1.5 }}>
+                    <strong>NZ licensing reminder:</strong> {category} work must be carried out by a licensed tradesperson. Ensure any seller you hire holds the required licence.
+                  </div>
+                )}
+                <div onClick={() => setNegotiable(n => !n)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: '10px', border: `1.5px solid ${negotiable ? postAccent : C.cardBorder}`, background: negotiable ? (dark ? `rgba(${listingType === 'service' ? '124,58,237' : '14,127,168'},0.1)` : listingType === 'service' ? '#F5F3FF' : '#EAF0F4') : 'transparent', transition: 'all 0.15s' }}>
+                  <div style={{ width: '18px', height: '18px', flexShrink: 0, borderRadius: '5px', border: `2px solid ${negotiable ? postAccent : '#C8DCE8'}`, background: negotiable ? postAccent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
+                    {negotiable && <svg width="10" height="10" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </div>
+                  <span style={{ fontSize: '13px', color: negotiable ? postAccent : C.text, fontWeight: negotiable ? '600' : '400' }}>Flexible budget</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="card reveal delay-2" style={{ padding: '20px', marginBottom: '10px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '10px' }}>Listing duration</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[['24h', '24 hours'], ['48h', '48 hours'], ['7d', '7 days']].map(([val, label]) => (
+                  <button key={val} onClick={() => setExpiresIn(val)} style={{ flex: 1, padding: '10px 8px', borderRadius: '10px', border: `1.5px solid ${expiresIn === val ? postAccent : C.cardBorder}`, background: expiresIn === val ? (dark ? 'rgba(30,84,112,0.15)' : '#EAF0F4') : C.card, cursor: 'pointer', fontSize: '12px', fontWeight: expiresIn === val ? 700 : 500, color: expiresIn === val ? postAccent : C.textSub, fontFamily: "'Inter', system-ui, sans-serif", transition: 'all 0.12s', textAlign: 'center' }}>
+                    <div style={{ fontSize: '15px', fontWeight: 700, marginBottom: 1 }}>{val}</div>
+                    <div style={{ fontSize: '10px', opacity: 0.7 }}>{label}</div>
+                    {val === '7d' && <div style={{ fontSize: '9px', color: expiresIn === val ? postAccent : C.textMuted, marginTop: 2, fontWeight: 600 }}>default</div>}
+                  </button>
+                ))}
+              </div>
+              <p style={{ fontSize: '11px', color: C.textMuted, marginTop: 10, marginBottom: 0 }}>Listings marked <strong>⚡ Expiring</strong> get extra visibility in the final 24 hours.</p>
+            </div>
+
+            <div className="card reveal delay-2" style={{ padding: '20px', marginBottom: '20px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '12px' }}>Photos (optional)</div>
+              {ImageUploader()}
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <button className="btn btn-primary" onClick={postWant} disabled={!title || posting} style={{ width: '100%', padding: '16px', fontSize: '15px', fontWeight: '700', background: listingType === 'service' ? '#A0522D' : '#16110A', borderColor: listingType === 'service' ? '#A0522D' : '#16110A', borderRadius: '12px' }}>
+                {uploadingImages ? 'Uploading…' : posting ? 'Posting…' : (listingType === 'service' ? 'Post job →' : 'Post listing →')}
+              </button>
+              <div style={{ textAlign: 'center', marginTop: 10, fontSize: '11px', color: C.textMuted, fontWeight: '500' }}>Free · Visible across NZ</div>
+            </div>
           </div>
 
-          <div className="card reveal delay-2" style={{ padding: '20px', marginBottom: '20px' }}>
-            <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '12px' }}>Photos (optional)</div>
-            {ImageUploader()}
-          </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <button className="btn btn-primary" onClick={postWant} disabled={!title || posting} style={{ width: '100%', padding: '16px', fontSize: '15px', fontWeight: '700', background: listingType === 'service' ? '#A0522D' : '#16110A', borderColor: listingType === 'service' ? '#A0522D' : '#16110A', borderRadius: '12px' }}>
-              {uploadingImages ? 'Uploading…' : posting ? 'Posting…' : (listingType === 'service' ? 'Post job →' : 'Post listing →')}
-            </button>
-            <div style={{ textAlign: 'center', marginTop: 10, fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: C.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Free · Visible across NZ</div>
+          {/* Preview column — desktop only */}
+          <div className="post-preview-col">
+            <div style={{ fontSize: '11px', fontWeight: '600', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '10px' }}>Live preview</div>
+            <div className="card" style={{ overflow: 'hidden', display: 'flex', minHeight: 100, marginBottom: '12px' }}>
+              {/* Thumb */}
+              <div style={{ width: 88, flexShrink: 0, position: 'relative', overflow: 'hidden', borderRadius: '10px 0 0 10px', alignSelf: 'stretch' }}>
+                {imagePreviews.length > 0 ? (
+                  <>
+                    <img src={imagePreviews[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', position: 'absolute', inset: 0 }} />
+                    {imagePreviews.length > 1 && <div style={{ position: 'absolute', bottom: 5, right: 5, background: 'rgba(0,0,0,0.5)', borderRadius: 8, padding: '1px 5px', fontSize: 9, color: '#fff', fontFamily: "'JetBrains Mono', monospace" }}>+{imagePreviews.length - 1}</div>}
+                  </>
+                ) : (
+                  <div style={{ width: '100%', height: '100%', background: swatchBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {categoryIcon}
+                  </div>
+                )}
+                {listingType === 'service' && (
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, background: 'rgba(160,82,45,0.85)', padding: '3px 0', textAlign: 'center', fontFamily: "'JetBrains Mono', monospace", fontSize: 8, fontWeight: 600, color: '#fff', letterSpacing: '0.06em' }}>SVC</div>
+                )}
+              </div>
+              {/* Content */}
+              <div style={{ flex: 1, padding: '12px 14px 10px', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: '600', color: title ? C.text : C.textMuted, fontStyle: title ? 'normal' : 'italic', margin: 0, lineHeight: '1.3', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                    {title ? titleCase(title) : (listingType === 'service' ? 'Job title' : 'Listing title')}
+                  </h3>
+                  {budget && <div style={{ flexShrink: 0, fontFamily: "'Fraunces', serif", fontSize: '20px', fontWeight: '500', color: dark ? '#7FA8B8' : '#1E5470', lineHeight: 1 }}>{budget}</div>}
+                </div>
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1.4, flex: 1, marginBottom: 8, color: '#7A6F5C' }}>{metaLine}</div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', borderTop: `1px solid ${C.cardBorder}`, paddingTop: 8 }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: dark ? '#7FA8B8' : '#1E5470' }}>Offer →</span>
+                </div>
+              </div>
+            </div>
+            <p style={{ fontSize: '11px', color: C.textMuted, lineHeight: 1.5 }}>This is how buyers will see your listing in the feed. Fill in the details on the left to see it update live.</p>
           </div>
         </div>
         {BottomNav()}
@@ -3066,11 +3505,28 @@ function App() {
         <style>{styles}</style>
         {Header()}
         {EditModal()}
+        <div style={{ background: 'linear-gradient(135deg, #16110A 0%, #1C1A28 60%, #0F1820 100%)', padding: '28px 20px 52px', position: 'relative', overflow: 'hidden' }} className="fade-up">
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 20%, rgba(160,82,45,0.15) 0%, transparent 55%), radial-gradient(ellipse at 80% 70%, rgba(30,84,112,0.12) 0%, transparent 50%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, #A0522D, #C07848)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 24, fontWeight: '700', margin: '0 auto 10px', border: '3px solid rgba(255,255,255,0.15)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
+              {getUsername(user.email)[0].toUpperCase()}
+            </div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '2px' }}>@{getUsername(user.email)}</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginTop: '12px' }}>
+              {[{ v: myWants.length, l: 'Listings' }, { v: myOffers.length, l: 'Offers made' }].map(({ v, l }) => (
+                <div key={l} style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '20px', fontWeight: '800', color: '#fff', lineHeight: 1 }}>{v}</div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
         <div style={inner}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }} className="fade-up">
-            <h2 style={{ fontSize: '16px', fontWeight: '600', color: C.text }}>Profile</h2>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', marginTop: '-24px' }} className="fade-up">
+            <div />
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '12px', color: '#1E5470', cursor: 'pointer', fontWeight: '500' }} onClick={() => openProfile(user.email)}>My public page →</span>
+              <span style={{ fontSize: '12px', color: '#7FA8B8', cursor: 'pointer', fontWeight: '500' }} onClick={() => openProfile(user.email)}>My public page →</span>
               <button onClick={() => { scrollPos.current[page] = window.scrollY; setNavStack(prev => [...prev, { page, selectedWant, profileEmail, activeThread }]); setSettingsUsername(myProfile?.username || getUsername(user.email)); setPage('settings'); window.scrollTo(0, 0) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}>
                 <svg width="18" height="18" fill="none" stroke={C.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
               </button>
@@ -3086,15 +3542,17 @@ function App() {
             <div>
               {myWants.length === 0 && (
                 <div className="card fade-up" style={{ padding: '48px 24px', textAlign: 'center' }}>
-                  <p style={{ fontSize: '15px', color: '#4A6278', marginBottom: '6px' }}>No listings yet</p>
-                  <p style={{ fontSize: '13px', color: '#8FA5B8', marginBottom: '24px' }}>Tap + to post your first listing</p>
+                  <p style={{ fontSize: '15px', color: C.textSub, marginBottom: '6px' }}>No listings yet</p>
+                  <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '24px' }}>Tap + to post your first listing</p>
                   <button className="btn btn-primary" onClick={() => setPage('post')} style={{ padding: '10px 24px' }}>Post something</button>
                 </div>
               )}
               {myWants.map((want, i) => (
-                <div key={want.id} className={`card reveal delay-${(i % 3) + 1}`} style={{ padding: '18px 20px', marginBottom: '10px' }}>
+                <div key={want.id} className={`card reveal delay-${(i % 3) + 1}`} style={{ marginBottom: '10px', overflow: 'hidden' }}>
+                  <div style={{ height: '3px', background: want.listing_type === 'service' ? '#A0522D' : '#1E5470', flexShrink: 0 }} />
+                  <div style={{ padding: '16px 20px 18px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                    <h3 style={{ fontSize: '15px', fontWeight: '600', flex: 1, paddingRight: '14px', color: '#0F2030', lineHeight: '1.4', textAlign: 'left' }}>{want.title}</h3>
+                    <h3 style={{ fontSize: '15px', fontWeight: '600', flex: 1, paddingRight: '14px', color: C.text, lineHeight: '1.4', textAlign: 'left' }}>{want.title}</h3>
                     <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                       {want.bumped_at && want.status !== 'filled' && (Date.now() - new Date(want.bumped_at)) < 24*60*60*1000 && (
                         <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '20px', fontWeight: '700', background: dark ? '#2A1A0A' : '#F5EBDF', color: '#A0522D', border: '1px solid #D4B8A0' }}>↑ Bumped</span>
@@ -3104,9 +3562,9 @@ function App() {
                       </span>
                     </div>
                   </div>
-                  {want.description && <p style={{ fontSize: '13px', color: '#4A6278', marginBottom: '10px', lineHeight: '1.5' }}>{want.description}</p>}
+                  {want.description && <p style={{ fontSize: '13px', color: C.textSub, marginBottom: '10px', lineHeight: '1.5' }}>{want.description}</p>}
                   <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '14px' }}>
-                    {want.budget && <span className="tag"><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>{want.budget}</span>}
+                    {want.budget && <span className="tag"><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><circle cx="12" cy="12" r="9"/><path d="M14.5 9H10a2 2 0 000 4h4a2 2 0 010 4H9.5M12 7v2m0 8v2"/></svg>{(() => { const r = String(want.budget).replace(/[^0-9.]/g, ''); const n = r ? parseFloat(r) : null; return n ? '$' + n.toLocaleString('en-NZ') : want.budget })()}</span>}
                     {want.location && <span className="tag"><svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{marginRight:'3px'}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>{want.location}</span>}
                     {want.category && <span className="tag">{want.category}</span>}
                   </div>
@@ -3121,9 +3579,10 @@ function App() {
                     <button className="btn" onClick={() => openWant(want)} style={{ fontSize: '12px' }}>View offers →</button>
                     <button className="btn" onClick={() => openEditModal(want)} style={{ fontSize: '12px' }}>Edit</button>
                     {want.status !== 'filled' && <button className="btn btn-green" onClick={() => markFilled(want.id)} style={{ fontSize: '12px' }}>Mark filled</button>}
-                    {want.status !== 'filled' && <button onClick={() => bumpListing(want.id)} style={{ padding: '8px 16px', background: '#1E5470', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif" }}>↑ Bump</button>}
+                    {want.status !== 'filled' && <button onClick={() => bumpListing(want.id)} style={{ padding: '8px 16px', background: '#A0522D', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif" }}>↑ Bump</button>}
                     <button onClick={() => deleteWant(want.id)} style={{ background: 'none', border: 'none', color: '#9B3232', fontSize: '12px', cursor: 'pointer', padding: '8px 4px', fontFamily: "'Inter', system-ui, sans-serif", textDecoration: 'underline' }}>Delete</button>
                   </div>
+                  </div>{/* end padding wrapper */}
                 </div>
               ))}
             </div>
@@ -3181,6 +3640,54 @@ function App() {
   }
 
   if (page === 'settings') {
+    const sendOtp = async () => {
+      const phone = settingsPhone.trim()
+      if (!phone) { showToast('Enter your phone number first'); return }
+      const normalised = phone.replace(/\s/g, '')
+      if (!/^(\+64|0)[2-9]\d{7,9}$/.test(normalised)) { showToast('Enter a valid NZ mobile number'); return }
+      setPhoneLoading(true)
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        const token = sessionRef.current?.access_token
+        const res = await fetch(`${supabaseUrl}/functions/v1/send-otp`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: normalised })
+        })
+        const data = await res.json()
+        if (!res.ok) { showToast(data.error || 'Failed to send code'); return }
+        setPhoneStep('verify')
+        showToast('Code sent — check your messages', 'success')
+      } catch { showToast('Network error — please try again') }
+      finally { setPhoneLoading(false) }
+    }
+
+    const verifyOtp = async () => {
+      if (!phoneOtp.trim() || phoneOtp.length < 4) { showToast('Enter the code from your SMS'); return }
+      setPhoneLoading(true)
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+        const token = sessionRef.current?.access_token
+        const res = await fetch(`${supabaseUrl}/functions/v1/verify-otp`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: settingsPhone.trim().replace(/\s/g, ''), code: phoneOtp.trim() })
+        })
+        const data = await res.json()
+        if (!res.ok) { showToast(data.error || 'Incorrect code — try again'); return }
+        await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
+          method: 'PATCH',
+          headers: { apikey: supabaseKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          body: JSON.stringify({ phone: settingsPhone.trim().replace(/\s/g, ''), phone_verified: true })
+        })
+        setMyProfile(prev => ({ ...prev, phone: settingsPhone.trim(), phone_verified: true }))
+        setPhoneStep('done')
+        showToast('Phone verified!', 'success')
+      } catch { showToast('Network error — please try again') }
+      finally { setPhoneLoading(false) }
+    }
+
     const saveIrd = async () => {
       const val = settingsIrd.trim()
       if (!val || !/^\d{8,9}$/.test(val)) { showToast('IRD number must be 8 or 9 digits'); return }
@@ -3246,6 +3753,37 @@ function App() {
             </div>
           </div>
           <div className="card reveal delay-2" style={{ padding: '20px', marginBottom: '12px' }}>
+            <p style={{ fontSize: '12px', fontWeight: '600', color: C.textMuted, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phone verification</p>
+            {(myProfile?.phone_verified || phoneStep === 'done') ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#EDFAF4', border: '1.5px solid #A7EDD4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="13" height="13" fill="none" stroke="#0E9A6E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div>
+                  <p style={{ fontSize: '13px', fontWeight: '600', color: C.text, margin: 0 }}>Verified</p>
+                  <p style={{ fontSize: '11px', color: C.textMuted, margin: 0 }}>{myProfile?.phone || settingsPhone}</p>
+                </div>
+              </div>
+            ) : phoneStep === 'verify' ? (
+              <div style={{ marginTop: '8px' }}>
+                <p style={{ fontSize: '12px', color: C.textMuted, marginBottom: '10px' }}>Enter the 6-digit code sent to <strong style={{ color: C.text }}>{settingsPhone}</strong></p>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
+                  <input value={phoneOtp} onChange={e => setPhoneOtp(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="123456" style={{ flex: 1, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.15em', fontSize: '18px', textAlign: 'center' }} />
+                  <button className="btn btn-primary" onClick={verifyOtp} disabled={phoneLoading} style={{ fontSize: '13px', padding: '0 16px', flexShrink: 0 }}>{phoneLoading ? '…' : 'Verify'}</button>
+                </div>
+                <button onClick={() => { setPhoneStep('input'); setPhoneOtp('') }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: C.textMuted, padding: 0 }}>← Change number</button>
+              </div>
+            ) : (
+              <div style={{ marginTop: '8px' }}>
+                <p style={{ fontSize: '12px', color: C.textMuted, marginBottom: '10px' }}>Add a verified phone number to build trust with buyers and sellers. Shown as a badge on your profile.</p>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input value={settingsPhone} onChange={e => setSettingsPhone(e.target.value)} placeholder="+64 21 123 4567" style={{ flex: 1 }} onKeyDown={e => e.key === 'Enter' && sendOtp()} />
+                  <button className="btn btn-primary" onClick={sendOtp} disabled={phoneLoading} style={{ fontSize: '13px', padding: '0 16px', flexShrink: 0 }}>{phoneLoading ? '…' : 'Send code'}</button>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="card reveal delay-3" style={{ padding: '20px', marginBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <p style={{ fontSize: '14px', fontWeight: '600', color: C.text, marginBottom: '2px' }}>Dark mode</p>
@@ -3330,6 +3868,33 @@ function App() {
   const todayStr = new Date().toDateString()
   const todayCount = wants.filter(w => new Date(w.created_at).toDateString() === todayStr).length
   const tickerWants = wants.slice(0, 12)
+  const hasActiveFilter = !!(search || filterLocations.length > 0 || filterCategory || filterMaxBudget || filterType || nearMe)
+  const nowMs = Date.now()
+  const hotWants = filteredWants.filter(w => (offerCounts[w.id] || 0) >= 3)
+  const hotSet = new Set(hotWants.map(w => w.id))
+  const freshWants = filteredWants.filter(w => !hotSet.has(w.id) && (nowMs - new Date(w.created_at).getTime()) < 172800000)
+  const freshSet = new Set(freshWants.map(w => w.id))
+  const weekWants = filteredWants.filter(w => !hotSet.has(w.id) && !freshSet.has(w.id) && (nowMs - new Date(w.created_at).getTime()) < 604800000)
+  const weekSet = new Set(weekWants.map(w => w.id))
+  const olderWants = filteredWants.filter(w => !hotSet.has(w.id) && !freshSet.has(w.id) && !weekSet.has(w.id))
+  const SECTION_META = {
+    'Hot right now':        { emoji: '🔥', color: '#DC2626', bg: dark ? 'rgba(220,38,38,0.12)' : '#FEF2F2' },
+    'Fresh — last 48 hours':{ emoji: '❄️', color: '#1E5470', bg: dark ? 'rgba(30,84,112,0.12)' : '#EAF0F4' },
+    'Earlier this week':    { emoji: '📅', color: '#7A6F5C', bg: dark ? 'rgba(122,111,92,0.12)' : '#F5F2EC' },
+    'Older listings':       { emoji: '📂', color: '#7A6F5C', bg: dark ? 'rgba(122,111,92,0.10)' : '#F5F2EC' },
+  }
+  const SectionHead = ({ label, count, first = false }) => {
+    const meta = SECTION_META[label] || { emoji: '•', color: '#A0522D', bg: 'transparent' }
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: first ? '0 0 14px' : '28px 0 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '15px', lineHeight: 1 }}>{meta.emoji}</span>
+          <span style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: '16px', fontWeight: 400, color: C.text, letterSpacing: '-0.3px' }}>{label}</span>
+        </div>
+        <span style={{ fontSize: '11px', fontWeight: '700', color: meta.color, background: meta.bg, padding: '3px 10px', borderRadius: '20px' }}>{count} {count === 1 ? 'listing' : 'listings'}</span>
+      </div>
+    )
+  }
   return (
     <div style={pageStyle} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
       <style>{styles}</style>
@@ -3345,7 +3910,7 @@ function App() {
       )}
       {refreshing && <div className="pull-indicator">Refreshing…</div>}
 
-      {(!user || page === 'landing') && tickerWants.length >= 4 && (
+      {tickerWants.length >= 4 && (
         <div className="ticker-strip" style={{ background: C.card, borderBottom: `1px solid ${C.cardBorder}`, paddingTop: '8px', paddingBottom: '8px' }}>
           <div className="ticker-track">
             {[...tickerWants, ...tickerWants].map((w, i) => {
@@ -3364,15 +3929,15 @@ function App() {
         </div>
       )}
 
-      <div className="greeting-bar">
+      <div className="greeting-bar" style={{ maxWidth: '1060px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
-          <div>
-            <div style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 11, letterSpacing: '0.12em', color: '#7A6F5C', marginBottom: 4, textTransform: 'uppercase' }}>
-              Hi, {displayName ? (displayName.slice(0, 10).toUpperCase() + (displayName.length > 10 ? '…' : '')) : 'THERE'}
-            </div>
-            <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 28, fontWeight: 400, letterSpacing: '-0.5px', color: dark ? C.text : '#16110A', margin: 0, lineHeight: 1.15 }}>
-              Browse wants
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 44, fontWeight: 400, letterSpacing: '-1.5px', color: dark ? C.text : '#16110A', margin: '0 0 8px', lineHeight: 1.05 }}>
+              Browse <em style={{ fontStyle: 'italic', fontWeight: 300, color: dark ? '#5B9EC0' : '#1E5470' }}>wants</em>
             </h1>
+            <p style={{ fontSize: 14, color: C.textSub, lineHeight: 1.55, margin: 0, maxWidth: '480px' }}>
+              What buyers across Aotearoa are after right now. Send an offer when you can match it.
+            </p>
           </div>
           {myNewOffers > 0 && (
             <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -3405,7 +3970,8 @@ function App() {
         </div>
       </div>
 
-      <div style={inner}>
+      <div className="browse-inner">
+        <div className="browse-filters">
         {notifications.length > 0 && (
           <div className="home-alert" onClick={() => setShowNotifications(true)} style={{ background: dark ? 'rgba(30,84,112,0.12)' : '#EAF0F4', border: `1.5px solid ${dark ? 'rgba(30,84,112,0.3)' : '#C9D7E0'}` }}>
             <div style={{ width: '34px', height: '34px', background: '#1E5470', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -3420,15 +3986,21 @@ function App() {
         )}
 
         {SearchFilters()}
-        {FeaturedSection()}
 
         {user && myKeywords.length === 0 && (
-          <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 16px', marginBottom: '16px' }}>
-            <div>
-              <div style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 11, letterSpacing: '0.12em', color: '#7A6F5C', marginBottom: 4, textTransform: 'uppercase' }}>Seller Nudge</div>
-              <div style={{ fontSize: 13, color: dark ? C.textSub : '#3D3528' }}>Get notified when buyers post matching wants.</div>
+          <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 16px', marginBottom: '16px', borderLeft: '3px solid #A0522D' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: dark ? 'rgba(160,82,45,0.15)' : '#F5EBDF', border: '1px solid rgba(160,82,45,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="16" height="16" fill="none" stroke="#A0522D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: '700', color: '#A0522D', marginBottom: 2, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Seller Nudge</div>
+                <div style={{ fontSize: 13, color: dark ? C.textSub : '#3D3528' }}>Get notified the moment buyers post matching wants.</div>
+              </div>
             </div>
-            <a href="#" onClick={e => { e.preventDefault(); setPage('settings') }} style={{ fontSize: 13, color: dark ? C.accentText : '#1E5470', whiteSpace: 'nowrap', textDecoration: 'none' }}>Set up alerts →</a>
+            <button onClick={() => setPage('settings')} style={{ background: '#16110A', color: '#fff', border: 'none', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'Inter, system-ui, sans-serif', flexShrink: 0 }}>
+              Set up alerts →
+            </button>
           </div>
         )}
 
@@ -3444,19 +4016,34 @@ function App() {
             <svg width="14" height="14" fill="none" stroke={C.accentText} strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
         )}
-
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px' }}>
-          <span style={{ fontSize: '14px', fontWeight: '600', color: C.text }}>Listings</span>
-          <span style={{ fontSize: '12px', color: C.textMuted }}>{filteredWants.length} result{filteredWants.length !== 1 ? 's' : ''}</span>
         </div>
+
         {loading ? [1,2,3].map(i => <SkeletonCard key={i} hasImage={i !== 2} />) : filteredWants.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '56px 20px 40px' }}>
             <svg width="40" height="40" fill="none" stroke={C.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '14px', opacity: 0.6 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <p style={{ fontSize: '15px', fontWeight: '600', color: C.text, marginBottom: '6px' }}>Nothing here yet</p>
             <p style={{ fontSize: '13px', color: C.textMuted, lineHeight: '1.55' }}>Try a different location, category, or clear your filters</p>
           </div>
-        ) : filteredWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i })}</Fragment>)}
-        {!loading && hasMoreWants && !search && !filterLocation && !filterCategory && !filterMaxBudget && !filterType && !nearMe && (
+        ) : hasActiveFilter ? (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '15px', lineHeight: 1 }}>🔍</span>
+                <span style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: '16px', fontWeight: 400, color: C.text, letterSpacing: '-0.3px' }}>Results</span>
+              </div>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: '#1E5470', background: dark ? 'rgba(30,84,112,0.12)' : '#EAF0F4', padding: '3px 10px', borderRadius: '20px' }}>{filteredWants.length} {filteredWants.length === 1 ? 'listing' : 'listings'}</span>
+            </div>
+            <div className="want-grid">{filteredWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i })}</Fragment>)}</div>
+          </>
+        ) : (
+          <>
+            {hotWants.length > 0 && <>{SectionHead({ label: 'Hot right now', count: hotWants.length, first: true })}<div className="want-grid">{hotWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i })}</Fragment>)}</div></>}
+            {freshWants.length > 0 && <>{SectionHead({ label: 'Fresh — last 48 hours', count: freshWants.length, first: hotWants.length === 0 })}<div className="want-grid">{freshWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: hotWants.length + i })}</Fragment>)}</div></>}
+            {weekWants.length > 0 && <>{SectionHead({ label: 'Earlier this week', count: weekWants.length, first: hotWants.length === 0 && freshWants.length === 0 })}<div className="want-grid">{weekWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: hotWants.length + freshWants.length + i })}</Fragment>)}</div></>}
+            {olderWants.length > 0 && <>{SectionHead({ label: 'Older listings', count: olderWants.length, first: hotWants.length === 0 && freshWants.length === 0 && weekWants.length === 0 })}<div className="want-grid">{olderWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: hotWants.length + freshWants.length + weekWants.length + i })}</Fragment>)}</div></>}
+          </>
+        )}
+        {!loading && hasMoreWants && !search && filterLocations.length === 0 && !filterCategory && !filterMaxBudget && !filterType && !nearMe && (
           <button className="btn" onClick={() => fetchWants(wants.length, true)} disabled={loadingMore} style={{ width: '100%', padding: '13px', marginTop: '4px', fontSize: '14px' }}>
             {loadingMore ? 'Loading…' : 'Load more listings'}
           </button>
