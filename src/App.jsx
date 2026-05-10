@@ -64,11 +64,12 @@ const styles = `
   @media (min-width: 900px) { .post-preview-col { display: block; } }
   @media (max-width: 899px) { .post-2col { max-width: 640px; margin: 0 auto; padding: 20px 16px; } .post-form-col { flex: 1; } }
 
-  .want-detail-layout { display: flex; gap: 24px; align-items: flex-start; max-width: 1060px; margin: 0 auto; padding: 20px 16px 32px; width: 100%; box-sizing: border-box; }
-  .want-detail-main { flex: 1; min-width: 0; }
-  .want-detail-sidebar { width: 360px; flex-shrink: 0; position: sticky; top: 72px; }
-  @media (max-width: 820px) { .want-detail-layout { flex-direction: column; max-width: 640px; } .want-detail-sidebar { width: 100%; position: static; } }
-  .browse-inner { max-width: 1060px; margin: 0 auto; padding: 20px 16px; width: 100%; box-sizing: border-box; }
+  .want-detail-layout { display: flex; gap: 0; align-items: flex-start; max-width: 1060px; margin: 0 auto; padding: 20px 16px 32px; width: 100%; box-sizing: border-box; }
+  .want-detail-main { flex: 1; min-width: 0; padding-right: 24px; }
+  .want-detail-sidebar { width: 360px; flex-shrink: 0; position: sticky; top: 72px; border-left: 1px solid #E8E2D5; padding-left: 24px; }
+  html[data-dark="true"] .want-detail-sidebar { border-left-color: #3A2F22; }
+  @media (max-width: 820px) { .want-detail-layout { flex-direction: column; max-width: 640px; } .want-detail-main { padding-right: 0; } .want-detail-sidebar { width: 100%; position: static; border-left: none; padding-left: 0; border-top: 1px solid #E8E2D5; padding-top: 20px; } html[data-dark="true"] .want-detail-sidebar { border-top-color: #3A2F22; } }
+  .browse-inner { max-width: 1060px; margin: 0 auto; padding: 8px 16px 32px; width: 100%; box-sizing: border-box; }
   .browse-filters { max-width: 640px; margin: 0 auto; width: 100%; }
   .want-grid { display: grid; gap: 10px; }
   @media (min-width: 820px) { .want-grid { grid-template-columns: 1fr 1fr; } }
@@ -3930,7 +3931,7 @@ function App() {
       )}
 
       <div className="greeting-bar" style={{ maxWidth: '1060px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 44, fontWeight: 400, letterSpacing: '-1.5px', color: dark ? C.text : '#16110A', margin: '0 0 8px', lineHeight: 1.05 }}>
               Browse <em style={{ fontStyle: 'italic', fontWeight: 300, color: dark ? '#5B9EC0' : '#1E5470' }}>wants</em>
