@@ -527,6 +527,10 @@ function App() {
   const [savingEdit, setSavingEdit] = useState(false)
   // Password reset
   const [resetSent, setResetSent] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('')
+  const [resetLoading, setResetLoading] = useState(false)
+  const [resetError, setResetError] = useState('')
   // Pagination
   const [hasMoreWants, setHasMoreWants] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -706,6 +710,11 @@ function App() {
       }
     })
     supabase.auth.onAuthStateChange(async (_e, session) => {
+      if (_e === 'PASSWORD_RECOVERY') {
+        sessionRef.current = session
+        setPage('reset-password')
+        return
+      }
       sessionRef.current = session
       const u = session?.user ?? null
       setUser(u)
@@ -1436,9 +1445,29 @@ function App() {
   }
 
   async function sendPasswordReset() {
-    if (!email) { setAuthError('Enter your email address first'); return }
-    await supabase.auth.resetPasswordForEmail(email)
+    if (!email.trim()) { setAuthError('Enter your email address first'); return }
+    setAuthLoading(true)
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: window.location.origin
+    })
+    setAuthLoading(false)
+    if (error) { setAuthError(error.message); return }
     setResetSent(true)
+    setAuthError('')
+  }
+
+  async function updatePassword() {
+    if (!newPassword) { setResetError('Enter a new password'); return }
+    if (newPassword.length < 6) { setResetError('Password must be at least 6 characters'); return }
+    if (newPassword !== newPasswordConfirm) { setResetError('Passwords don\'t match'); return }
+    setResetLoading(true)
+    setResetError('')
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    setResetLoading(false)
+    if (error) { setResetError(error.message); return }
+    setNewPassword(''); setNewPasswordConfirm('')
+    showToast('Password updated — you\'re logged in', 'success')
+    setPage('home')
   }
 
   async function fetchInbox() {
@@ -3112,6 +3141,55 @@ function App() {
     )
   }
 
+  // RESET PASSWORD PAGE (arrived from email link)
+  if (page === 'reset-password') {
+    return (
+      <div style={pageStyle}>
+        <style>{styles}</style>
+        {Header()}
+        <div style={inner}>
+          <div className="card fade-up" style={{ padding: '32px', marginTop: '24px' }}>
+            <div style={{ width: 48, height: 48, borderRadius: '14px', background: dark ? 'rgba(30,84,112,0.15)' : '#EAF0F4', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+              <svg width="22" height="22" fill="none" stroke="#1E5470" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            </div>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '6px', color: C.text }}>Set a new password</h2>
+            <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '24px' }}>Choose a strong password — at least 6 characters.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+              <input
+                placeholder="New password"
+                type="password"
+                value={newPassword}
+                onChange={e => { setNewPassword(e.target.value); setResetError('') }}
+                onKeyDown={e => e.key === 'Enter' && updatePassword()}
+                autoFocus
+              />
+              <input
+                placeholder="Confirm new password"
+                type="password"
+                value={newPasswordConfirm}
+                onChange={e => { setNewPasswordConfirm(e.target.value); setResetError('') }}
+                onKeyDown={e => e.key === 'Enter' && updatePassword()}
+                style={{ borderColor: newPasswordConfirm && newPassword !== newPasswordConfirm ? '#DC2626' : undefined }}
+              />
+              {newPasswordConfirm && newPassword !== newPasswordConfirm && (
+                <p style={{ fontSize: '12px', color: '#DC2626', marginTop: '-4px' }}>Passwords don't match</p>
+              )}
+            </div>
+            {resetError && <p style={{ fontSize: '13px', color: '#DC2626', marginBottom: '14px', fontWeight: '500' }}>{resetError}</p>}
+            <button
+              className="btn btn-primary"
+              onClick={updatePassword}
+              disabled={resetLoading || !newPassword || newPassword !== newPasswordConfirm}
+              style={{ width: '100%', padding: '14px', fontSize: '14px' }}
+            >
+              {resetLoading ? 'Saving…' : 'Save new password'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // AUTH PAGE
   if (page === 'login' || page === 'signup') {
     const mode = page
@@ -3146,12 +3224,14 @@ function App() {
               )}
             </div>
             {mode === 'login' && (
-              <p style={{ fontSize: '12px', textAlign: 'right', marginBottom: '14px', marginTop: '-8px' }}>
+              <div style={{ textAlign: 'right', marginBottom: '14px', marginTop: '-8px' }}>
                 {resetSent
-                  ? <span style={{ color: '#0E9A6E' }}>Reset email sent — check your inbox</span>
-                  : <span onClick={sendPasswordReset} style={{ color: '#1E5470', cursor: 'pointer', fontWeight: '500' }}>Forgot password?</span>
+                  ? <span style={{ fontSize: '12px', color: '#0E9A6E', fontWeight: '500' }}>✓ Reset email sent — check your inbox</span>
+                  : <span onClick={sendPasswordReset} style={{ fontSize: '12px', color: '#1E5470', cursor: 'pointer', fontWeight: '500' }}>
+                      {authLoading ? 'Sending…' : 'Forgot password?'}
+                    </span>
                 }
-              </p>
+              </div>
             )}
             {authError && <p style={{ fontSize: '13px', color: authError.includes('Check') ? '#0E9A6E' : '#DC2626', marginBottom: '14px', fontWeight: '500' }}>{authError}</p>}
             <button className="btn btn-primary" onClick={handleAuth} disabled={authLoading} style={{ width: '100%', padding: '14px', fontSize: '14px', marginBottom: '16px' }}>
