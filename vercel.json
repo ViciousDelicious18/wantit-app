@@ -1,4 +1,7 @@
 {
+  "rewrites": [
+    { "source": "/want/:id", "destination": "/api/want/:id" }
+  ],
   "headers": [
     {
       "source": "/(.*).html",
