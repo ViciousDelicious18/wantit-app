@@ -391,6 +391,7 @@ function App() {
   const [location, setLocation] = useState('')
   const [postCityOpen, setPostCityOpen] = useState(false)
   const [postCityExpanded, setPostCityExpanded] = useState(new Set())
+  const [showMoreDetail, setShowMoreDetail] = useState(false)
   const [category, setCategory] = useState('')
   const [images, setImages] = useState([])
   const [imagePreviews, setImagePreviews] = useState([])
@@ -3401,104 +3402,118 @@ function App() {
               </button>
             </div>
 
-            <div className="card fade-up" style={{ padding: '20px', marginBottom: '10px' }}>
+            {/* Primary card — title + budget + city only */}
+            <div className="card fade-up" style={{ padding: '20px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px' }}>What do you need?</div>
                 <span style={{ fontSize: '11px', color: title.length > 90 ? '#D97706' : C.textMuted }}>{title.length}/120</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <input placeholder={listingType === 'service' ? 'e.g. Lawns mowed — small Ponsonby section' : 'e.g. Road bike under $300, any colour'} value={title} onChange={e => setTitle(e.target.value)} maxLength={120} />
-                <textarea placeholder={listingType === 'service' ? 'Describe the job — location, access, tools needed…' : 'More details — brand, size, specs, what condition you\'d accept (optional)'} value={description} onChange={e => setDescription(e.target.value)} rows={3} style={{ resize: 'vertical' }} maxLength={2000} />
-              </div>
-            </div>
-
-            <div className="card reveal delay-1" style={{ padding: '20px', marginBottom: '10px' }}>
-              <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '12px' }}>Budget & location</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <input placeholder={listingType === 'service' ? 'Budget — e.g. $50 cash, up to $200' : 'Max budget — e.g. $300'} value={budget} onChange={e => setBudget(e.target.value)} />
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <div style={{ flex: 1, position: 'relative' }}>
-                    <button type="button" onClick={() => setPostCityOpen(o => !o)} style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: `1.5px solid ${postCityOpen ? '#1E5470' : '#E8E2D5'}`, background: dark ? '#1A1208' : '#fff', color: location ? C.text : '#7A6F5C', fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: postCityOpen ? '0 0 0 3px rgba(30,84,112,0.12)' : 'none' }}>
-                      <span>{location || 'Your city'}</span>
-                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ transform: postCityOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: C.textMuted, flexShrink: 0 }}><polyline points="6 9 12 15 18 9"/></svg>
-                    </button>
-                    {postCityOpen && (
-                      <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: dark ? '#1A1208' : '#fff', border: `1.5px solid #E8E2D5`, borderRadius: 12, zIndex: 100, maxHeight: 320, overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }}>
-                        {Object.entries(REGIONS).map(([region, cities]) => {
-                          const isExpanded = postCityExpanded.has(region)
-                          const subCities = cities.filter(c => c !== region)
-                          const hasSubCities = subCities.length > 0
-                          return (
-                            <div key={region}>
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <button type="button" onClick={() => { setLocation(region); setPostCityOpen(false) }} style={{ flex: 1, padding: '10px 14px', background: location === region ? (dark ? 'rgba(30,84,112,0.2)' : '#EAF0F4') : 'none', border: 'none', color: location === region ? '#1E5470' : C.text, fontFamily: "'Inter', system-ui, sans-serif", fontSize: 13, fontWeight: 600, textAlign: 'left', cursor: 'pointer' }}>
-                                  {region}
-                                </button>
-                                {hasSubCities && (
-                                  <button type="button" onClick={() => setPostCityExpanded(prev => { const s = new Set(prev); s.has(region) ? s.delete(region) : s.add(region); return s })} style={{ padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', color: C.textMuted, display: 'flex', alignItems: 'center' }}>
-                                    <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><polyline points="6 9 12 15 18 9"/></svg>
-                                  </button>
-                                )}
-                              </div>
-                              {isExpanded && subCities.map(c => (
-                                <button type="button" key={c} onClick={() => { setLocation(c); setPostCityOpen(false) }} style={{ width: '100%', padding: '8px 14px 8px 28px', background: location === c ? (dark ? 'rgba(30,84,112,0.15)' : '#F0F6FA') : 'none', border: 'none', color: location === c ? '#1E5470' : C.textSub, fontFamily: "'Inter', system-ui, sans-serif", fontSize: 13, textAlign: 'left', cursor: 'pointer' }}>
-                                  {c}
-                                </button>
-                              ))}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                  <select value={category} onChange={e => setCategory(e.target.value)} style={{ flex: 1 }}>
-                    <option value="">Category</option>
-                    {(listingType === 'service' ? serviceCategories : categories).map(c => <option key={c}>{c}</option>)}
-                  </select>
-                </div>
-                {listingType === 'service'
-                  ? <input placeholder="Estimated time — e.g. 2 hours, half day" value={estimatedHours} onChange={e => setEstimatedHours(e.target.value)} />
-                  : <select value={condition} onChange={e => setCondition(e.target.value)}><option value="">Condition (optional)</option>{conditions.map(c => <option key={c} value={c}>{c}</option>)}</select>
-                }
-                {listingType === 'service' && LICENSED_TRADE_CATS.has(category) && (
-                  <div style={{ background: dark ? '#2A1A00' : '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', padding: '11px 14px', fontSize: '13px', color: dark ? '#FCD34D' : '#92400E', lineHeight: 1.5 }}>
-                    <strong>NZ licensing reminder:</strong> {category} work must be carried out by a licensed tradesperson. Ensure any seller you hire holds the required licence.
-                  </div>
-                )}
-                <div onClick={() => setNegotiable(n => !n)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: '10px', border: `1.5px solid ${negotiable ? postAccent : C.cardBorder}`, background: negotiable ? (dark ? `rgba(${listingType === 'service' ? '124,58,237' : '14,127,168'},0.1)` : listingType === 'service' ? '#F5F3FF' : '#EAF0F4') : 'transparent', transition: 'all 0.15s' }}>
-                  <div style={{ width: '18px', height: '18px', flexShrink: 0, borderRadius: '5px', border: `2px solid ${negotiable ? postAccent : '#C8DCE8'}`, background: negotiable ? postAccent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
-                    {negotiable && <svg width="10" height="10" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>}
-                  </div>
-                  <span style={{ fontSize: '13px', color: negotiable ? postAccent : C.text, fontWeight: negotiable ? '600' : '400' }}>Flexible budget</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="card reveal delay-2" style={{ padding: '20px', marginBottom: '10px' }}>
-              <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '10px' }}>Listing duration</div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {[['24h', '24 hours'], ['48h', '48 hours'], ['7d', '7 days']].map(([val, label]) => (
-                  <button key={val} onClick={() => setExpiresIn(val)} style={{ flex: 1, padding: '10px 8px', borderRadius: '10px', border: `1.5px solid ${expiresIn === val ? postAccent : C.cardBorder}`, background: expiresIn === val ? (dark ? 'rgba(30,84,112,0.15)' : '#EAF0F4') : C.card, cursor: 'pointer', fontSize: '12px', fontWeight: expiresIn === val ? 700 : 500, color: expiresIn === val ? postAccent : C.textSub, fontFamily: "'Inter', system-ui, sans-serif", transition: 'all 0.12s', textAlign: 'center' }}>
-                    <div style={{ fontSize: '15px', fontWeight: 700, marginBottom: 1 }}>{val}</div>
-                    <div style={{ fontSize: '10px', opacity: 0.7 }}>{label}</div>
-                    {val === '7d' && <div style={{ fontSize: '9px', color: expiresIn === val ? postAccent : C.textMuted, marginTop: 2, fontWeight: 600 }}>default</div>}
+                <input placeholder={listingType === 'service' ? 'Budget — e.g. $50 cash, up to $200 (optional)' : 'Max budget — e.g. $300 (optional)'} value={budget} onChange={e => setBudget(e.target.value)} />
+                <div style={{ position: 'relative' }}>
+                  <button type="button" onClick={() => setPostCityOpen(o => !o)} style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: `1.5px solid ${postCityOpen ? '#1E5470' : '#E8E2D5'}`, background: dark ? '#1A1208' : '#fff', color: location ? C.text : '#7A6F5C', fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: postCityOpen ? '0 0 0 3px rgba(30,84,112,0.12)' : 'none' }}>
+                    <span>{location || 'City or region (optional)'}</span>
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ transform: postCityOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: C.textMuted, flexShrink: 0 }}><polyline points="6 9 12 15 18 9"/></svg>
                   </button>
-                ))}
+                  {postCityOpen && (
+                    <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: dark ? '#1A1208' : '#fff', border: `1.5px solid #E8E2D5`, borderRadius: 12, zIndex: 100, maxHeight: 320, overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }}>
+                      {Object.entries(REGIONS).map(([region, cities]) => {
+                        const isExpanded = postCityExpanded.has(region)
+                        const subCities = cities.filter(c => c !== region)
+                        const hasSubCities = subCities.length > 0
+                        return (
+                          <div key={region}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <button type="button" onClick={() => { setLocation(region); setPostCityOpen(false) }} style={{ flex: 1, padding: '10px 14px', background: location === region ? (dark ? 'rgba(30,84,112,0.2)' : '#EAF0F4') : 'none', border: 'none', color: location === region ? '#1E5470' : C.text, fontFamily: "'Inter', system-ui, sans-serif", fontSize: 13, fontWeight: 600, textAlign: 'left', cursor: 'pointer' }}>
+                                {region}
+                              </button>
+                              {hasSubCities && (
+                                <button type="button" onClick={() => setPostCityExpanded(prev => { const s = new Set(prev); s.has(region) ? s.delete(region) : s.add(region); return s })} style={{ padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', color: C.textMuted, display: 'flex', alignItems: 'center' }}>
+                                  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><polyline points="6 9 12 15 18 9"/></svg>
+                                </button>
+                              )}
+                            </div>
+                            {isExpanded && subCities.map(c => (
+                              <button type="button" key={c} onClick={() => { setLocation(c); setPostCityOpen(false) }} style={{ width: '100%', padding: '8px 14px 8px 28px', background: location === c ? (dark ? 'rgba(30,84,112,0.15)' : '#F0F6FA') : 'none', border: 'none', color: location === c ? '#1E5470' : C.textSub, fontFamily: "'Inter', system-ui, sans-serif", fontSize: 13, textAlign: 'left', cursor: 'pointer' }}>
+                                {c}
+                              </button>
+                            ))}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
-              <p style={{ fontSize: '11px', color: C.textMuted, marginTop: 10, marginBottom: 0 }}>Listings marked <strong>⚡ Expiring</strong> get extra visibility in the final 24 hours.</p>
             </div>
 
-            <div className="card reveal delay-2" style={{ padding: '20px', marginBottom: '20px' }}>
-              <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '12px' }}>Photos (optional)</div>
-              {ImageUploader()}
-            </div>
-
-            <div style={{ marginBottom: '24px' }}>
+            {/* Primary CTA */}
+            <div style={{ marginBottom: '16px' }}>
               <button className="btn btn-primary" onClick={postWant} disabled={!title || posting} style={{ width: '100%', padding: '16px', fontSize: '15px', fontWeight: '700', background: listingType === 'service' ? '#A0522D' : '#16110A', borderColor: listingType === 'service' ? '#A0522D' : '#16110A', borderRadius: '12px' }}>
                 {uploadingImages ? 'Uploading…' : posting ? 'Posting…' : (listingType === 'service' ? 'Post job →' : 'Post listing →')}
               </button>
-              <div style={{ textAlign: 'center', marginTop: 10, fontSize: '11px', color: C.textMuted, fontWeight: '500' }}>Free · Visible across NZ</div>
+              <div style={{ textAlign: 'center', marginTop: 8, fontSize: '11px', color: C.textMuted, fontWeight: '500' }}>Free · Visible across NZ</div>
             </div>
+
+            {/* Expandable detail section */}
+            <button onClick={() => setShowMoreDetail(v => !v)} style={{ width: '100%', padding: '11px 16px', borderRadius: '10px', border: `1.5px dashed ${C.cardBorder}`, background: 'transparent', color: C.textMuted, cursor: 'pointer', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', system-ui, sans-serif", marginBottom: showMoreDetail ? '16px' : '0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.15s' }}>
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ transform: showMoreDetail ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><polyline points="6 9 12 15 18 9"/></svg>
+              {showMoreDetail ? 'Hide optional details' : 'Add more detail — description, category, photos'}
+            </button>
+
+            {showMoreDetail && (
+              <div>
+                <div className="card" style={{ padding: '20px', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '10px' }}>Description</div>
+                  <textarea placeholder={listingType === 'service' ? 'Describe the job — location, access, tools needed…' : "More details — brand, size, specs, what condition you'd accept"} value={description} onChange={e => setDescription(e.target.value)} rows={3} style={{ resize: 'vertical' }} maxLength={2000} />
+                </div>
+
+                <div className="card" style={{ padding: '20px', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '12px' }}>More details</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <select value={category} onChange={e => setCategory(e.target.value)}>
+                      <option value="">Category (optional)</option>
+                      {(listingType === 'service' ? serviceCategories : categories).map(c => <option key={c}>{c}</option>)}
+                    </select>
+                    {listingType === 'service'
+                      ? <input placeholder="Estimated time — e.g. 2 hours, half day" value={estimatedHours} onChange={e => setEstimatedHours(e.target.value)} />
+                      : <select value={condition} onChange={e => setCondition(e.target.value)}><option value="">Condition (optional)</option>{conditions.map(c => <option key={c} value={c}>{c}</option>)}</select>
+                    }
+                    {listingType === 'service' && LICENSED_TRADE_CATS.has(category) && (
+                      <div style={{ background: dark ? '#2A1A00' : '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', padding: '11px 14px', fontSize: '13px', color: dark ? '#FCD34D' : '#92400E', lineHeight: 1.5 }}>
+                        <strong>NZ licensing reminder:</strong> {category} work must be carried out by a licensed tradesperson. Ensure any seller you hire holds the required licence.
+                      </div>
+                    )}
+                    <div onClick={() => setNegotiable(n => !n)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: '10px', border: `1.5px solid ${negotiable ? postAccent : C.cardBorder}`, background: negotiable ? (dark ? `rgba(${listingType === 'service' ? '124,58,237' : '14,127,168'},0.1)` : listingType === 'service' ? '#F5F3FF' : '#EAF0F4') : 'transparent', transition: 'all 0.15s' }}>
+                      <div style={{ width: '18px', height: '18px', flexShrink: 0, borderRadius: '5px', border: `2px solid ${negotiable ? postAccent : '#C8DCE8'}`, background: negotiable ? postAccent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
+                        {negotiable && <svg width="10" height="10" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>}
+                      </div>
+                      <span style={{ fontSize: '13px', color: negotiable ? postAccent : C.text, fontWeight: negotiable ? '600' : '400' }}>Flexible budget</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card" style={{ padding: '20px', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '10px' }}>Listing duration</div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {[['24h', '24 hours'], ['48h', '48 hours'], ['7d', '7 days']].map(([val, label]) => (
+                      <button key={val} onClick={() => setExpiresIn(val)} style={{ flex: 1, padding: '10px 8px', borderRadius: '10px', border: `1.5px solid ${expiresIn === val ? postAccent : C.cardBorder}`, background: expiresIn === val ? (dark ? 'rgba(30,84,112,0.15)' : '#EAF0F4') : C.card, cursor: 'pointer', fontSize: '12px', fontWeight: expiresIn === val ? 700 : 500, color: expiresIn === val ? postAccent : C.textSub, fontFamily: "'Inter', system-ui, sans-serif", transition: 'all 0.12s', textAlign: 'center' }}>
+                        <div style={{ fontSize: '15px', fontWeight: 700, marginBottom: 1 }}>{val}</div>
+                        <div style={{ fontSize: '10px', opacity: 0.7 }}>{label}</div>
+                        {val === '7d' && <div style={{ fontSize: '9px', color: expiresIn === val ? postAccent : C.textMuted, marginTop: 2, fontWeight: 600 }}>default</div>}
+                      </button>
+                    ))}
+                  </div>
+                  <p style={{ fontSize: '11px', color: C.textMuted, marginTop: 10, marginBottom: 0 }}>Listings marked <strong>⚡ Expiring</strong> get extra visibility in the final 24 hours.</p>
+                </div>
+
+                <div className="card" style={{ padding: '20px', marginBottom: '20px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '12px' }}>Photos (optional)</div>
+                  {ImageUploader()}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Preview column — desktop only */}
