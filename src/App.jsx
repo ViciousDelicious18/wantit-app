@@ -2782,7 +2782,7 @@ function App() {
               {mode === 'login' ? 'Welcome back' : 'Join Offrit'}
             </h2>
             <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '24px' }}>
-              {mode === 'login' ? 'Log in to post and manage your listings' : 'Create an account and start getting offers'}
+              {mode === 'login' ? 'Log in to post and manage your listings' : 'Free for buyers and sellers. Post requests, make offers, track everything.'}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
               {mode === 'signup' && <input placeholder="Username e.g. johndoe" value={username} onChange={e => setUsername(e.target.value)} maxLength={30} />}
@@ -3268,14 +3268,32 @@ function App() {
           ) : !user ? (
             <div className="card fade-up" style={{ padding: '22px', marginBottom: '14px' }}>
               {anonOfferSent ? (
-                <div style={{ textAlign: 'center', padding: '10px 0 6px' }}>
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#0E9A6E', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-                    <svg width="22" height="22" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                <div style={{ padding: '4px 0 2px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#0E9A6E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svg width="18" height="18" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '15px', fontWeight: '700', color: C.text, margin: '0 0 2px' }}>Offer sent!</p>
+                      <p style={{ fontSize: '12px', color: C.textMuted, margin: 0, lineHeight: 1.4 }}>The buyer has been notified. You'll get an email if they accept.</p>
+                    </div>
                   </div>
-                  <p style={{ fontSize: '16px', fontWeight: '700', color: C.text, marginBottom: '6px' }}>Offer sent!</p>
-                  <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '18px', lineHeight: 1.5 }}>The buyer has been notified. If they accept, you'll both receive each other's contact details by email.</p>
-                  <button className="btn btn-primary" onClick={() => navigate('signup')} style={{ width: '100%', padding: '12px', fontSize: '13px', marginBottom: '8px' }}>Create a free account →</button>
-                  <p style={{ fontSize: '11px', color: C.textMuted }}>Post your own wants, track offers, and message buyers.</p>
+                  <div style={{ background: dark ? '#1C1509' : '#F0EBE0', borderRadius: '10px', padding: '14px 16px', marginBottom: '12px' }}>
+                    <p style={{ fontSize: '13px', fontWeight: '700', color: C.text, margin: '0 0 10px' }}>Create a free account to:</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', marginBottom: '14px' }}>
+                      {[['Track your offer status in one place', '📋'], ['Get notified the moment it\'s accepted', '🔔'], ['Make future offers from your saved profile', '⚡']].map(([text, icon]) => (
+                        <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '14px' }}>{icon}</span>
+                          <span style={{ fontSize: '13px', color: C.textSub }}>{text}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <button className="btn btn-primary" onClick={() => navigate('signup')} style={{ width: '100%', padding: '12px', fontSize: '14px' }}>Create free account →</button>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <button onClick={() => navigate('browse')} style={{ background: 'none', border: 'none', fontSize: '13px', color: C.textMuted, cursor: 'pointer', padding: '4px 0' }}>Browse more listings →</button>
+                    <p style={{ fontSize: '11px', color: C.textMuted, margin: '4px 0 0', opacity: 0.7 }}>No account needed to make offers</p>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -3313,8 +3331,7 @@ function App() {
             <div className="card" style={{ textAlign: 'center', padding: '36px 20px', marginBottom: '10px' }}>
               <svg width="32" height="32" fill="none" stroke={C.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '10px', opacity: 0.4 }}><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
               <p style={{ fontSize: '14px', fontWeight: '600', color: C.text, marginBottom: '4px' }}>No offers yet</p>
-              <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: !user ? '16px' : '0' }}>Be the first seller to reach out</p>
-              {!user && <button className="btn btn-primary" onClick={() => navigate('login')} style={{ fontSize: '13px', padding: '10px 24px' }}>Make an offer →</button>}
+              <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '0' }}>Be the first seller to reach out</p>
             </div>
           )}
 
