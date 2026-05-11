@@ -659,7 +659,7 @@ function App() {
       const u = session?.user ?? null
       setUser(u)
       if (u) {
-        setPage('home')
+        if (!deepLinkRef.current) setPage('home')
         await fetchMyProfile(u)
       }
       if (deepLinkRef.current) {
@@ -671,7 +671,10 @@ function App() {
       sessionRef.current = session
       const u = session?.user ?? null
       setUser(u)
-      if (u) { if (page === 'landing') setPage('home'); await fetchMyProfile(u) }
+      if (u) {
+        if (_e === 'SIGNED_IN') setPage('home')
+        await fetchMyProfile(u)
+      }
     })
   }, [])
 
