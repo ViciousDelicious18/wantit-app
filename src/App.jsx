@@ -2587,14 +2587,16 @@ function App() {
           {Header()}
           <div className="hero" style={{ width: '100%', boxSizing: 'border-box' }}>
             <div className="hero-content">
-              <div className="hero-headline gsap-h1">Post what you need.<br />Get offers.</div>
-              <p className="hero-sub gsap-h2">Sellers come to you. Compare deals, pick the best one.</p>
+              <div className="hero-headline gsap-h1">Post what you need.</div>
+              <p className="hero-sub gsap-h2">Let sellers come to you — a simpler, fairer way to buy in New Zealand.</p>
               <div className="gsap-h3" style={{ marginBottom: '28px' }}>
-                <button className="btn-primary btn btn-hero" onClick={() => navigate('signup')} style={{ padding: '18px 48px', fontSize: '17px', borderRadius: '12px', fontWeight: '700', letterSpacing: '-0.2px' }}>Post what you need</button>
-                <button onClick={() => navigate('browse')} style={{ display: 'block', margin: '18px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.85)', fontSize: '15px', fontWeight: '500', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '-0.1px' }}>or browse listings ↓</button>
+                <button className="btn-primary btn btn-hero" onClick={() => navigate('signup')} style={{ padding: '18px 48px', fontSize: '17px', borderRadius: '12px', fontWeight: '700', letterSpacing: '-0.2px' }}>Post a Request</button>
+                <button onClick={() => navigate('browse')} style={{ display: 'block', margin: '18px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.85)', fontSize: '15px', fontWeight: '500', cursor: 'pointer', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '-0.1px' }}>Browse requests ↓</button>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: '500', letterSpacing: '0.01em' }}>NZ owned & operated</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '16px' }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.4)', display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', fontWeight: '500', letterSpacing: '0.04em' }}>Built in New Zealand · Early access</span>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.4)', display: 'inline-block', flexShrink: 0 }} />
               </div>
               <div className="gsap-h3" style={{ marginBottom: '40px', maxWidth: 360, margin: '0 auto 40px' }}>
                 <div style={{ position: 'relative' }} onClick={() => navigate('signup')}>
@@ -2663,8 +2665,8 @@ function App() {
 
         <div style={{ padding: '32px 16px 8px', maxWidth: '640px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '20px' }} className="reveal">
-            <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.2px', color: C.textMuted, marginBottom: '8px' }}>The smarter way to buy</div>
-            <div style={{ fontSize: '16px', fontWeight: '600', color: C.text, lineHeight: 1.2 }}>Why use Offrit?</div>
+            <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.2px', color: C.textMuted, marginBottom: '8px' }}>Built for buyers</div>
+            <div style={{ fontSize: '16px', fontWeight: '600', color: C.text, lineHeight: 1.2 }}>Why Offrit?</div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '8px' }}>
             {[
@@ -2791,10 +2793,24 @@ function App() {
             <span style={{ fontSize: '12px', color: C.textMuted }}>{filteredWants.length} result{filteredWants.length !== 1 ? 's' : ''}</span>
           </div>
           {loading ? [1,2,3].map(i => <SkeletonCard key={i} hasImage={i !== 2} />) : filteredWants.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '56px 20px 40px' }}>
-              <svg width="40" height="40" fill="none" stroke={C.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '14px', opacity: 0.6 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <p style={{ fontSize: '15px', fontWeight: '600', color: C.text, marginBottom: '6px' }}>Nothing here yet</p>
-              <p style={{ fontSize: '13px', color: C.textMuted, lineHeight: '1.55' }}>Try a different location, category, or clear your filters</p>
+            <div style={{ textAlign: 'center', padding: '48px 20px 32px' }}>
+              <div style={{ width: 48, height: 48, borderRadius: '14px', background: dark ? 'rgba(30,84,112,0.1)' : '#EAF0F4', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <svg width="22" height="22" fill="none" stroke="#1E5470" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <p style={{ fontSize: '15px', fontWeight: '600', color: C.text, marginBottom: '6px' }}>
+                {(filterLocations.length > 0 || nearMe || filterCategory || search) ? 'No listings match your filters' : 'Nothing here yet'}
+              </p>
+              <p style={{ fontSize: '13px', color: C.textMuted, lineHeight: '1.6', marginBottom: '20px' }}>
+                {nearMe ? 'Be the first to post a request in your area.'
+                  : filterLocations.length > 0 ? `No requests in ${filterLocations[0]}${filterLocations.length > 1 ? ` or ${filterLocations.length - 1} other region${filterLocations.length > 2 ? 's' : ''}` : ''} yet — be the first.`
+                  : filterCategory ? `No ${filterCategory.toLowerCase()} requests yet. Post the first one.`
+                  : search ? 'Try different keywords, or post a request and let sellers find you.'
+                  : "This is a growing marketplace — early movers get the best responses."}
+              </p>
+              {(filterLocations.length > 0 || nearMe || filterCategory || search) && (
+                <button onClick={() => { setFilterLocations([]); setPendingLocations([]); setNearMe(false); setUserCity(null); setFilterCategory(''); setSearch('') }} style={{ fontSize: '13px', color: C.accentText, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', marginBottom: '14px', display: 'block', margin: '0 auto 14px', fontFamily: "'Inter', system-ui, sans-serif" }}>Clear all filters</button>
+              )}
+              <button className="btn btn-primary" onClick={() => navigate('signup')} style={{ fontSize: '14px', padding: '12px 28px' }}>Post a Request</button>
             </div>
           ) : filteredWants.map((want, i) => <Fragment key={want.id}>{WantCard({ want, index: i, subtle: true })}</Fragment>)}
           <div style={{ background: '#16110A', borderRadius: '12px', padding: '24px', textAlign: 'center', marginTop: '8px', marginBottom: '20px' }}>
@@ -4108,10 +4124,24 @@ function App() {
         </div>
 
         {loading ? [1,2,3].map(i => <SkeletonCard key={i} hasImage={i !== 2} />) : filteredWants.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '56px 20px 40px' }}>
-            <svg width="40" height="40" fill="none" stroke={C.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ marginBottom: '14px', opacity: 0.6 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <p style={{ fontSize: '15px', fontWeight: '600', color: C.text, marginBottom: '6px' }}>Nothing here yet</p>
-            <p style={{ fontSize: '13px', color: C.textMuted, lineHeight: '1.55' }}>Try a different location, category, or clear your filters</p>
+          <div style={{ textAlign: 'center', padding: '48px 20px 32px' }}>
+            <div style={{ width: 48, height: 48, borderRadius: '14px', background: dark ? 'rgba(30,84,112,0.1)' : '#EAF0F4', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <svg width="22" height="22" fill="none" stroke="#1E5470" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <p style={{ fontSize: '15px', fontWeight: '600', color: C.text, marginBottom: '6px' }}>
+              {hasActiveFilter ? 'No listings match your filters' : 'Nothing here yet'}
+            </p>
+            <p style={{ fontSize: '13px', color: C.textMuted, lineHeight: '1.6', marginBottom: '20px' }}>
+              {nearMe ? 'Be the first to post a request in your area.'
+                : filterLocations.length > 0 ? `No requests in ${filterLocations[0]}${filterLocations.length > 1 ? ` or ${filterLocations.length - 1} other${filterLocations.length > 2 ? 's' : ''}` : ''} yet.`
+                : filterCategory ? `No ${filterCategory.toLowerCase()} requests yet — be an early mover.`
+                : search ? 'Try different keywords, or post a request and let sellers find you.'
+                : 'This is a growing marketplace. Be first to post and sellers will come to you.'}
+            </p>
+            {hasActiveFilter && (
+              <button onClick={() => { setFilterLocations([]); setPendingLocations([]); setNearMe(false); setUserCity(null); setFilterCategory(''); setSearch('') }} style={{ fontSize: '13px', color: C.accentText, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', marginBottom: '14px', display: 'block', margin: '0 auto 14px', fontFamily: "'Inter', system-ui, sans-serif" }}>Clear all filters</button>
+            )}
+            <button className="btn btn-primary" onClick={() => navigate('post')} style={{ fontSize: '14px', padding: '12px 28px' }}>Post a Request</button>
           </div>
         ) : hasActiveFilter ? (
           <>
