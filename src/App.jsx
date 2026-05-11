@@ -1093,6 +1093,21 @@ function App() {
         `<p>Hi,</p><p>Great news — the buyer accepted your offer on <strong>${want.title}</strong>.</p><p>Log in to message them and sort out the details.</p><p>— The Offrit team</p>`
       )
     }
+    // Anonymous offer: exchange contact details via email on acceptance
+    if (acceptedOff?.seller_contact && want) {
+      fetch('/api/accept-anon-offer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          seller_name: acceptedOff.seller_name,
+          seller_contact: acceptedOff.seller_contact,
+          buyer_email: user.email,
+          buyer_username: getUsername(user.email),
+          want_title: want.title,
+          want_id: want.id
+        })
+      }).catch(() => {})
+    }
     // Trigger deal rating modal after a short pause
     if (acceptedOff?.seller_email) {
       setTimeout(() => setDealRatingModal({ email: acceptedOff.seller_email, wantTitle: want?.title }), 600)
@@ -3255,7 +3270,7 @@ function App() {
                     <svg width="22" height="22" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
                   </div>
                   <p style={{ fontSize: '16px', fontWeight: '700', color: C.text, marginBottom: '6px' }}>Offer sent!</p>
-                  <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '18px', lineHeight: 1.5 }}>The buyer has been emailed your details and will reach out directly.</p>
+                  <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '18px', lineHeight: 1.5 }}>The buyer has been notified. If they accept, you'll both receive each other's contact details by email.</p>
                   <button className="btn btn-primary" onClick={() => navigate('signup')} style={{ width: '100%', padding: '12px', fontSize: '13px', marginBottom: '8px' }}>Create a free account →</button>
                   <p style={{ fontSize: '11px', color: C.textMuted }}>Post your own wants, track offers, and message buyers.</p>
                 </div>

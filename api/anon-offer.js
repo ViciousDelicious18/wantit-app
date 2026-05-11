@@ -21,6 +21,7 @@ export default async function handler(req, res) {
   const msg = message.trim()
   const listingUrl = `${SITE_URL}/want/${want_id}`
 
+  // Contact details are NOT included — only revealed to buyer when they accept
   const emailHtml = `
 <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;color:#16110A">
   <p style="font-size:15px">Hi,</p>
@@ -30,19 +31,18 @@ export default async function handler(req, res) {
   </div>
   <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
     <tr><td style="padding:6px 0;font-size:13px;color:#7A6F5C;width:90px">From</td><td style="padding:6px 0;font-size:14px;font-weight:600">${esc(name)}</td></tr>
-    <tr><td style="padding:6px 0;font-size:13px;color:#7A6F5C">Contact</td><td style="padding:6px 0;font-size:14px"><a href="${contact.includes('@') ? `mailto:${esc(contact)}` : `tel:${esc(contact)}`}" style="color:#1E5470">${esc(contact)}</a></td></tr>
     ${price ? `<tr><td style="padding:6px 0;font-size:13px;color:#7A6F5C">Offered</td><td style="padding:6px 0;font-size:14px;font-weight:600">${esc(price)}</td></tr>` : ''}
   </table>
   <div style="background:#fff;border:1px solid #EDE6D6;border-radius:10px;padding:14px 16px;margin-bottom:20px">
     <p style="font-size:14px;line-height:1.6;margin:0;white-space:pre-wrap">${esc(msg)}</p>
   </div>
-  <p style="font-size:13px;color:#7A6F5C">Reach them directly at: <strong style="color:#16110A">${esc(contact)}</strong></p>
-  <p style="font-size:13px"><a href="${listingUrl}" style="color:#1E5470">View listing on Offrit →</a></p>
+  <p style="font-size:13px;color:#7A6F5C">Accept this offer on Offrit to receive their contact details.</p>
+  <p style="font-size:13px"><a href="${listingUrl}" style="color:#1E5470;font-weight:600">View &amp; accept on Offrit →</a></p>
   <hr style="border:none;border-top:1px solid #EDE6D6;margin:20px 0">
   <p style="font-size:11px;color:#7A6F5C">Offrit — New Zealand's buyer-first marketplace</p>
 </div>`
 
-  // Send email to buyer
+  // Send notification to buyer (no contact info — revealed only on acceptance)
   await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
