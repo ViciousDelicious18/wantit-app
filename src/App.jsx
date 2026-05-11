@@ -447,8 +447,16 @@ function App() {
   const [reportUserReason, setReportUserReason] = useState('')
   const [submittingUserReport, setSubmittingUserReport] = useState(false)
   const [adminReports, setAdminReports] = useState([])
-  const [adminTab, setAdminTab] = useState('reports') // 'reports' | 'bans'
+  const [adminTab, setAdminTab] = useState('reports') // 'reports' | 'support' | 'bans'
   const [bannedList, setBannedList] = useState([])
+  const [supportMessages, setSupportMessages] = useState([])
+  const [adminUserSearch, setAdminUserSearch] = useState('')
+  const [adminSearchResult, setAdminSearchResult] = useState(null) // profile row or null
+  const [showContactAdmin, setShowContactAdmin] = useState(false)
+  const [contactPrivacyAck, setContactPrivacyAck] = useState(false)
+  const [contactMessage, setContactMessage] = useState('')
+  const [submittingContact, setSubmittingContact] = useState(false)
+  const [reportUserAlsoBlock, setReportUserAlsoBlock] = useState(true)
   const ADMIN_EMAIL = 'dupreezdylan2@gmail.com'
   const [toast, setToast] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
@@ -1056,10 +1064,17 @@ function App() {
   async function submitReport() {
     if (!reportReason || !user || !reportModal) return
     setSubmittingReport(true)
-    await supabase.from('reports').insert([{ want_id: reportModal.id, reporter_id: user.id, reporter_email: user.email, reason: reportReason, details: reportDetails || null, report_type: 'listing' }])
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    await fetch(`${supabaseUrl}/rest/v1/reports`, {
+      method: 'POST',
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ want_id: reportModal.id, reporter_id: user.id, reporter_email: user.email, reason: reportReason, details: reportDetails || null, report_type: 'listing' })
+    }).catch(() => {})
     setReportModal(null); setReportReason(''); setReportDetails('')
     setSubmittingReport(false)
-    showToast('Report submitted — we\'ll review within 48 hours')
+    showToast('Report submitted — we\'ll review within 48 hours', 'success')
   }
 
   async function fetchBlocks() {
@@ -1114,9 +1129,27 @@ function App() {
       headers: { apikey: supabaseKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify({ reported_user_email: reportUserModal.email, reporter_id: user.id, reporter_email: user.email, reason: reportUserReason, report_type: 'user' })
     }).catch(() => {})
-    setReportUserModal(null); setReportUserReason('')
+    if (reportUserAlsoBlock) await blockUser(reportUserModal.email)
+    const blocked = reportUserAlsoBlock
+    setReportUserModal(null); setReportUserReason(''); setReportUserAlsoBlock(true)
     setSubmittingUserReport(false)
-    showToast('User reported — we\'ll review within 48 hours')
+    showToast(blocked ? 'User reported and blocked' : 'User reported — we\'ll review within 48 hours', 'success')
+  }
+
+  async function submitContactMessage() {
+    if (!contactMessage.trim() || !contactPrivacyAck) return
+    setSubmittingContact(true)
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    await fetch(`${supabaseUrl}/rest/v1/support_messages`, {
+      method: 'POST',
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${token || supabaseKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ sender_email: user?.email || null, sender_username: myProfile?.username || null, message: contactMessage.trim() })
+    }).catch(() => {})
+    setContactMessage(''); setContactPrivacyAck(false); setShowContactAdmin(false)
+    setSubmittingContact(false)
+    showToast('Message sent to Offrit support', 'success')
   }
 
   async function fetchAdminReports() {
@@ -1124,16 +1157,60 @@ function App() {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
     const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
     const token = sessionRef.current?.access_token
-    const [rRes, bRes] = await Promise.all([
+    const [rRes, bRes, sRes] = await Promise.all([
       fetch(`${supabaseUrl}/rest/v1/reports?report_type=eq.user&order=created_at.desc&select=*`, {
         headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` }
       }),
       fetch(`${supabaseUrl}/rest/v1/banned_users?order=banned_at.desc&select=*`, {
         headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` }
+      }),
+      fetch(`${supabaseUrl}/rest/v1/support_messages?order=created_at.desc&select=*`, {
+        headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` }
       })
     ])
     if (rRes.ok) setAdminReports(await rRes.json())
     if (bRes.ok) setBannedList(await bRes.json())
+    if (sRes.ok) setSupportMessages(await sRes.json())
+  }
+
+  async function resolveSupport(id) {
+    if (user?.email !== ADMIN_EMAIL) return
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    await fetch(`${supabaseUrl}/rest/v1/support_messages?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ resolved: true })
+    })
+    setSupportMessages(prev => prev.map(m => m.id === id ? { ...m, resolved: true } : m))
+  }
+
+  async function deleteSupport(id) {
+    if (user?.email !== ADMIN_EMAIL) return
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    await fetch(`${supabaseUrl}/rest/v1/support_messages?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` }
+    })
+    setSupportMessages(prev => prev.filter(m => m.id !== id))
+  }
+
+  async function adminSearchUser(query) {
+    if (!query.trim() || user?.email !== ADMIN_EMAIL) return
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    const q = query.trim().replace(/^@/, '')
+    const res = await fetch(`${supabaseUrl}/rest/v1/profiles?or=(username.ilike.*${encodeURIComponent(q)}*,email.ilike.*${encodeURIComponent(q)}*)&select=id,username,email&limit=5`, {
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` }
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setAdminSearchResult(data.length > 0 ? data : 'none')
+    }
   }
 
   async function banUser(email, reason) {
@@ -2132,6 +2209,7 @@ function App() {
               <button className={`header-nav-btn${['inbox','messages'].includes(page) ? ' active' : ''}`} onClick={() => navigate('inbox')}>
                 Messages{unreadMessages > 0 ? ` (${unreadMessages})` : ''}
               </button>
+              <button className="header-nav-btn" onClick={() => setShowContactAdmin(true)}>Support</button>
               {user?.email === ADMIN_EMAIL && (
                 <button className={`header-nav-btn${page === 'admin' ? ' active' : ''}`} onClick={() => navigate('admin')} style={{ color: '#9B3232', fontWeight: '600' }}>Admin</button>
               )}
@@ -2589,7 +2667,7 @@ function App() {
   const ReportUserModal = () => {
     if (!reportUserModal) return null
     return (
-      <div className="modal-overlay" onClick={() => { setReportUserModal(null); setReportUserReason('') }}>
+      <div className="modal-overlay" onClick={() => { setReportUserModal(null); setReportUserReason(''); setReportUserAlsoBlock(true) }}>
         <div className="modal" style={{ background: C.card, maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
           <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px', color: C.text }}>Report @{reportUserModal.username}</h3>
           <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '16px' }}>Why are you reporting this user?</p>
@@ -2600,11 +2678,67 @@ function App() {
               </div>
             ))}
           </div>
-          <div style={{ background: dark ? '#0A1E35' : '#F0F4F8', borderRadius: '10px', padding: '10px 14px', marginBottom: '14px', fontSize: '12px', color: C.textMuted, lineHeight: 1.6 }}>
+          <label onClick={() => setReportUserAlsoBlock(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderRadius: '10px', border: `1.5px solid ${C.cardBorder}`, marginBottom: '14px', cursor: 'pointer' }}>
+            <div style={{ width: '18px', height: '18px', borderRadius: '5px', border: `2px solid ${reportUserAlsoBlock ? '#9B3232' : C.textMuted}`, background: reportUserAlsoBlock ? '#9B3232' : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
+              {reportUserAlsoBlock && <svg width="11" height="11" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>}
+            </div>
+            <div>
+              <p style={{ fontSize: '13px', fontWeight: '600', color: C.text, margin: 0 }}>Also block this user</p>
+              <p style={{ fontSize: '11px', color: C.textMuted, margin: 0 }}>Their listings and messages will be hidden from you</p>
+            </div>
+          </label>
+          <div style={{ background: dark ? '#1A1208' : '#FEF9EC', border: `1px solid ${dark ? '#3A2F10' : '#F5E6A3'}`, borderRadius: '10px', padding: '10px 14px', marginBottom: '14px', fontSize: '12px', color: C.textMuted, lineHeight: 1.6 }}>
             Reports are reviewed within 48 hours. Serious threats or illegal content are referred to NZ Police and the Department of Internal Affairs.
           </div>
           <button className="btn btn-red" onClick={submitUserReport} disabled={!reportUserReason || submittingUserReport} style={{ width: '100%', padding: '13px' }}>
-            {submittingUserReport ? 'Submitting…' : 'Submit report'}
+            {submittingUserReport ? 'Submitting…' : reportUserAlsoBlock ? 'Report & block user' : 'Submit report'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const ContactAdminModal = () => {
+    if (!showContactAdmin) return null
+    const MAX = 500
+    const remaining = MAX - contactMessage.length
+    return (
+      <div className="modal-overlay" onClick={() => { setShowContactAdmin(false); setContactPrivacyAck(false); setContactMessage('') }}>
+        <div className="modal" style={{ background: C.card, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+          <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px', color: C.text }}>Contact Offrit Support</h3>
+          <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '16px' }}>Send a message to the Offrit team</p>
+
+          {/* Privacy notice — always shown */}
+          <div style={{ background: dark ? '#0F1A10' : '#F0FDF4', border: `1.5px solid ${dark ? '#2A4A2A' : '#BBF7D0'}`, borderRadius: '12px', padding: '14px 16px', marginBottom: '16px' }}>
+            <p style={{ fontSize: '12px', fontWeight: '700', color: dark ? '#86EFAC' : '#166534', marginBottom: '8px', letterSpacing: '0.3px', textTransform: 'uppercase', fontFamily: "'JetBrains Mono', monospace" }}>Before you send</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <p style={{ fontSize: '12px', color: C.textMuted, margin: 0, lineHeight: 1.5 }}><span style={{ color: dark ? '#86EFAC' : '#166534', fontWeight: '700' }}>✓</span> We can investigate accounts and remove content that breaks our rules</p>
+              <p style={{ fontSize: '12px', color: C.textMuted, margin: 0, lineHeight: 1.5 }}><span style={{ color: '#9B3232', fontWeight: '700' }}>✗</span> We <strong>cannot</strong> access your private messages or offer conversations</p>
+              <p style={{ fontSize: '12px', color: C.textMuted, margin: 0, lineHeight: 1.5 }}><span style={{ color: '#9B3232', fontWeight: '700' }}>✗</span> We <strong>cannot</strong> use chat logs as evidence — provide screenshots if needed</p>
+              <p style={{ fontSize: '12px', color: C.textMuted, margin: 0, lineHeight: 1.5 }}><span style={{ color: dark ? '#86EFAC' : '#166534', fontWeight: '700' }}>✓</span> Reference a user's @username or listing to help us identify the issue</p>
+            </div>
+          </div>
+
+          <textarea
+            placeholder="Describe your issue. Reference a @username or listing if relevant…"
+            value={contactMessage}
+            onChange={e => { if (e.target.value.length <= MAX) setContactMessage(e.target.value) }}
+            rows={5}
+            style={{ resize: 'none', marginBottom: '6px', borderColor: remaining < 50 ? '#9B3232' : C.cardBorder }}
+          />
+          <p style={{ fontSize: '11px', color: remaining < 50 ? '#9B3232' : C.textMuted, textAlign: 'right', marginBottom: '14px' }}>{remaining} characters left</p>
+
+          <label onClick={() => setContactPrivacyAck(v => !v)} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '16px', cursor: 'pointer' }}>
+            <div style={{ width: '18px', height: '18px', borderRadius: '5px', border: `2px solid ${contactPrivacyAck ? '#1E5470' : C.textMuted}`, background: contactPrivacyAck ? '#1E5470' : 'transparent', flexShrink: 0, marginTop: '1px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
+              {contactPrivacyAck && <svg width="11" height="11" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>}
+            </div>
+            <p style={{ fontSize: '12px', color: C.textMuted, margin: 0, lineHeight: 1.5 }}>I understand Offrit cannot access my private conversations and that this message goes directly to the Offrit support team</p>
+          </label>
+
+          {user?.email && <p style={{ fontSize: '11px', color: C.textMuted, marginBottom: '14px' }}>Sending as <strong>{user.email}</strong></p>}
+
+          <button className="btn btn-primary" onClick={submitContactMessage} disabled={!contactMessage.trim() || !contactPrivacyAck || submittingContact} style={{ width: '100%', padding: '13px' }}>
+            {submittingContact ? 'Sending…' : 'Send message'}
           </button>
         </div>
       </div>
@@ -3112,6 +3246,7 @@ function App() {
         <style>{styles}</style>
         {Header()}
         {ReportUserModal()}
+        {ContactAdminModal()}
         <div style={{ background: 'linear-gradient(135deg, #16110A 0%, #1A1D2E 60%, #0F1820 100%)', padding: '28px 20px 56px', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 70% 30%, rgba(30,84,112,0.18) 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, rgba(160,82,45,0.12) 0%, transparent 50%)', pointerEvents: 'none' }} />
           <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
@@ -3364,6 +3499,7 @@ function App() {
         {Lightbox()}
         {ReportModal()}
         {ReportUserModal()}
+        {ContactAdminModal()}
         {CounterModal()}
         {EditModal()}
         {DealRatingModal()}
@@ -4089,7 +4225,8 @@ function App() {
   }
 
   if (page === 'admin' && user?.email === ADMIN_EMAIL) {
-    const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
+    const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''
+    const unresolved = supportMessages.filter(m => !m.resolved)
     return (
       <div style={pageStyle}>
         <style>{styles}</style>
@@ -4100,13 +4237,51 @@ function App() {
           <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '24px' }}>Offrit moderation dashboard</p>
 
           {/* Tabs */}
-          <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: `1px solid ${C.cardBorder}`, paddingBottom: '0' }}>
-            {['reports', 'bans'].map(tab => (
-              <button key={tab} onClick={() => setAdminTab(tab)} style={{ background: 'none', border: 'none', padding: '8px 16px', fontSize: '13px', fontWeight: '600', color: adminTab === tab ? '#9B3232' : C.textMuted, borderBottom: adminTab === tab ? '2px solid #9B3232' : '2px solid transparent', cursor: 'pointer', fontFamily: 'Inter, system-ui, sans-serif', marginBottom: '-1px', textTransform: 'capitalize' }}>
-                {tab === 'reports' ? `Reports (${adminReports.length})` : `Bans (${bannedList.length})`}
+          <div style={{ display: 'flex', gap: '0', marginBottom: '20px', borderBottom: `1px solid ${C.cardBorder}` }}>
+            {[
+              { key: 'reports', label: `Reports (${adminReports.length})` },
+              { key: 'support', label: `Support${unresolved.length > 0 ? ` (${unresolved.length})` : ''}` },
+              { key: 'bans', label: `Bans (${bannedList.length})` },
+            ].map(({ key, label }) => (
+              <button key={key} onClick={() => setAdminTab(key)} style={{ background: 'none', border: 'none', padding: '8px 16px', fontSize: '13px', fontWeight: '600', color: adminTab === key ? '#9B3232' : C.textMuted, borderBottom: adminTab === key ? '2px solid #9B3232' : '2px solid transparent', cursor: 'pointer', fontFamily: 'Inter, system-ui, sans-serif', marginBottom: '-1px' }}>
+                {label}
               </button>
             ))}
-            <button onClick={fetchAdminReports} style={{ marginLeft: 'auto', background: 'none', border: `1px solid ${C.cardBorder}`, borderRadius: '8px', padding: '5px 12px', fontSize: '12px', color: C.textMuted, cursor: 'pointer', fontFamily: 'Inter, system-ui, sans-serif' }}>Refresh</button>
+            <button onClick={fetchAdminReports} style={{ marginLeft: 'auto', background: 'none', border: `1px solid ${C.cardBorder}`, borderRadius: '8px', padding: '5px 12px', fontSize: '12px', color: C.textMuted, cursor: 'pointer', fontFamily: 'Inter, system-ui, sans-serif', alignSelf: 'center', marginBottom: '4px' }}>↺ Refresh</button>
+          </div>
+
+          {/* User search — visible in all tabs */}
+          <div style={{ marginBottom: '20px' }}>
+            <p style={{ fontSize: '11px', fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', fontFamily: "'JetBrains Mono', monospace" }}>Search user</p>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                placeholder="@username or email…"
+                value={adminUserSearch}
+                onChange={e => { setAdminUserSearch(e.target.value); if (!e.target.value.trim()) setAdminSearchResult(null) }}
+                onKeyDown={e => e.key === 'Enter' && adminSearchUser(adminUserSearch)}
+                style={{ flex: 1, padding: '9px 12px', fontSize: '13px' }}
+              />
+              <button className="btn btn-primary" style={{ padding: '9px 16px', fontSize: '13px', flexShrink: 0 }} onClick={() => adminSearchUser(adminUserSearch)}>Search</button>
+            </div>
+            {adminSearchResult === 'none' && <p style={{ fontSize: '12px', color: C.textMuted, marginTop: '8px' }}>No users found</p>}
+            {Array.isArray(adminSearchResult) && adminSearchResult.map(u => {
+              const isBanned = bannedList.some(b => b.email === u.email)
+              return (
+                <div key={u.id} className="card" style={{ padding: '12px 16px', marginTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                  <div>
+                    <p style={{ fontSize: '13px', fontWeight: '600', color: C.text, margin: 0 }}>@{u.username || '—'}</p>
+                    <p style={{ fontSize: '12px', color: C.textMuted, margin: 0 }}>{u.email}</p>
+                    {isBanned && <span style={{ fontSize: '10px', fontWeight: '700', color: '#9B3232', background: '#FEF2F2', borderRadius: '4px', padding: '1px 6px', marginTop: '4px', display: 'inline-block' }}>BANNED</span>}
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {isBanned
+                      ? <button className="btn" style={{ fontSize: '12px', padding: '5px 12px' }} onClick={() => unbanUser(u.email)}>Unban</button>
+                      : <button className="btn btn-red" style={{ fontSize: '12px', padding: '5px 12px' }} onClick={() => banUser(u.email, 'Banned by admin')}>Ban</button>
+                    }
+                  </div>
+                </div>
+              )
+            })}
           </div>
 
           {adminTab === 'reports' && (
@@ -4137,6 +4312,46 @@ function App() {
                       </button>
                       <button className="btn" style={{ fontSize: '12px', padding: '6px 14px' }} onClick={() => dismissReport(r.id)}>
                         Dismiss
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {adminTab === 'support' && (
+            <div>
+              {supportMessages.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '48px 20px', color: C.textMuted }}>
+                  <p style={{ fontSize: '14px' }}>No support messages</p>
+                </div>
+              )}
+              {supportMessages.map(m => (
+                <div key={m.id} className="card" style={{ padding: '16px 20px', marginBottom: '10px', opacity: m.resolved ? 0.5 : 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                        {m.sender_username && <span style={{ fontSize: '13px', fontWeight: '600', color: C.text }}>@{m.sender_username}</span>}
+                        {m.sender_email && <span style={{ fontSize: '12px', color: C.textMuted }}>{m.sender_email}</span>}
+                        {m.resolved && <span style={{ fontSize: '10px', fontWeight: '700', color: '#3F6F4E', background: '#EDFAF4', borderRadius: '4px', padding: '1px 6px' }}>RESOLVED</span>}
+                      </div>
+                      <p style={{ fontSize: '13px', color: C.text, lineHeight: 1.6, marginBottom: '8px', whiteSpace: 'pre-wrap' }}>{m.message}</p>
+                      <p style={{ fontSize: '11px', color: C.textMuted }}>{fmtDate(m.created_at)}</p>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
+                      {!m.resolved && (
+                        <button className="btn btn-green" style={{ fontSize: '12px', padding: '6px 14px' }} onClick={() => resolveSupport(m.id)}>
+                          Resolve
+                        </button>
+                      )}
+                      {m.sender_email && !bannedList.some(b => b.email === m.sender_email) && (
+                        <button className="btn btn-red" style={{ fontSize: '12px', padding: '6px 14px' }} onClick={() => banUser(m.sender_email, 'Support ticket action')}>
+                          Ban user
+                        </button>
+                      )}
+                      <button className="btn" style={{ fontSize: '12px', padding: '6px 14px' }} onClick={() => deleteSupport(m.id)}>
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -4434,6 +4649,7 @@ function App() {
       {toast && <div className={`toast toast-${toast.type || 'default'}`}><span>{toast.msg}</span><button className="toast-close" onClick={() => setToast(null)}>✕</button></div>}
       {DealRatingModal()}
       {reportModal && ReportModal()}
+      {ContactAdminModal()}
       {showLocationPicker && LocationPicker()}
       {pullDistance > 20 && (
         <div className="pull-indicator" style={{ opacity: pullDistance / 80 }}>
