@@ -446,6 +446,10 @@ function App() {
   const [reportUserModal, setReportUserModal] = useState(null) // { email, username }
   const [reportUserReason, setReportUserReason] = useState('')
   const [submittingUserReport, setSubmittingUserReport] = useState(false)
+  const [adminReports, setAdminReports] = useState([])
+  const [adminTab, setAdminTab] = useState('reports') // 'reports' | 'bans'
+  const [bannedList, setBannedList] = useState([])
+  const ADMIN_EMAIL = 'dupreezdylan2@gmail.com'
   const [toast, setToast] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
   const pullStartRef = useRef(null)
@@ -699,6 +703,20 @@ function App() {
       setUser(u)
       if (u) {
         if (_e === 'SIGNED_IN') {
+          // Check if banned
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+          const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+          const banRes = await fetch(`${supabaseUrl}/rest/v1/banned_users?email=eq.${encodeURIComponent(u.email)}&select=email`, {
+            headers: { apikey: supabaseKey, Authorization: `Bearer ${session.access_token}` }
+          }).catch(() => null)
+          if (banRes?.ok) {
+            const banData = await banRes.json()
+            if (banData.length > 0) {
+              await supabase.auth.signOut()
+              showToast('Your account has been suspended. Contact support if you believe this is a mistake.')
+              return
+            }
+          }
           const pending = sessionStorage.getItem('pendingListing')
           if (pending) {
             sessionStorage.removeItem('pendingListing')
@@ -726,6 +744,7 @@ function App() {
   useEffect(() => { if (user) fetchInbox() }, [user])
   useEffect(() => { if (user) { fetchWishlists(); fetchKeywords(); fetchNotifications() } }, [user])
   useEffect(() => { if (user) fetchBlocks() }, [user])
+  useEffect(() => { if (page === 'admin' && user?.email === ADMIN_EMAIL) fetchAdminReports() }, [page])
   useEffect(() => {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
       navigator.serviceWorker.ready.then(reg => reg.pushManager.getSubscription()).then(sub => {
@@ -1098,6 +1117,68 @@ function App() {
     setReportUserModal(null); setReportUserReason('')
     setSubmittingUserReport(false)
     showToast('User reported — we\'ll review within 48 hours')
+  }
+
+  async function fetchAdminReports() {
+    if (user?.email !== ADMIN_EMAIL) return
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    const [rRes, bRes] = await Promise.all([
+      fetch(`${supabaseUrl}/rest/v1/reports?report_type=eq.user&order=created_at.desc&select=*`, {
+        headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` }
+      }),
+      fetch(`${supabaseUrl}/rest/v1/banned_users?order=banned_at.desc&select=*`, {
+        headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` }
+      })
+    ])
+    if (rRes.ok) setAdminReports(await rRes.json())
+    if (bRes.ok) setBannedList(await bRes.json())
+  }
+
+  async function banUser(email, reason) {
+    if (user?.email !== ADMIN_EMAIL) return
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    await fetch(`${supabaseUrl}/rest/v1/banned_users`, {
+      method: 'POST',
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ email, reason: reason || 'Violated community guidelines' })
+    })
+    // Remove all reports for this user
+    await fetch(`${supabaseUrl}/rest/v1/reports?reported_user_email=eq.${encodeURIComponent(email)}`, {
+      method: 'DELETE',
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` }
+    })
+    setBannedList(prev => [{ email, reason, banned_at: new Date().toISOString() }, ...prev.filter(b => b.email !== email)])
+    setAdminReports(prev => prev.filter(r => r.reported_user_email !== email))
+    showToast(`${email} banned`, 'success')
+  }
+
+  async function unbanUser(email) {
+    if (user?.email !== ADMIN_EMAIL) return
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    await fetch(`${supabaseUrl}/rest/v1/banned_users?email=eq.${encodeURIComponent(email)}`, {
+      method: 'DELETE',
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` }
+    })
+    setBannedList(prev => prev.filter(b => b.email !== email))
+    showToast(`${email} unbanned`)
+  }
+
+  async function dismissReport(id) {
+    if (user?.email !== ADMIN_EMAIL) return
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    await fetch(`${supabaseUrl}/rest/v1/reports?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` }
+    })
+    setAdminReports(prev => prev.filter(r => r.id !== id))
   }
 
   async function shareWant(want) {
@@ -2051,6 +2132,9 @@ function App() {
               <button className={`header-nav-btn${['inbox','messages'].includes(page) ? ' active' : ''}`} onClick={() => navigate('inbox')}>
                 Messages{unreadMessages > 0 ? ` (${unreadMessages})` : ''}
               </button>
+              {user?.email === ADMIN_EMAIL && (
+                <button className={`header-nav-btn${page === 'admin' ? ' active' : ''}`} onClick={() => navigate('admin')} style={{ color: '#9B3232', fontWeight: '600' }}>Admin</button>
+              )}
             </div>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -4000,6 +4084,89 @@ function App() {
           })()}
         </div>
         {BottomNav()}
+      </div>
+    )
+  }
+
+  if (page === 'admin' && user?.email === ADMIN_EMAIL) {
+    const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
+    return (
+      <div style={pageStyle}>
+        <style>{styles}</style>
+        {Header()}
+        {toast && <div className={`toast toast-${toast.type || 'default'}`}><span>{toast.msg}</span><button className="toast-close" onClick={() => setToast(null)}>✕</button></div>}
+        <div style={{ ...inner, paddingTop: '28px' }}>
+          <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: '28px', fontWeight: 400, letterSpacing: '-0.8px', color: C.text, marginBottom: '4px' }}>Admin Panel</h1>
+          <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '24px' }}>Offrit moderation dashboard</p>
+
+          {/* Tabs */}
+          <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: `1px solid ${C.cardBorder}`, paddingBottom: '0' }}>
+            {['reports', 'bans'].map(tab => (
+              <button key={tab} onClick={() => setAdminTab(tab)} style={{ background: 'none', border: 'none', padding: '8px 16px', fontSize: '13px', fontWeight: '600', color: adminTab === tab ? '#9B3232' : C.textMuted, borderBottom: adminTab === tab ? '2px solid #9B3232' : '2px solid transparent', cursor: 'pointer', fontFamily: 'Inter, system-ui, sans-serif', marginBottom: '-1px', textTransform: 'capitalize' }}>
+                {tab === 'reports' ? `Reports (${adminReports.length})` : `Bans (${bannedList.length})`}
+              </button>
+            ))}
+            <button onClick={fetchAdminReports} style={{ marginLeft: 'auto', background: 'none', border: `1px solid ${C.cardBorder}`, borderRadius: '8px', padding: '5px 12px', fontSize: '12px', color: C.textMuted, cursor: 'pointer', fontFamily: 'Inter, system-ui, sans-serif' }}>Refresh</button>
+          </div>
+
+          {adminTab === 'reports' && (
+            <div>
+              {adminReports.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '48px 20px', color: C.textMuted }}>
+                  <p style={{ fontSize: '32px', marginBottom: '8px' }}>✓</p>
+                  <p style={{ fontSize: '14px' }}>No pending reports</p>
+                </div>
+              )}
+              {adminReports.map(r => (
+                <div key={r.id} className="card" style={{ padding: '16px 20px', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: '13px', fontWeight: '700', color: '#9B3232', marginBottom: '4px' }}>{r.reason}</p>
+                      <p style={{ fontSize: '13px', color: C.text, marginBottom: '2px' }}>
+                        <span style={{ color: C.textMuted }}>Reported:</span> {r.reported_user_email || '—'}
+                      </p>
+                      <p style={{ fontSize: '13px', color: C.text, marginBottom: '2px' }}>
+                        <span style={{ color: C.textMuted }}>By:</span> {r.reporter_email || '—'}
+                      </p>
+                      {r.details && <p style={{ fontSize: '12px', color: C.textMuted, marginTop: '6px', lineHeight: 1.5, fontStyle: 'italic' }}>"{r.details}"</p>}
+                      <p style={{ fontSize: '11px', color: C.textMuted, marginTop: '6px' }}>{fmtDate(r.created_at)}</p>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
+                      <button className="btn btn-red" style={{ fontSize: '12px', padding: '6px 14px' }} onClick={() => banUser(r.reported_user_email, r.reason)}>
+                        Ban user
+                      </button>
+                      <button className="btn" style={{ fontSize: '12px', padding: '6px 14px' }} onClick={() => dismissReport(r.id)}>
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {adminTab === 'bans' && (
+            <div>
+              {bannedList.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '48px 20px', color: C.textMuted }}>
+                  <p style={{ fontSize: '14px' }}>No banned users</p>
+                </div>
+              )}
+              {bannedList.map(b => (
+                <div key={b.email} className="card" style={{ padding: '16px 20px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: '13px', fontWeight: '600', color: C.text, marginBottom: '2px' }}>{b.email}</p>
+                    {b.reason && <p style={{ fontSize: '12px', color: C.textMuted }}>{b.reason}</p>}
+                    <p style={{ fontSize: '11px', color: C.textMuted, marginTop: '4px' }}>Banned {fmtDate(b.banned_at)}</p>
+                  </div>
+                  <button className="btn" style={{ fontSize: '12px', padding: '6px 14px', flexShrink: 0 }} onClick={() => unbanUser(b.email)}>
+                    Unban
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     )
   }
