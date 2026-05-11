@@ -3280,10 +3280,11 @@ function App() {
                     <svg width="16" height="16" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
                     <h3 style={{ fontSize: '14px', fontWeight: '600', color: C.text }}>Make an offer</h3>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '6px' }}>
                     <input placeholder="Your name" value={anonName} onChange={e => setAnonName(e.target.value)} style={{ flex: 1 }} />
-                    <input placeholder="Email or phone" value={anonContact} onChange={e => setAnonContact(e.target.value)} style={{ flex: 1 }} />
+                    <input placeholder="Your email" type="email" value={anonContact} onChange={e => setAnonContact(e.target.value)} style={{ flex: 1 }} />
                   </div>
+                  <p style={{ fontSize: '11px', color: C.textMuted, marginBottom: '10px' }}>Your email is kept private — only shared with the buyer if they accept your offer.</p>
                   <input placeholder={isService ? 'Your price — e.g. $80/hr or $150 flat' : 'Your price — e.g. $250 (optional)'} value={offerPrice} onChange={e => setOfferPrice(e.target.value)} style={{ marginBottom: '10px' }} />
                   <textarea placeholder={isService ? 'Your experience, availability, tools or equipment…' : 'Describe what you have — condition, photos, pickup…'} value={offerMessage} onChange={e => setOfferMessage(e.target.value)} rows={3} style={{ marginBottom: '14px', resize: 'vertical' }} maxLength={2000} />
                   <button className="btn btn-primary" onClick={submitAnonOffer} disabled={!anonName.trim() || !anonContact.trim() || !offerMessage.trim() || submittingAnonOffer} style={{ width: '100%', padding: '13px', fontSize: '14px', background: isService ? '#A0522D' : undefined, borderColor: isService ? '#A0522D' : undefined }}>
