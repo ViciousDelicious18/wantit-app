@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   const name = seller_name.trim()
   const contact = seller_contact.trim()
   const msg = message.trim()
-  const listingUrl = `${SITE_URL}/want/${want_id}`
+  const listingUrl = `${SITE_URL}/?listing=${want_id}`
 
   // Contact details are NOT included — only revealed to buyer when they accept
   const emailHtml = `

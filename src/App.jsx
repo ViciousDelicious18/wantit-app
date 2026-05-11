@@ -1743,7 +1743,7 @@ function App() {
       sendEmailNotification(
         selectedWant.user_email,
         `New offer on your listing: ${selectedWant.title}`,
-        `<p>Hi,</p><p>Someone made an offer on your Offrit listing <strong>${selectedWant.title}</strong>.</p>${offerPrice ? `<p>Offered price: <strong>$${offerPrice}</strong></p>` : ''}<p>Log in to view and respond.</p><p>— The Offrit team</p>`
+        `<p>Hi,</p><p>Someone made an offer on your Offrit listing <strong>${selectedWant.title}</strong>.</p>${offerPrice ? `<p>Offered price: <strong>$${offerPrice}</strong></p>` : ''}<p><a href="https://offrit.com/?listing=${selectedWant.id}">View &amp; respond on Offrit →</a></p><p>— The Offrit team</p>`
       )
       sendPushNotification(selectedWant.user_email, 'New offer received', `${getUsername(user.email)} made an offer on: ${selectedWant.title}`)
     } catch (err) {

@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
   const name = seller_name || 'The seller'
   const contact = seller_contact
-  const listingUrl = `${SITE_URL}/want/${want_id}`
+  const listingUrl = `${SITE_URL}/?listing=${want_id}`
   const isEmail = contact.includes('@')
 
   // Email buyer with seller's contact details

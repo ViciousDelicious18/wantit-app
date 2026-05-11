@@ -10,6 +10,8 @@ function esc(str) {
     .replace(/"/g, '&quot;')
 }
 
+const BOT_UA = /bot|crawl|spider|facebookexternalhit|facebook|twitter|slack|discord|whatsapp|telegram|linkedin|preview|headless|wget|curl/i
+
 export default async function handler(req, res) {
   const { id } = req.query
 
@@ -17,6 +19,15 @@ export default async function handler(req, res) {
     return res.redirect(302, '/')
   }
 
+  const ua = req.headers['user-agent'] || ''
+  const spaUrl = `${SITE_URL}/?listing=${id}`
+
+  // Real browsers get an instant redirect — no double page load
+  if (!BOT_UA.test(ua)) {
+    return res.redirect(302, spaUrl)
+  }
+
+  // Crawlers get OG-tagged HTML so social previews work
   let want = null
   try {
     const r = await fetch(
@@ -26,7 +37,7 @@ export default async function handler(req, res) {
     const data = await r.json()
     want = data?.[0] ?? null
   } catch {
-    // fall through to redirect
+    return res.redirect(302, '/')
   }
 
   if (!want) {
@@ -50,8 +61,6 @@ export default async function handler(req, res) {
     ' — Posted on Offrit, New Zealand\'s buyer-first marketplace.'
 
   const canonical = `${SITE_URL}/want/${id}`
-  // Redirect real browsers to SPA using the existing ?listing= deep link mechanism
-  const spaUrl = `${SITE_URL}/?listing=${id}`
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
   res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400')
@@ -62,21 +71,14 @@ export default async function handler(req, res) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${esc(ogTitle)}</title>
   <link rel="canonical" href="${esc(canonical)}" />
-
-  <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="${esc(canonical)}" />
   <meta property="og:title" content="${esc(ogTitle)}" />
   <meta property="og:description" content="${esc(ogDescription)}" />
   <meta property="og:site_name" content="Offrit" />
-
-  <!-- Twitter -->
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="${esc(ogTitle)}" />
   <meta name="twitter:description" content="${esc(ogDescription)}" />
-
-  <!-- Redirect real browsers to the SPA (crawlers ignore meta refresh) -->
-  <meta http-equiv="refresh" content="0;url=${esc(spaUrl)}" />
 </head>
 <body>
   <h1>${esc(title)}</h1>
