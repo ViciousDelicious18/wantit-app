@@ -410,6 +410,10 @@ function App() {
   const [offerPrice, setOfferPrice] = useState('')
   const [offerMessage, setOfferMessage] = useState('')
   const [submittingOffer, setSubmittingOffer] = useState(false)
+  const [anonName, setAnonName] = useState('')
+  const [anonContact, setAnonContact] = useState('')
+  const [anonOfferSent, setAnonOfferSent] = useState(false)
+  const [submittingAnonOffer, setSubmittingAnonOffer] = useState(false)
   const [filterLocations, setFilterLocations] = useState([])
   const [pendingLocations, setPendingLocations] = useState([])
   const [filterCategory, setFilterCategory] = useState('')
@@ -1721,6 +1725,34 @@ function App() {
     }
   }
 
+  async function submitAnonOffer() {
+    if (!anonName.trim() || !anonContact.trim() || !offerMessage.trim()) return
+    if (rateLimited('submitAnonOffer', 10000)) { showToast('Please wait before submitting another offer'); return }
+    setSubmittingAnonOffer(true)
+    try {
+      const res = await fetch('/api/anon-offer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          want_id: selectedWant.id,
+          want_title: selectedWant.title,
+          buyer_email: selectedWant.user_email,
+          seller_name: anonName.trim(),
+          seller_contact: anonContact.trim(),
+          price: offerPrice || null,
+          message: offerMessage.trim()
+        })
+      })
+      if (!res.ok) throw new Error()
+      setAnonOfferSent(true)
+      setOfferCounts(prev => ({ ...prev, [selectedWant.id]: (prev[selectedWant.id] || 0) + 1 }))
+    } catch {
+      showToast('Failed to send offer — please try again', 'error')
+    } finally {
+      setSubmittingAnonOffer(false)
+    }
+  }
+
   function openWant(want) {
     scrollPos.current[page] = window.scrollY
     window.history.pushState({ page: 'want' }, '')
@@ -1740,7 +1772,7 @@ function App() {
       setSeenWants(updatedSeen)
       localStorage.setItem('seenWants', JSON.stringify([...updatedSeen]))
     }
-    setSelectedWant(wantToShow); setOffers([]); fetchOffers(want.id); setPage('want')
+    setSelectedWant(wantToShow); setOffers([]); fetchOffers(want.id); setPage('want'); setAnonOfferSent(false)
     window.scrollTo(0, 0)
     if (want.user_id === user?.id) {
       const updated = { ...seenOffers, [want.id]: offerCounts[want.id] || 0 }
@@ -3216,9 +3248,38 @@ function App() {
               )}
             </div>
           ) : !user ? (
-            <div style={{ background: dark ? '#1A1208' : '#F5EBDF', border: `1px solid ${dark ? '#3D2A14' : '#E8D5BE'}`, borderRadius: '12px', padding: '16px 18px', marginBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', boxShadow: '0 1px 0 rgba(0,0,0,0.04)' }}>
-              <span style={{ fontSize: '13px', color: dark ? '#C8A882' : '#3D3528' }}>Have something that matches? Make an offer.</span>
-              <button className="btn btn-primary" onClick={() => navigate('login')} style={{ fontSize: '12px', padding: '7px 14px', whiteSpace: 'nowrap' }}>Log in</button>
+            <div className="card fade-up" style={{ padding: '22px', marginBottom: '14px' }}>
+              {anonOfferSent ? (
+                <div style={{ textAlign: 'center', padding: '10px 0 6px' }}>
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#0E9A6E', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+                    <svg width="22" height="22" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <p style={{ fontSize: '16px', fontWeight: '700', color: C.text, marginBottom: '6px' }}>Offer sent!</p>
+                  <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '18px', lineHeight: 1.5 }}>The buyer has been emailed your details and will reach out directly.</p>
+                  <button className="btn btn-primary" onClick={() => navigate('signup')} style={{ width: '100%', padding: '12px', fontSize: '13px', marginBottom: '8px' }}>Create a free account →</button>
+                  <p style={{ fontSize: '11px', color: C.textMuted }}>Post your own wants, track offers, and message buyers.</p>
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+                    <svg width="16" height="16" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+                    <h3 style={{ fontSize: '14px', fontWeight: '600', color: C.text }}>Make an offer</h3>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                    <input placeholder="Your name" value={anonName} onChange={e => setAnonName(e.target.value)} style={{ flex: 1 }} />
+                    <input placeholder="Email or phone" value={anonContact} onChange={e => setAnonContact(e.target.value)} style={{ flex: 1 }} />
+                  </div>
+                  <input placeholder={isService ? 'Your price — e.g. $80/hr or $150 flat' : 'Your price — e.g. $250 (optional)'} value={offerPrice} onChange={e => setOfferPrice(e.target.value)} style={{ marginBottom: '10px' }} />
+                  <textarea placeholder={isService ? 'Your experience, availability, tools or equipment…' : 'Describe what you have — condition, photos, pickup…'} value={offerMessage} onChange={e => setOfferMessage(e.target.value)} rows={3} style={{ marginBottom: '14px', resize: 'vertical' }} maxLength={2000} />
+                  <button className="btn btn-primary" onClick={submitAnonOffer} disabled={!anonName.trim() || !anonContact.trim() || !offerMessage.trim() || submittingAnonOffer} style={{ width: '100%', padding: '13px', fontSize: '14px', background: isService ? '#A0522D' : undefined, borderColor: isService ? '#A0522D' : undefined }}>
+                    {submittingAnonOffer ? 'Sending…' : 'Send my offer →'}
+                  </button>
+                  <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: `1px solid ${C.cardBorder}`, textAlign: 'center' }}>
+                    <span style={{ fontSize: '12px', color: C.textMuted }}>Already have an account? </span>
+                    <button onClick={() => navigate('login')} style={{ background: 'none', border: 'none', fontSize: '12px', color: accentColor, cursor: 'pointer', fontWeight: '600', padding: 0 }}>Log in →</button>
+                  </div>
+                </>
+              )}
             </div>
           ) : selectedWant.status === 'filled' && !acceptedOffer ? (
             <div style={{ background: dark ? '#1A2030' : '#EDF2F7', borderRadius: '12px', padding: '14px 18px', marginBottom: '14px', fontSize: '13px', color: C.textMuted, textAlign: 'center' }}>This listing has been filled</div>
