@@ -535,7 +535,9 @@ function App() {
   const scrollPos = useRef({})
   const sessionRef = useRef(null)
   const lastSubmitRef = useRef({})
-  const deepLinkRef = useRef(new URLSearchParams(window.location.search).get('listing'))
+  const _urlListing = new URLSearchParams(window.location.search).get('listing')
+  if (_urlListing) sessionStorage.setItem('pendingListing', _urlListing)
+  const deepLinkRef = useRef(_urlListing || sessionStorage.getItem('pendingListing'))
   const filterEffectInitRef = useRef(false)
   const toastTimerRef = useRef(null)
 
@@ -663,6 +665,7 @@ function App() {
         await fetchMyProfile(u)
       }
       if (deepLinkRef.current) {
+        sessionStorage.removeItem('pendingListing')
         fetchAndOpenListing(deepLinkRef.current)
         deepLinkRef.current = null
       }
@@ -672,7 +675,15 @@ function App() {
       const u = session?.user ?? null
       setUser(u)
       if (u) {
-        if (_e === 'SIGNED_IN') setPage('home')
+        if (_e === 'SIGNED_IN') {
+          const pending = sessionStorage.getItem('pendingListing')
+          if (pending) {
+            sessionStorage.removeItem('pendingListing')
+            fetchAndOpenListing(pending)
+          } else {
+            setPage('home')
+          }
+        }
         await fetchMyProfile(u)
       }
     })
