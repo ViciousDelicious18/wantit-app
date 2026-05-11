@@ -1940,7 +1940,7 @@ function App() {
         <div style={{ maxWidth: '640px', margin: '0 auto', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div onClick={() => navigate(user ? 'home' : 'landing')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
             <div style={{ height: 44, width: 130, overflow: 'hidden', borderRadius: 8, flexShrink: 0 }}>
-              <img src="/logo3.jpg" alt="Offrit" style={{ height: 87, width: 'auto', display: 'block', marginTop: -13 }} />
+              <img src="/logo3.jpg?v=1" alt="Offrit" style={{ height: 87, width: 'auto', display: 'block', marginTop: -13 }} />
             </div>
           </div>
           {user && (
