@@ -442,6 +442,10 @@ function App() {
   const [reportModal, setReportModal] = useState(null) // want object
   const [reportReason, setReportReason] = useState('')
   const [submittingReport, setSubmittingReport] = useState(false)
+  const [blockedUsers, setBlockedUsers] = useState(new Set())
+  const [reportUserModal, setReportUserModal] = useState(null) // { email, username }
+  const [reportUserReason, setReportUserReason] = useState('')
+  const [submittingUserReport, setSubmittingUserReport] = useState(false)
   const [toast, setToast] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
   const pullStartRef = useRef(null)
@@ -585,6 +589,25 @@ function App() {
   const LICENSED_TRADE_CATS = new Set(['Electrical', 'Plumbing'])
   const PROHIBITED_KEYWORDS = ['cannabis','methamphetamine',' cocaine ',' heroin ','mdma','ketamine','illegal firearm','unregistered gun','counterfeit','fake id','prostitut','escort service']
 
+  const SLURS = ['nigger','nigga','niggah','chink','chinks','gook','gooks','spic','spics','wetback','kike','kikes','towelhead','raghead','beaner','zipperhead','faggot','faggots','tranny','cripple','retard','retarded','nazi','nonce']
+  function normalizeText(t) {
+    return t.toLowerCase().replace(/[@4]/g,'a').replace(/0/g,'o').replace(/[1!|]/g,'i').replace(/3/g,'e').replace(/[$5]/g,'s').replace(/[+]/g,'t')
+  }
+  function checkContent(text, { isAnon = false } = {}) {
+    const norm = normalizeText(text)
+    for (const s of SLURS) {
+      if (new RegExp(`\\b${s}\\b`).test(norm)) return 'Your message contains language that isn\'t allowed on Offrit.'
+    }
+    if (isAnon) {
+      if (text.length > 600) return 'Anonymous messages are limited to 600 characters.'
+      if (/https?:\/\/|www\./i.test(text)) return 'Links aren\'t allowed in anonymous messages.'
+      if (/\b\d{3}[\s.-]?\d{3,4}[\s.-]?\d{4}\b/.test(text)) return 'Please don\'t include phone numbers in your message — your contact details are captured separately.'
+      if (/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(text)) return 'Please don\'t include email addresses in your message — your contact details are captured separately.'
+    }
+    return null
+  }
+  const userReportReasons = ['Harassment or threats', 'Hate speech or discrimination', 'Spam or scam', 'Fake profile', 'Inappropriate content', 'Other']
+
   function timeAgo(dateStr) {
     const normalised = dateStr && !dateStr.endsWith('Z') && !dateStr.includes('+') ? dateStr + 'Z' : dateStr
     const d = new Date(normalised), now = new Date()
@@ -702,6 +725,7 @@ function App() {
 
   useEffect(() => { if (user) fetchInbox() }, [user])
   useEffect(() => { if (user) { fetchWishlists(); fetchKeywords(); fetchNotifications() } }, [user])
+  useEffect(() => { if (user) fetchBlocks() }, [user])
   useEffect(() => {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
       navigator.serviceWorker.ready.then(reg => reg.pushManager.getSubscription()).then(sub => {
@@ -1013,10 +1037,67 @@ function App() {
   async function submitReport() {
     if (!reportReason || !user || !reportModal) return
     setSubmittingReport(true)
-    await supabase.from('reports').insert([{ want_id: reportModal.id, reporter_id: user.id, reporter_email: user.email, reason: reportReason, details: reportDetails || null }])
+    await supabase.from('reports').insert([{ want_id: reportModal.id, reporter_id: user.id, reporter_email: user.email, reason: reportReason, details: reportDetails || null, report_type: 'listing' }])
     setReportModal(null); setReportReason(''); setReportDetails('')
     setSubmittingReport(false)
     showToast('Report submitted — we\'ll review within 48 hours')
+  }
+
+  async function fetchBlocks() {
+    if (!user) return
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    const res = await fetch(`${supabaseUrl}/rest/v1/blocks?blocker_email=eq.${encodeURIComponent(user.email)}&select=blocked_email`, {
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` }
+    }).catch(() => null)
+    if (res?.ok) {
+      const data = await res.json()
+      setBlockedUsers(new Set(data.map(r => r.blocked_email)))
+    }
+  }
+
+  async function blockUser(email) {
+    if (!user || email === user.email) return
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    setBlockedUsers(prev => new Set([...prev, email]))
+    await fetch(`${supabaseUrl}/rest/v1/blocks`, {
+      method: 'POST',
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ blocker_email: user.email, blocked_email: email })
+    }).catch(() => {})
+    showToast(`@${getUsername(email)} blocked`)
+  }
+
+  async function unblockUser(email) {
+    if (!user) return
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    setBlockedUsers(prev => { const s = new Set(prev); s.delete(email); return s })
+    await fetch(`${supabaseUrl}/rest/v1/blocks?blocker_email=eq.${encodeURIComponent(user.email)}&blocked_email=eq.${encodeURIComponent(email)}`, {
+      method: 'DELETE',
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` }
+    }).catch(() => {})
+    showToast(`@${getUsername(email)} unblocked`)
+  }
+
+  async function submitUserReport() {
+    if (!reportUserReason || !user || !reportUserModal) return
+    setSubmittingUserReport(true)
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+    const token = sessionRef.current?.access_token
+    await fetch(`${supabaseUrl}/rest/v1/reports`, {
+      method: 'POST',
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ reported_user_email: reportUserModal.email, reporter_id: user.id, reporter_email: user.email, reason: reportUserReason, report_type: 'user' })
+    }).catch(() => {})
+    setReportUserModal(null); setReportUserReason('')
+    setSubmittingUserReport(false)
+    showToast('User reported — we\'ll review within 48 hours')
   }
 
   async function shareWant(want) {
@@ -1230,6 +1311,8 @@ function App() {
 
   async function sendMessage() {
     if (!newMessage.trim() || !user || !activeThread) return
+    const msgErr = checkContent(newMessage.trim())
+    if (msgErr) { showToast(msgErr, 'error'); return }
     setSendingMessage(true)
     const isOwner = activeThread.want.user_id === user.id
     const recipientEmail = isOwner ? activeThread.offer.seller_email : activeThread.want.user_email
@@ -1719,6 +1802,8 @@ function App() {
     if (!offerMessage || !user) return
     if (rateLimited('submitOffer', 10000)) { showToast('Please wait before submitting another offer'); return }
     if (offerMessage.length > 2000) { showToast('Message too long — max 2000 characters'); return }
+    const contentErr = checkContent(offerMessage)
+    if (contentErr) { showToast(contentErr, 'error'); return }
     setSubmittingOffer(true)
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
     const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
@@ -1757,6 +1842,10 @@ function App() {
   async function submitAnonOffer() {
     if (!anonName.trim() || !anonContact.trim() || !offerMessage.trim()) return
     if (rateLimited('submitAnonOffer', 10000)) { showToast('Please wait before submitting another offer'); return }
+    const nameErr = checkContent(anonName.trim(), { isAnon: true })
+    const msgErr = checkContent(offerMessage.trim(), { isAnon: true })
+    if (nameErr) { showToast(nameErr, 'error'); return }
+    if (msgErr) { showToast(msgErr, 'error'); return }
     setSubmittingAnonOffer(true)
     try {
       const res = await fetch('/api/anon-offer', {
@@ -2413,6 +2502,31 @@ function App() {
     )
   }
 
+  const ReportUserModal = () => {
+    if (!reportUserModal) return null
+    return (
+      <div className="modal-overlay" onClick={() => { setReportUserModal(null); setReportUserReason('') }}>
+        <div className="modal" style={{ background: C.card, maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+          <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px', color: C.text }}>Report @{reportUserModal.username}</h3>
+          <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '16px' }}>Why are you reporting this user?</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
+            {userReportReasons.map(r => (
+              <div key={r} onClick={() => setReportUserReason(r)} style={{ padding: '12px 14px', borderRadius: '10px', border: `1.5px solid ${reportUserReason === r ? '#9B3232' : C.cardBorder}`, background: reportUserReason === r ? (dark ? 'rgba(155,50,50,0.15)' : '#FEF2F2') : C.card, cursor: 'pointer', fontSize: '14px', color: reportUserReason === r ? '#9B3232' : C.text, fontWeight: reportUserReason === r ? '600' : '400' }}>
+                {r}
+              </div>
+            ))}
+          </div>
+          <div style={{ background: dark ? '#0A1E35' : '#F0F4F8', borderRadius: '10px', padding: '10px 14px', marginBottom: '14px', fontSize: '12px', color: C.textMuted, lineHeight: 1.6 }}>
+            Reports are reviewed within 48 hours. Serious threats or illegal content are referred to NZ Police and the Department of Internal Affairs.
+          </div>
+          <button className="btn btn-red" onClick={submitUserReport} disabled={!reportUserReason || submittingUserReport} style={{ width: '100%', padding: '13px' }}>
+            {submittingUserReport ? 'Submitting…' : 'Submit report'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   const EditModal = () => {
     if (!editModal) return null
     return (
@@ -2913,6 +3027,7 @@ function App() {
       <div style={pageStyle}>
         <style>{styles}</style>
         {Header()}
+        {ReportUserModal()}
         <div style={{ background: 'linear-gradient(135deg, #16110A 0%, #1A1D2E 60%, #0F1820 100%)', padding: '28px 20px 56px', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 70% 30%, rgba(30,84,112,0.18) 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, rgba(160,82,45,0.12) 0%, transparent 50%)', pointerEvents: 'none' }} />
           <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
@@ -2936,6 +3051,16 @@ function App() {
                 </div>
               )}
             </div>
+            {user && !isOwnProfile && (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '14px' }}>
+                <button onClick={() => blockedUsers.has(profileEmail) ? unblockUser(profileEmail) : blockUser(profileEmail)} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '20px', color: '#fff', fontSize: '12px', padding: '6px 16px', cursor: 'pointer' }}>
+                  {blockedUsers.has(profileEmail) ? 'Unblock user' : 'Block user'}
+                </button>
+                <button onClick={() => setReportUserModal({ email: profileEmail, username: profileUsername })} style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.3)', borderRadius: '20px', color: '#F87171', fontSize: '12px', padding: '6px 16px', cursor: 'pointer' }}>
+                  Report user
+                </button>
+              </div>
+            )}
           </div>
         </div>
         <div style={{ ...inner, marginTop: '-28px' }}>
@@ -3154,6 +3279,7 @@ function App() {
         {Header()}
         {Lightbox()}
         {ReportModal()}
+        {ReportUserModal()}
         {CounterModal()}
         {EditModal()}
         {DealRatingModal()}
@@ -3348,13 +3474,14 @@ function App() {
 
           {(() => {
             const parsePrice = p => parseFloat((p || '').replace(/[^0-9.]/g, '')) || Infinity
-            const activeOffers = offers.filter(o => !isOfferExpired(o) && !['declined'].includes(o.status))
-            const sortedOffers = [...offers].sort((a, b) => {
+            const visibleOffers = offers.filter(o => !blockedUsers.has(o.seller_email))
+            const activeOffers = visibleOffers.filter(o => !isOfferExpired(o) && !['declined'].includes(o.status))
+            const sortedOffers = [...visibleOffers].sort((a, b) => {
               const aActive = activeOffers.includes(a), bActive = activeOffers.includes(b)
               if (aActive !== bActive) return aActive ? -1 : 1
               return parsePrice(a.price) - parsePrice(b.price)
             })
-            const bestOfferId = isOwner && activeOffers.length >= 2 && activeOffers[0]?.price ? activeOffers.sort((a,b) => parsePrice(a.price) - parsePrice(b.price))[0].id : null
+            const bestOfferId = isOwner && activeOffers.length >= 2 && activeOffers[0]?.price ? [...activeOffers].sort((a,b) => parsePrice(a.price) - parsePrice(b.price))[0].id : null
             return sortedOffers.map((offer, i) => {
             const expired = isOfferExpired(offer)
             const timeLeft = offerTimeLeft(offer)
@@ -3380,12 +3507,22 @@ function App() {
                 <div style={{ padding: '14px 18px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                     {isOwner ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => openProfile(offer.seller_email)}>
-                        {Avatar({ email: offer.seller_email, size: 32 })}
-                        <div>
-                          <p style={{ fontSize: '13px', color: accentColor, fontWeight: '600', marginBottom: '1px' }}>@{getUsername(offer.seller_email)}</p>
-                          {RatingBadge({ email: offer.seller_email, small: true })}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => openProfile(offer.seller_email)}>
+                          {Avatar({ email: offer.seller_email, size: 32 })}
+                          <div>
+                            <p style={{ fontSize: '13px', color: accentColor, fontWeight: '600', marginBottom: '1px' }}>@{getUsername(offer.seller_email)}</p>
+                            {RatingBadge({ email: offer.seller_email, small: true })}
+                          </div>
                         </div>
+                        {offer.seller_email && (
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <button onClick={() => blockedUsers.has(offer.seller_email) ? unblockUser(offer.seller_email) : blockUser(offer.seller_email)} style={{ background: 'none', border: 'none', fontSize: '11px', color: C.textMuted, cursor: 'pointer', padding: '2px 6px', borderRadius: '6px' }}>
+                              {blockedUsers.has(offer.seller_email) ? 'Unblock' : 'Block'}
+                            </button>
+                            <button onClick={() => setReportUserModal({ email: offer.seller_email, username: getUsername(offer.seller_email) })} style={{ background: 'none', border: 'none', fontSize: '11px', color: '#9B3232', cursor: 'pointer', padding: '2px 6px', borderRadius: '6px' }}>Report</button>
+                          </div>
+                        )}
                       </div>
                     ) : <span style={{ fontSize: '12px', color: C.textMuted }}>Your offer</span>}
                     {offer.price && <span style={{ fontSize: '20px', fontWeight: '800', color: accentColor, letterSpacing: '-0.3px' }}>{offer.price}</span>}
