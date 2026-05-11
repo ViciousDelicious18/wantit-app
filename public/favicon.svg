@@ -1,15 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#0f8bb8"/>
-      <stop offset="1" stop-color="#0b6a8a"/>
-    </linearGradient>
-  </defs>
-  <rect width="100" height="100" rx="22" fill="url(#g)"/>
-  <!-- Left mountain -->
-  <path d="M 4,86 L 36,18 L 68,86 Z" fill="rgba(255,255,255,0.22)"/>
-  <!-- Right mountain (taller, overlapping) -->
-  <path d="M 43,86 L 75,28 L 100,86 Z" fill="rgba(255,255,255,0.32)"/>
-  <!-- O ring centred on overlap -->
-  <circle cx="50" cy="58" r="14" stroke="rgba(255,255,255,0.92)" stroke-width="7" fill="rgba(255,255,255,0.1)"/>
+  <rect width="100" height="100" rx="20" fill="#F6F4EE"/>
+  <text x="50" y="72" font-family="Georgia, 'Times New Roman', serif" font-size="72" font-weight="700" text-anchor="middle" fill="#16110A" letter-spacing="-2">O</text>
 </svg>
