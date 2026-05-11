@@ -1,6 +1,5 @@
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = process.env.VITE_SUPABASE_KEY
-const RESEND_API_KEY = process.env.VITE_RESEND_API_KEY
 const SITE_URL = 'https://offrit.com'
 
 function esc(str) {
@@ -42,36 +41,55 @@ export default async function handler(req, res) {
   <p style="font-size:11px;color:#7A6F5C">Offrit — New Zealand's buyer-first marketplace</p>
 </div>`
 
-  // Send notification to buyer (no contact info — revealed only on acceptance)
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: 'Offrit <noreply@offrit.com>',
-      to: buyer_email,
-      subject: `New offer on: ${want_title}`,
-      html: emailHtml
+  // Send notification via Supabase Edge Function (same path as logged-in emails)
+  try {
+    const emailRes = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        to: buyer_email,
+        subject: `New offer on: ${want_title}`,
+        html: emailHtml
+      })
     })
-  }).catch(() => {})
+    if (!emailRes.ok) {
+      const body = await emailRes.text()
+      console.error('[anon-offer] email failed:', emailRes.status, body)
+    }
+  } catch (e) {
+    console.error('[anon-offer] email error:', e.message)
+  }
 
   // Store in DB using anon key (requires anon_offer_insert RLS policy)
-  await fetch(`${SUPABASE_URL}/rest/v1/offers`, {
-    method: 'POST',
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      Prefer: 'return=minimal'
-    },
-    body: JSON.stringify({
-      want_id,
-      seller_name: name,
-      seller_contact: contact,
-      seller_email: contact.includes('@') ? contact : null,
-      price: price || null,
-      message: msg
+  try {
+    const dbRes = await fetch(`${SUPABASE_URL}/rest/v1/offers`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify({
+        want_id,
+        seller_name: name,
+        seller_contact: contact,
+        seller_email: contact.includes('@') ? contact : null,
+        price: price || null,
+        message: msg
+      })
     })
-  }).catch(() => {})
+    if (!dbRes.ok) {
+      const body = await dbRes.text()
+      console.error('[anon-offer] db insert failed:', dbRes.status, body)
+    }
+  } catch (e) {
+    console.error('[anon-offer] db error:', e.message)
+  }
 
   res.status(200).json({ ok: true })
 }
